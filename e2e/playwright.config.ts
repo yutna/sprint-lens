@@ -1,7 +1,11 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const PORT = Number(process.env.E2E_PORT ?? 4010)
-const BASE_URL = `http://127.0.0.1:${PORT}`
+// `localhost`, not `127.0.0.1`: the app builds absolute URLs (the emailed
+// sign-in link) from the endpoint's configured host, which is `localhost`.
+// Browsing one and following a link to the other crosses a cookie origin
+// boundary, and the session silently does not come along.
+const BASE_URL = `http://localhost:${PORT}`
 
 /**
  * Playwright drives the app the way a person would, which is the only way to

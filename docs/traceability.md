@@ -10,7 +10,7 @@ test title.
 | --- | --- | --- |
 | AI-001 | **uncovered** | |
 | AI-002 | **uncovered** | |
-| AI-003 | **uncovered** | |
+| AI-003 | covered | |
 | AI-004 | **uncovered** | |
 | AI-005 | covered | |
 | AI-006 | **uncovered** | |

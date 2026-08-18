@@ -28,6 +28,8 @@ defmodule SprintLensWeb.ApiError do
     wrong_phase: 422,
     session_closed: 422,
     team_archived: 422,
+    last_lead: 422,
+    builtin: 422,
     ai_disabled: 422,
     webhooks_disabled: 422,
     rate_limited: 429,
@@ -74,6 +76,8 @@ defmodule SprintLensWeb.ApiError do
   def message(:wrong_phase), do: gettext("That action is not available in this phase.")
   def message(:session_closed), do: gettext("This session is closed.")
   def message(:team_archived), do: gettext("This team is archived and read-only.")
+  def message(:last_lead), do: gettext("A team needs at least one lead.")
+  def message(:builtin), do: gettext("Built-in templates cannot be changed.")
   def message(:ai_disabled), do: gettext("AI features are turned off.")
   def message(:webhooks_disabled), do: gettext("Webhooks are turned off.")
   def message(:rate_limited), do: gettext("Too many requests. Please slow down.")

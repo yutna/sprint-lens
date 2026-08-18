@@ -49,6 +49,21 @@ defmodule SprintLensWeb.Router do
 
     get "/me", MeController, :show
     patch "/me", MeController, :update
+
+    get "/teams", TeamController, :index
+    post "/teams", TeamController, :create
+    get "/teams/:id", TeamController, :show
+    patch "/teams/:id", TeamController, :update
+    post "/teams/:id/archive", TeamController, :archive
+    post "/teams/:id/restore", TeamController, :restore
+
+    post "/teams/:id/members", TeamController, :add_member
+    delete "/teams/:id/members/:user_id", TeamController, :remove_member
+    delete "/teams/:id/members", TeamController, :leave
+
+    get "/teams/:id/templates", TeamController, :templates
+    post "/teams/:id/templates", TeamController, :create_template
+    delete "/teams/:id/templates/:template_id", TeamController, :delete_template
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
@@ -78,6 +93,11 @@ defmodule SprintLensWeb.Router do
       # Profile, language and theme (SCR-13). Needs only a session: sending
       # someone back to the login page to change their theme would be absurd.
       live "/users/preferences", UserLive.Preferences, :edit
+
+      live "/home", HomeLive, :index
+      live "/teams", TeamLive.Index, :index
+      live "/teams/:id", TeamLive.Show, :show
+      live "/teams/:team_id/templates", TemplateLive.Index, :index
     end
 
     # Changing an email address or a password demands a recent authentication,

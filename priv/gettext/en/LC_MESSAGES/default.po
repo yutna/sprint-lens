@@ -42,8 +42,8 @@ msgstr "Actions"
 msgid "Already have an account?"
 msgstr "Already have an account?"
 
-#: lib/sprint_lens_web/components/layouts.ex:144
-#: lib/sprint_lens_web/components/layouts.ex:159
+#: lib/sprint_lens_web/components/layouts.ex:146
+#: lib/sprint_lens_web/components/layouts.ex:161
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "Attempting to reconnect"
@@ -73,7 +73,7 @@ msgstr "Changing..."
 msgid "Collect reflections, agree on actions, and see whether they get done — session after session."
 msgstr "Collect reflections, agree on actions, and see whether they get done — session after session."
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:39
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:42
 #, elixir-autogen, elixir-format
 msgid "Confirm and log in only this time"
 msgstr "Confirm and log in only this time"
@@ -89,7 +89,7 @@ msgid "Confirm new password"
 msgstr "Confirm new password"
 
 #: lib/sprint_lens_web/live/user_live/confirmation.ex:33
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:38
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:39
 #, elixir-autogen, elixir-format
 msgid "Confirming..."
 msgstr "Confirming..."
@@ -115,12 +115,12 @@ msgstr "Create your account"
 msgid "Creating account..."
 msgstr "Creating account..."
 
-#: lib/sprint_lens_web/components/layouts.ex:242
+#: lib/sprint_lens_web/components/layouts.ex:244
 #, elixir-autogen, elixir-format
 msgid "Dark"
 msgstr "Dark"
 
-#: lib/sprint_lens_web/components/layouts.ex:230
+#: lib/sprint_lens_web/components/layouts.ex:232
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr "Dark theme"
@@ -150,7 +150,7 @@ msgstr "Email changed successfully."
 msgid "Email me a sign-in link"
 msgstr "Email me a sign-in link"
 
-#: lib/sprint_lens_web/components/layouts.ex:240
+#: lib/sprint_lens_web/components/layouts.ex:242
 #, elixir-autogen, elixir-format
 msgid "Follow the system"
 msgstr "Follow the system"
@@ -175,30 +175,30 @@ msgstr "If that email has an account, a reset link is on its way."
 msgid "If that email has an account, a sign-in link is on its way."
 msgstr "If that email has an account, a sign-in link is on its way."
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:64
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:67
 #, elixir-autogen, elixir-format
 msgid "Keep me logged in on this device"
 msgstr "Keep me logged in on this device"
 
-#: lib/sprint_lens_web/components/layouts.ex:177
+#: lib/sprint_lens_web/components/layouts.ex:179
 #: lib/sprint_lens_web/live/user_live/preferences.ex:52
 #, elixir-autogen, elixir-format
 msgid "Language"
 msgstr "Language"
 
-#: lib/sprint_lens_web/components/layouts.ex:241
+#: lib/sprint_lens_web/components/layouts.ex:243
 #, elixir-autogen, elixir-format
 msgid "Light"
 msgstr "Light"
 
-#: lib/sprint_lens_web/components/layouts.ex:229
+#: lib/sprint_lens_web/components/layouts.ex:231
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr "Light theme"
 
-#: lib/sprint_lens_web/components/layouts.ex:105
+#: lib/sprint_lens_web/components/layouts.ex:107
 #: lib/sprint_lens_web/controllers/page_html/home.html.heex:22
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:55
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:58
 #: lib/sprint_lens_web/live/user_live/login.ex:19
 #: lib/sprint_lens_web/live/user_live/registration.ex:28
 #, elixir-autogen, elixir-format
@@ -215,19 +215,19 @@ msgstr "Log in and stay logged in"
 msgid "Log in only this time"
 msgstr "Log in only this time"
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:67
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:73
 #, elixir-autogen, elixir-format
 msgid "Log me in only this time"
 msgstr "Log me in only this time"
 
-#: lib/sprint_lens_web/components/layouts.ex:98
+#: lib/sprint_lens_web/components/layouts.ex:100
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr "Log out"
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:54
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:61
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:66
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:57
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:64
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:70
 #, elixir-autogen, elixir-format
 msgid "Logging in..."
 msgstr "Logging in..."
@@ -262,20 +262,19 @@ msgstr "Password updated."
 msgid "Please sign in again to change your account settings."
 msgstr "Please sign in again to change your account settings."
 
-#: lib/sprint_lens_web/components/layouts.ex:95
-#: lib/sprint_lens_web/controllers/page_html/home.html.heex:15
+#: lib/sprint_lens_web/components/layouts.ex:97
 #: lib/sprint_lens_web/live/user_live/preferences.ex:20
 #: lib/sprint_lens_web/live/user_live/settings.ex:25
 #, elixir-autogen, elixir-format
 msgid "Preferences"
 msgstr "Preferences"
 
-#: lib/sprint_lens_web/live/user_live/preferences.ex:100
+#: lib/sprint_lens_web/live/user_live/preferences.ex:102
 #, elixir-autogen, elixir-format
 msgid "Preferences saved."
 msgstr "Preferences saved."
 
-#: lib/sprint_lens_web/components/layouts.ex:102
+#: lib/sprint_lens_web/components/layouts.ex:104
 #, elixir-autogen, elixir-format
 msgid "Register"
 msgstr "Register"
@@ -300,6 +299,8 @@ msgstr "Save password"
 msgid "Save preferences"
 msgstr "Save preferences"
 
+#: lib/sprint_lens_web/live/team_live/show.ex:148
+#: lib/sprint_lens_web/live/template_live/index.ex:66
 #: lib/sprint_lens_web/live/user_live/preferences.ex:62
 #: lib/sprint_lens_web/live/user_live/settings.ex:78
 #, elixir-autogen, elixir-format
@@ -331,12 +332,12 @@ msgstr "Some fields need attention."
 msgid "Something went wrong on our side."
 msgstr "Something went wrong on our side."
 
-#: lib/sprint_lens_web/components/layouts.ex:151
+#: lib/sprint_lens_web/components/layouts.ex:153
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "Something went wrong!"
 
-#: lib/sprint_lens_web/components/layouts.ex:228
+#: lib/sprint_lens_web/components/layouts.ex:230
 #, elixir-autogen, elixir-format
 msgid "System theme"
 msgstr "System theme"
@@ -363,17 +364,20 @@ msgid "That email change link is invalid or has expired."
 msgstr "That email change link is invalid or has expired."
 
 #: lib/sprint_lens_web/controllers/user_session_controller.ex:32
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:90
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:96
 #, elixir-autogen, elixir-format
 msgid "That link is invalid or has expired."
 msgstr "That link is invalid or has expired."
 
 #: lib/sprint_lens_web/api_error.ex:70
+#: lib/sprint_lens_web/live/team_live/show.ex:166
+#: lib/sprint_lens_web/live/team_live/show.ex:253
+#: lib/sprint_lens_web/live/template_live/index.ex:130
 #, elixir-autogen, elixir-format
 msgid "That resource does not exist."
 msgstr "That resource does not exist."
 
-#: lib/sprint_lens_web/components/layouts.ex:207
+#: lib/sprint_lens_web/components/layouts.ex:209
 #: lib/sprint_lens_web/live/user_live/preferences.ex:58
 #, elixir-autogen, elixir-format
 msgid "Theme"
@@ -389,7 +393,7 @@ msgstr "This session is closed."
 msgid "This team is archived and read-only."
 msgstr "This team is archived and read-only."
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:73
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:79
 #, elixir-autogen, elixir-format
 msgid "Tip: you can set a password in your account settings."
 msgstr "Tip: you can set a password in your account settings."
@@ -399,7 +403,7 @@ msgstr "Tip: you can set a password in your account settings."
 msgid "Too many requests. Please slow down."
 msgstr "Too many requests. Please slow down."
 
-#: lib/sprint_lens_web/components/layouts.ex:136
+#: lib/sprint_lens_web/components/layouts.ex:138
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "We can't find the internet"
@@ -440,6 +444,11 @@ msgid "You are running the local mail adapter."
 msgstr "You are running the local mail adapter."
 
 #: lib/sprint_lens_web/api_error.ex:69
+#: lib/sprint_lens_web/live/team_live/index.ex:91
+#: lib/sprint_lens_web/live/team_live/show.ex:254
+#: lib/sprint_lens_web/live/team_live/show.ex:257
+#: lib/sprint_lens_web/live/template_live/index.ex:162
+#: lib/sprint_lens_web/live/template_live/index.ex:175
 #, elixir-autogen, elixir-format
 msgid "You do not have permission to do that."
 msgstr "You do not have permission to do that."
@@ -478,3 +487,342 @@ msgstr "or"
 #, elixir-autogen, elixir-format
 msgid "the mailbox"
 msgstr "the mailbox"
+
+#: lib/sprint_lens_web/live/home_live.ex:53
+#: lib/sprint_lens_web/live/team_live/index.ex:52
+#, elixir-autogen, elixir-format
+msgid "%{count} member"
+msgid_plural "%{count} members"
+msgstr[0] "%{count} member"
+msgstr[1] "%{count} member"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:252
+#, elixir-autogen, elixir-format
+msgid "A team needs at least one lead."
+msgstr "A team needs at least one lead."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:78
+#, elixir-autogen, elixir-format
+msgid "Add"
+msgstr "Add"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:64
+#, elixir-autogen, elixir-format
+msgid "Add someone by email"
+msgstr "Add someone by email"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:77
+#, elixir-autogen, elixir-format
+msgid "Adding..."
+msgstr "Adding..."
+
+#: lib/sprint_lens_web/live/home_live.ex:24
+#, elixir-autogen, elixir-format
+msgid "All teams"
+msgstr "All teams"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:146
+#, elixir-autogen, elixir-format
+msgid "Allow AI assistance for this team"
+msgstr "Allow AI assistance for this team"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:17
+#, elixir-autogen, elixir-format
+msgid "Anyone can start a team and lead it."
+msgstr "Anyone can start a team and lead it."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:36
+#, elixir-autogen, elixir-format
+msgid "Archive"
+msgstr "Archive"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:34
+#, elixir-autogen, elixir-format
+msgid "Archive this team? It becomes read-only."
+msgstr "Archive this team? It becomes read-only."
+
+#: lib/sprint_lens_web/live/home_live.ex:50
+#: lib/sprint_lens_web/live/team_live/index.ex:47
+#: lib/sprint_lens_web/live/team_live/show.ex:23
+#, elixir-autogen, elixir-format
+msgid "Archived"
+msgstr "Archived"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:73
+#, elixir-autogen, elixir-format
+msgid "Available templates"
+msgstr "Available templates"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:24
+#, elixir-autogen, elixir-format
+msgid "Back to team"
+msgstr "Back to team"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:86
+#, elixir-autogen, elixir-format
+msgid "Built-in"
+msgstr "Built-in"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:172
+#, elixir-autogen, elixir-format
+msgid "Built-in templates cannot be changed."
+msgstr "Built-in templates cannot be changed."
+
+#: lib/sprint_lens_web/live/template_live/index.ex:49
+#, elixir-autogen, elixir-format
+msgid "Column %{number}"
+msgstr "Column %{number}"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:59
+#, elixir-autogen, elixir-format
+msgid "Column %{number} hint"
+msgstr "Column %{number} hint"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:51
+#, elixir-autogen, elixir-format
+msgid "Column %{number} name"
+msgstr "Column %{number} name"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:20
+#, elixir-autogen, elixir-format
+msgid "Column layouts for %{team}"
+msgstr "Column layouts for %{team}"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:41
+#, elixir-autogen, elixir-format
+msgid "Columns (%{min} to %{max})"
+msgstr "Columns (%{min} to %{max})"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:29
+#, elixir-autogen, elixir-format
+msgid "Create team"
+msgstr "Create team"
+
+#: lib/sprint_lens_web/live/home_live.ex:37
+#, elixir-autogen, elixir-format
+msgid "Create your first team"
+msgstr "Create your first team"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:28
+#, elixir-autogen, elixir-format
+msgid "Creating..."
+msgstr "Creating..."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:132
+#, elixir-autogen, elixir-format
+msgid "Default template"
+msgstr "Default template"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:139
+#, elixir-autogen, elixir-format
+msgid "Default vote budget"
+msgstr "Default vote budget"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:97
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr "Delete"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:94
+#, elixir-autogen, elixir-format
+msgid "Delete this template?"
+msgstr "Delete this template?"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:25
+#: lib/sprint_lens_web/live/team_live/show.ex:126
+#, elixir-autogen, elixir-format
+msgid "Description"
+msgstr "Description"
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "Go to your teams"
+msgstr "Go to your teams"
+
+#: lib/sprint_lens_web/live/home_live.ex:20
+#, elixir-autogen, elixir-format
+msgid "Hello, %{name}"
+msgstr "Hello, %{name}"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:57
+#, elixir-autogen, elixir-format
+msgid "Hint (optional)"
+msgstr "Hint (optional)"
+
+#: lib/sprint_lens_web/components/layouts.ex:94
+#: lib/sprint_lens_web/live/home_live.ex:87
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr "Home"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:279
+#: lib/sprint_lens_web/live/team_live/show.ex:282
+#, elixir-autogen, elixir-format
+msgid "Lead"
+msgstr "Lead"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:104
+#, elixir-autogen, elixir-format
+msgid "Leave"
+msgstr "Leave"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:101
+#, elixir-autogen, elixir-format
+msgid "Leave this team?"
+msgstr "Leave this team?"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:279
+#: lib/sprint_lens_web/live/team_live/show.ex:283
+#, elixir-autogen, elixir-format
+msgid "Member"
+msgstr "Member"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:200
+#, elixir-autogen, elixir-format
+msgid "Member added."
+msgstr "Member added."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:245
+#, elixir-autogen, elixir-format
+msgid "Member removed."
+msgstr "Member removed."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:50
+#, elixir-autogen, elixir-format
+msgid "Members"
+msgstr "Members"
+
+#: lib/sprint_lens_web/live/home_live.ex:73
+#, elixir-autogen, elixir-format
+msgid "My open actions"
+msgstr "My open actions"
+
+#: lib/sprint_lens_web/live/home_live.ex:31
+#, elixir-autogen, elixir-format
+msgid "My teams"
+msgstr "My teams"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:133
+#, elixir-autogen, elixir-format
+msgid "No default"
+msgstr "No default"
+
+#: lib/sprint_lens_web/live/home_live.ex:67
+#, elixir-autogen, elixir-format
+msgid "No sessions scheduled."
+msgstr "No sessions scheduled."
+
+#: lib/sprint_lens_web/live/home_live.ex:76
+#, elixir-autogen, elixir-format
+msgid "Nothing assigned to you."
+msgstr "Nothing assigned to you."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:95
+#, elixir-autogen, elixir-format
+msgid "Remove"
+msgstr "Remove"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:43
+#, elixir-autogen, elixir-format
+msgid "Restore"
+msgstr "Restore"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:73
+#, elixir-autogen, elixir-format
+msgid "Role"
+msgstr "Role"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:149
+#, elixir-autogen, elixir-format
+msgid "Save settings"
+msgstr "Save settings"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:67
+#, elixir-autogen, elixir-format
+msgid "Save template"
+msgstr "Save template"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:112
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr "Settings"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:184
+#, elixir-autogen, elixir-format
+msgid "Settings saved."
+msgstr "Settings saved."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:232
+#, elixir-autogen, elixir-format
+msgid "Team archived."
+msgstr "Team archived."
+
+#: lib/sprint_lens_web/live/team_live/index.ex:84
+#, elixir-autogen, elixir-format
+msgid "Team created. You lead it."
+msgstr "Team created. You lead it."
+
+#: lib/sprint_lens_web/live/team_live/index.ex:21
+#: lib/sprint_lens_web/live/team_live/show.ex:122
+#, elixir-autogen, elixir-format
+msgid "Team name"
+msgstr "Team name"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:239
+#, elixir-autogen, elixir-format
+msgid "Team restored."
+msgstr "Team restored."
+
+#: lib/sprint_lens_web/components/layouts.ex:95
+#: lib/sprint_lens_web/live/team_live/index.ex:16
+#: lib/sprint_lens_web/live/team_live/index.ex:67
+#, elixir-autogen, elixir-format
+msgid "Teams"
+msgstr "Teams"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:169
+#, elixir-autogen, elixir-format
+msgid "Template deleted."
+msgstr "Template deleted."
+
+#: lib/sprint_lens_web/live/template_live/index.ex:37
+#, elixir-autogen, elixir-format
+msgid "Template name"
+msgstr "Template name"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:153
+#, elixir-autogen, elixir-format
+msgid "Template saved."
+msgstr "Template saved."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:28
+#: lib/sprint_lens_web/live/template_live/index.ex:18
+#: lib/sprint_lens_web/live/template_live/index.ex:121
+#, elixir-autogen, elixir-format
+msgid "Templates"
+msgstr "Templates"
+
+#: lib/sprint_lens_web/live/home_live.ex:64
+#, elixir-autogen, elixir-format
+msgid "Upcoming sessions"
+msgstr "Upcoming sessions"
+
+#: lib/sprint_lens_web/live/home_live.ex:35
+#, elixir-autogen, elixir-format
+msgid "You are not in a team yet."
+msgstr "You are not in a team yet."
+
+#: lib/sprint_lens_web/live/team_live/index.ex:34
+#, elixir-autogen, elixir-format
+msgid "You are not in a team yet. Create one above to get started."
+msgstr "You are not in a team yet. Create one above to get started."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:222
+#, elixir-autogen, elixir-format
+msgid "You have left the team."
+msgstr "You have left the team."
+
+#: lib/sprint_lens_web/live/home_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "Your teams and what is waiting for you."
+msgstr "Your teams and what is waiting for you."

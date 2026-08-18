@@ -75,6 +75,13 @@ defmodule SprintLens.Teams.Template do
     %{"name" => trim(name), "hint" => trim(Map.get(column, :hint))}
   end
 
+  # A row where only the hint was filled in. Kept rather than dropped, so the
+  # person is told the column needs a name instead of watching their typing
+  # disappear.
+  defp normalise_column(%{} = column) do
+    %{"name" => nil, "hint" => trim(column["hint"] || Map.get(column, :hint))}
+  end
+
   defp trim(value) when is_binary(value) do
     case String.trim(value) do
       "" -> nil

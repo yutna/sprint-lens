@@ -41,9 +41,12 @@ defmodule SprintLensWeb.UserAuth do
   def log_in_user(conn, user, params \\ %{}) do
     user_return_to = get_session(conn, :user_return_to)
 
+    # Decided from the user being signed in, not from `conn`: on a fresh
+    # sign-in the scope assign is still empty at this point, and reading it
+    # would land the person on the public page instead of SCR-02 Home.
     conn
     |> create_or_extend_session(user, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> redirect(to: user_return_to || signed_in_path(user))
   end
 
   @doc """
@@ -62,7 +65,7 @@ defmodule SprintLensWeb.UserAuth do
     conn
     |> renew_session(nil)
     |> delete_resp_cookie(@remember_me_cookie, @remember_me_options)
-    |> redirect(to: ~p"/")
+    |> redirect(to: signed_out_path())
   end
 
   @doc """
@@ -263,12 +266,15 @@ defmodule SprintLensWeb.UserAuth do
   end
 
   @doc "Returns the path to redirect to after log in."
-  # the user was already logged in, redirect to settings
-  def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}) do
-    ~p"/users/settings"
-  end
+  # SCR-02 Home is where a signed-in person starts: their teams, the sessions
+  # coming up, and what is still assigned to them.
+  # Matches a `Plug.Conn` and a LiveView socket alike — both carry the scope
+  # in `assigns`, and both ask this question.
+  def signed_in_path(%{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}), do: ~p"/home"
+  def signed_in_path(%Accounts.User{}), do: ~p"/home"
 
-  def signed_in_path(_), do: ~p"/"
+  @doc "Returns the path to redirect to after log out."
+  def signed_out_path, do: ~p"/"
 
   @doc """
   Plug for routes that require the user to be authenticated.

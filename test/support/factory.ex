@@ -24,7 +24,10 @@ defmodule SprintLens.Factory do
     %User{
       email: unique("user") <> "@example.com",
       display_name: "User #{System.unique_integer([:positive])}",
-      language: "th",
+      # Follows the org default the way registration does (FR-802), so a test
+      # that pins the language with `@moduletag locale:` gets users who speak
+      # it rather than users stuck on the fallback.
+      language: SprintLens.Accounts.default_language(),
       theme: "system",
       is_org_admin: false,
       is_active: true,

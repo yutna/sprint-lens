@@ -42,8 +42,8 @@ msgstr "การดำเนินการ"
 msgid "Already have an account?"
 msgstr "มีบัญชีอยู่แล้ว?"
 
-#: lib/sprint_lens_web/components/layouts.ex:144
-#: lib/sprint_lens_web/components/layouts.ex:159
+#: lib/sprint_lens_web/components/layouts.ex:146
+#: lib/sprint_lens_web/components/layouts.ex:161
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "กำลังเชื่อมต่อใหม่"
@@ -73,7 +73,7 @@ msgstr "กำลังเปลี่ยน..."
 msgid "Collect reflections, agree on actions, and see whether they get done — session after session."
 msgstr "รวบรวมความคิดเห็น ตกลงสิ่งที่จะทำ แล้วติดตามว่าทำสำเร็จหรือไม่ ต่อเนื่องทุก session"
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:39
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:42
 #, elixir-autogen, elixir-format
 msgid "Confirm and log in only this time"
 msgstr "ยืนยันและเข้าสู่ระบบเฉพาะครั้งนี้"
@@ -89,7 +89,7 @@ msgid "Confirm new password"
 msgstr "ยืนยันรหัสผ่านใหม่"
 
 #: lib/sprint_lens_web/live/user_live/confirmation.ex:33
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:38
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:39
 #, elixir-autogen, elixir-format
 msgid "Confirming..."
 msgstr "กำลังยืนยัน..."
@@ -115,12 +115,12 @@ msgstr "สร้างบัญชีของคุณ"
 msgid "Creating account..."
 msgstr "กำลังสร้างบัญชี..."
 
-#: lib/sprint_lens_web/components/layouts.ex:242
+#: lib/sprint_lens_web/components/layouts.ex:244
 #, elixir-autogen, elixir-format
 msgid "Dark"
 msgstr "มืด"
 
-#: lib/sprint_lens_web/components/layouts.ex:230
+#: lib/sprint_lens_web/components/layouts.ex:232
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr "ธีมมืด"
@@ -150,7 +150,7 @@ msgstr "เปลี่ยนอีเมลเรียบร้อยแล้
 msgid "Email me a sign-in link"
 msgstr "ส่งลิงก์เข้าสู่ระบบทางอีเมล"
 
-#: lib/sprint_lens_web/components/layouts.ex:240
+#: lib/sprint_lens_web/components/layouts.ex:242
 #, elixir-autogen, elixir-format
 msgid "Follow the system"
 msgstr "ตามระบบ"
@@ -175,30 +175,30 @@ msgstr "ถ้าอีเมลนี้มีบัญชีอยู่ ล�
 msgid "If that email has an account, a sign-in link is on its way."
 msgstr "ถ้าอีเมลนี้มีบัญชีอยู่ ลิงก์เข้าสู่ระบบกำลังจะไปถึง"
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:64
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:67
 #, elixir-autogen, elixir-format
 msgid "Keep me logged in on this device"
 msgstr "จดจำการเข้าสู่ระบบบนอุปกรณ์นี้"
 
-#: lib/sprint_lens_web/components/layouts.ex:177
+#: lib/sprint_lens_web/components/layouts.ex:179
 #: lib/sprint_lens_web/live/user_live/preferences.ex:52
 #, elixir-autogen, elixir-format
 msgid "Language"
 msgstr "ภาษา"
 
-#: lib/sprint_lens_web/components/layouts.ex:241
+#: lib/sprint_lens_web/components/layouts.ex:243
 #, elixir-autogen, elixir-format
 msgid "Light"
 msgstr "สว่าง"
 
-#: lib/sprint_lens_web/components/layouts.ex:229
+#: lib/sprint_lens_web/components/layouts.ex:231
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr "ธีมสว่าง"
 
-#: lib/sprint_lens_web/components/layouts.ex:105
+#: lib/sprint_lens_web/components/layouts.ex:107
 #: lib/sprint_lens_web/controllers/page_html/home.html.heex:22
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:55
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:58
 #: lib/sprint_lens_web/live/user_live/login.ex:19
 #: lib/sprint_lens_web/live/user_live/registration.ex:28
 #, elixir-autogen, elixir-format
@@ -215,19 +215,19 @@ msgstr "เข้าสู่ระบบและจดจำไว้"
 msgid "Log in only this time"
 msgstr "เข้าสู่ระบบเฉพาะครั้งนี้"
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:67
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:73
 #, elixir-autogen, elixir-format
 msgid "Log me in only this time"
 msgstr "เข้าสู่ระบบเฉพาะครั้งนี้"
 
-#: lib/sprint_lens_web/components/layouts.ex:98
+#: lib/sprint_lens_web/components/layouts.ex:100
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr "ออกจากระบบ"
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:54
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:61
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:66
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:57
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:64
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:70
 #, elixir-autogen, elixir-format
 msgid "Logging in..."
 msgstr "กำลังเข้าสู่ระบบ..."
@@ -262,20 +262,19 @@ msgstr "อัปเดตรหัสผ่านแล้ว"
 msgid "Please sign in again to change your account settings."
 msgstr "กรุณาเข้าสู่ระบบอีกครั้งเพื่อแก้ไขการตั้งค่าบัญชี"
 
-#: lib/sprint_lens_web/components/layouts.ex:95
-#: lib/sprint_lens_web/controllers/page_html/home.html.heex:15
+#: lib/sprint_lens_web/components/layouts.ex:97
 #: lib/sprint_lens_web/live/user_live/preferences.ex:20
 #: lib/sprint_lens_web/live/user_live/settings.ex:25
 #, elixir-autogen, elixir-format
 msgid "Preferences"
 msgstr "การตั้งค่าส่วนตัว"
 
-#: lib/sprint_lens_web/live/user_live/preferences.ex:100
+#: lib/sprint_lens_web/live/user_live/preferences.ex:102
 #, elixir-autogen, elixir-format
 msgid "Preferences saved."
 msgstr "บันทึกการตั้งค่าแล้ว"
 
-#: lib/sprint_lens_web/components/layouts.ex:102
+#: lib/sprint_lens_web/components/layouts.ex:104
 #, elixir-autogen, elixir-format
 msgid "Register"
 msgstr "สมัครสมาชิก"
@@ -300,6 +299,8 @@ msgstr "บันทึกรหัสผ่าน"
 msgid "Save preferences"
 msgstr "บันทึกการตั้งค่า"
 
+#: lib/sprint_lens_web/live/team_live/show.ex:148
+#: lib/sprint_lens_web/live/template_live/index.ex:66
 #: lib/sprint_lens_web/live/user_live/preferences.ex:62
 #: lib/sprint_lens_web/live/user_live/settings.ex:78
 #, elixir-autogen, elixir-format
@@ -331,12 +332,12 @@ msgstr "มีบางช่องที่ต้องแก้ไข"
 msgid "Something went wrong on our side."
 msgstr "เกิดข้อผิดพลาดที่ฝั่งระบบ"
 
-#: lib/sprint_lens_web/components/layouts.ex:151
+#: lib/sprint_lens_web/components/layouts.ex:153
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "เกิดข้อผิดพลาด"
 
-#: lib/sprint_lens_web/components/layouts.ex:228
+#: lib/sprint_lens_web/components/layouts.ex:230
 #, elixir-autogen, elixir-format
 msgid "System theme"
 msgstr "ธีมตามระบบ"
@@ -363,17 +364,20 @@ msgid "That email change link is invalid or has expired."
 msgstr "ลิงก์เปลี่ยนอีเมลไม่ถูกต้องหรือหมดอายุแล้ว"
 
 #: lib/sprint_lens_web/controllers/user_session_controller.ex:32
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:90
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:96
 #, elixir-autogen, elixir-format
 msgid "That link is invalid or has expired."
 msgstr "ลิงก์ไม่ถูกต้องหรือหมดอายุแล้ว"
 
 #: lib/sprint_lens_web/api_error.ex:70
+#: lib/sprint_lens_web/live/team_live/show.ex:166
+#: lib/sprint_lens_web/live/team_live/show.ex:253
+#: lib/sprint_lens_web/live/template_live/index.ex:130
 #, elixir-autogen, elixir-format
 msgid "That resource does not exist."
 msgstr "ไม่พบข้อมูลที่ต้องการ"
 
-#: lib/sprint_lens_web/components/layouts.ex:207
+#: lib/sprint_lens_web/components/layouts.ex:209
 #: lib/sprint_lens_web/live/user_live/preferences.ex:58
 #, elixir-autogen, elixir-format
 msgid "Theme"
@@ -389,7 +393,7 @@ msgstr "Session นี้ปิดแล้ว"
 msgid "This team is archived and read-only."
 msgstr "ทีมนี้ถูกเก็บเข้าคลังแล้ว แก้ไขไม่ได้"
 
-#: lib/sprint_lens_web/live/user_live/confirmation.ex:73
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:79
 #, elixir-autogen, elixir-format
 msgid "Tip: you can set a password in your account settings."
 msgstr "เคล็ดลับ: คุณตั้งรหัสผ่านได้ในหน้าตั้งค่าบัญชี"
@@ -399,7 +403,7 @@ msgstr "เคล็ดลับ: คุณตั้งรหัสผ่าน�
 msgid "Too many requests. Please slow down."
 msgstr "มีคำขอมากเกินไป กรุณาชะลอลง"
 
-#: lib/sprint_lens_web/components/layouts.ex:136
+#: lib/sprint_lens_web/components/layouts.ex:138
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "ไม่พบการเชื่อมต่ออินเทอร์เน็ต"
@@ -440,6 +444,11 @@ msgid "You are running the local mail adapter."
 msgstr "คุณกำลังใช้ mail adapter แบบ local"
 
 #: lib/sprint_lens_web/api_error.ex:69
+#: lib/sprint_lens_web/live/team_live/index.ex:91
+#: lib/sprint_lens_web/live/team_live/show.ex:254
+#: lib/sprint_lens_web/live/team_live/show.ex:257
+#: lib/sprint_lens_web/live/template_live/index.ex:162
+#: lib/sprint_lens_web/live/template_live/index.ex:175
 #, elixir-autogen, elixir-format
 msgid "You do not have permission to do that."
 msgstr "คุณไม่มีสิทธิ์ทำสิ่งนี้"
@@ -478,3 +487,341 @@ msgstr "หรือ"
 #, elixir-autogen, elixir-format
 msgid "the mailbox"
 msgstr "กล่องจดหมาย"
+
+#: lib/sprint_lens_web/live/home_live.ex:53
+#: lib/sprint_lens_web/live/team_live/index.ex:52
+#, elixir-autogen, elixir-format
+msgid "%{count} member"
+msgid_plural "%{count} members"
+msgstr[0] "%{count} คน"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:252
+#, elixir-autogen, elixir-format
+msgid "A team needs at least one lead."
+msgstr "ทีมต้องมี Team Lead อย่างน้อยหนึ่งคน"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:78
+#, elixir-autogen, elixir-format
+msgid "Add"
+msgstr "เพิ่ม"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:64
+#, elixir-autogen, elixir-format
+msgid "Add someone by email"
+msgstr "เพิ่มสมาชิกด้วยอีเมล"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:77
+#, elixir-autogen, elixir-format
+msgid "Adding..."
+msgstr "กำลังเพิ่ม..."
+
+#: lib/sprint_lens_web/live/home_live.ex:24
+#, elixir-autogen, elixir-format
+msgid "All teams"
+msgstr "ทีมทั้งหมด"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:146
+#, elixir-autogen, elixir-format
+msgid "Allow AI assistance for this team"
+msgstr "อนุญาตให้ใช้ AI ช่วยในทีมนี้"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:17
+#, elixir-autogen, elixir-format
+msgid "Anyone can start a team and lead it."
+msgstr "ใครก็สร้างทีมและเป็น Team Lead ได้"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:36
+#, elixir-autogen, elixir-format
+msgid "Archive"
+msgstr "เก็บเข้าคลัง"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:34
+#, elixir-autogen, elixir-format
+msgid "Archive this team? It becomes read-only."
+msgstr "เก็บทีมนี้เข้าคลัง? ทีมจะกลายเป็นอ่านอย่างเดียว"
+
+#: lib/sprint_lens_web/live/home_live.ex:50
+#: lib/sprint_lens_web/live/team_live/index.ex:47
+#: lib/sprint_lens_web/live/team_live/show.ex:23
+#, elixir-autogen, elixir-format
+msgid "Archived"
+msgstr "เก็บเข้าคลังแล้ว"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:73
+#, elixir-autogen, elixir-format
+msgid "Available templates"
+msgstr "Template ที่ใช้ได้"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:24
+#, elixir-autogen, elixir-format
+msgid "Back to team"
+msgstr "กลับไปหน้าทีม"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:86
+#, elixir-autogen, elixir-format
+msgid "Built-in"
+msgstr "มีมาให้"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:172
+#, elixir-autogen, elixir-format
+msgid "Built-in templates cannot be changed."
+msgstr "แก้ไข template ที่มีมาให้ไม่ได้"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:49
+#, elixir-autogen, elixir-format
+msgid "Column %{number}"
+msgstr "คอลัมน์ที่ %{number}"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:59
+#, elixir-autogen, elixir-format
+msgid "Column %{number} hint"
+msgstr "คำใบ้ของคอลัมน์ที่ %{number}"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:51
+#, elixir-autogen, elixir-format
+msgid "Column %{number} name"
+msgstr "ชื่อคอลัมน์ที่ %{number}"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:20
+#, elixir-autogen, elixir-format
+msgid "Column layouts for %{team}"
+msgstr "รูปแบบคอลัมน์ของ %{team}"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:41
+#, elixir-autogen, elixir-format
+msgid "Columns (%{min} to %{max})"
+msgstr "คอลัมน์ (%{min} ถึง %{max})"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:29
+#, elixir-autogen, elixir-format
+msgid "Create team"
+msgstr "สร้างทีม"
+
+#: lib/sprint_lens_web/live/home_live.ex:37
+#, elixir-autogen, elixir-format
+msgid "Create your first team"
+msgstr "สร้างทีมแรกของคุณ"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:28
+#, elixir-autogen, elixir-format
+msgid "Creating..."
+msgstr "กำลังสร้าง..."
+
+#: lib/sprint_lens_web/live/team_live/show.ex:132
+#, elixir-autogen, elixir-format
+msgid "Default template"
+msgstr "Template เริ่มต้น"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:139
+#, elixir-autogen, elixir-format
+msgid "Default vote budget"
+msgstr "โควตาโหวตเริ่มต้น"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:97
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr "ลบ"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:94
+#, elixir-autogen, elixir-format
+msgid "Delete this template?"
+msgstr "ลบ template นี้?"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:25
+#: lib/sprint_lens_web/live/team_live/show.ex:126
+#, elixir-autogen, elixir-format
+msgid "Description"
+msgstr "คำอธิบาย"
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "Go to your teams"
+msgstr "ไปที่ทีมของคุณ"
+
+#: lib/sprint_lens_web/live/home_live.ex:20
+#, elixir-autogen, elixir-format
+msgid "Hello, %{name}"
+msgstr "สวัสดี %{name}"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:57
+#, elixir-autogen, elixir-format
+msgid "Hint (optional)"
+msgstr "คำใบ้ (ไม่บังคับ)"
+
+#: lib/sprint_lens_web/components/layouts.ex:94
+#: lib/sprint_lens_web/live/home_live.ex:87
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr "หน้าแรก"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:279
+#: lib/sprint_lens_web/live/team_live/show.ex:282
+#, elixir-autogen, elixir-format
+msgid "Lead"
+msgstr "Team Lead"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:104
+#, elixir-autogen, elixir-format
+msgid "Leave"
+msgstr "ออกจากทีม"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:101
+#, elixir-autogen, elixir-format
+msgid "Leave this team?"
+msgstr "ออกจากทีมนี้?"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:279
+#: lib/sprint_lens_web/live/team_live/show.ex:283
+#, elixir-autogen, elixir-format
+msgid "Member"
+msgstr "สมาชิก"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:200
+#, elixir-autogen, elixir-format
+msgid "Member added."
+msgstr "เพิ่มสมาชิกแล้ว"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:245
+#, elixir-autogen, elixir-format
+msgid "Member removed."
+msgstr "นำสมาชิกออกแล้ว"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:50
+#, elixir-autogen, elixir-format
+msgid "Members"
+msgstr "สมาชิก"
+
+#: lib/sprint_lens_web/live/home_live.ex:73
+#, elixir-autogen, elixir-format
+msgid "My open actions"
+msgstr "รายการติดตามผลที่ยังค้าง"
+
+#: lib/sprint_lens_web/live/home_live.ex:31
+#, elixir-autogen, elixir-format
+msgid "My teams"
+msgstr "ทีมของฉัน"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:133
+#, elixir-autogen, elixir-format
+msgid "No default"
+msgstr "ไม่กำหนด"
+
+#: lib/sprint_lens_web/live/home_live.ex:67
+#, elixir-autogen, elixir-format
+msgid "No sessions scheduled."
+msgstr "ยังไม่มี session ที่นัดไว้"
+
+#: lib/sprint_lens_web/live/home_live.ex:76
+#, elixir-autogen, elixir-format
+msgid "Nothing assigned to you."
+msgstr "ไม่มีรายการที่มอบหมายให้คุณ"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:95
+#, elixir-autogen, elixir-format
+msgid "Remove"
+msgstr "นำออก"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:43
+#, elixir-autogen, elixir-format
+msgid "Restore"
+msgstr "นำกลับมาใช้"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:73
+#, elixir-autogen, elixir-format
+msgid "Role"
+msgstr "บทบาท"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:149
+#, elixir-autogen, elixir-format
+msgid "Save settings"
+msgstr "บันทึกการตั้งค่า"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:67
+#, elixir-autogen, elixir-format
+msgid "Save template"
+msgstr "บันทึก template"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:112
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr "การตั้งค่า"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:184
+#, elixir-autogen, elixir-format
+msgid "Settings saved."
+msgstr "บันทึกการตั้งค่าแล้ว"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:232
+#, elixir-autogen, elixir-format
+msgid "Team archived."
+msgstr "เก็บทีมเข้าคลังแล้ว"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:84
+#, elixir-autogen, elixir-format
+msgid "Team created. You lead it."
+msgstr "สร้างทีมแล้ว คุณเป็น Team Lead"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:21
+#: lib/sprint_lens_web/live/team_live/show.ex:122
+#, elixir-autogen, elixir-format
+msgid "Team name"
+msgstr "ชื่อทีม"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:239
+#, elixir-autogen, elixir-format
+msgid "Team restored."
+msgstr "นำทีมกลับมาใช้แล้ว"
+
+#: lib/sprint_lens_web/components/layouts.ex:95
+#: lib/sprint_lens_web/live/team_live/index.ex:16
+#: lib/sprint_lens_web/live/team_live/index.ex:67
+#, elixir-autogen, elixir-format
+msgid "Teams"
+msgstr "ทีม"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:169
+#, elixir-autogen, elixir-format
+msgid "Template deleted."
+msgstr "ลบ template แล้ว"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:37
+#, elixir-autogen, elixir-format
+msgid "Template name"
+msgstr "ชื่อ template"
+
+#: lib/sprint_lens_web/live/template_live/index.ex:153
+#, elixir-autogen, elixir-format
+msgid "Template saved."
+msgstr "บันทึก template แล้ว"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:28
+#: lib/sprint_lens_web/live/template_live/index.ex:18
+#: lib/sprint_lens_web/live/template_live/index.ex:121
+#, elixir-autogen, elixir-format
+msgid "Templates"
+msgstr "Template"
+
+#: lib/sprint_lens_web/live/home_live.ex:64
+#, elixir-autogen, elixir-format
+msgid "Upcoming sessions"
+msgstr "Session ที่กำลังจะถึง"
+
+#: lib/sprint_lens_web/live/home_live.ex:35
+#, elixir-autogen, elixir-format
+msgid "You are not in a team yet."
+msgstr "คุณยังไม่ได้อยู่ในทีมใด"
+
+#: lib/sprint_lens_web/live/team_live/index.ex:34
+#, elixir-autogen, elixir-format
+msgid "You are not in a team yet. Create one above to get started."
+msgstr "คุณยังไม่ได้อยู่ในทีมใด สร้างทีมด้านบนเพื่อเริ่มต้น"
+
+#: lib/sprint_lens_web/live/team_live/show.ex:222
+#, elixir-autogen, elixir-format
+msgid "You have left the team."
+msgstr "คุณออกจากทีมแล้ว"
+
+#: lib/sprint_lens_web/live/home_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "Your teams and what is waiting for you."
+msgstr "ทีมของคุณและสิ่งที่รอคุณอยู่"

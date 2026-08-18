@@ -91,7 +91,9 @@ defmodule SprintLensWeb.Layouts do
         <.theme_toggle theme={@theme} />
 
         <%= if @current_scope && @current_scope.user do %>
-          <.link navigate={~p"/users/settings"} class="btn btn-ghost btn-sm">
+          <.link navigate={~p"/home"} class="btn btn-ghost btn-sm">{gettext("Home")}</.link>
+          <.link navigate={~p"/teams"} class="btn btn-ghost btn-sm">{gettext("Teams")}</.link>
+          <.link navigate={~p"/users/preferences"} class="btn btn-ghost btn-sm">
             {gettext("Preferences")}
           </.link>
           <.link href={~p"/users/log-out"} method="delete" class="btn btn-ghost btn-sm">

@@ -11,8 +11,8 @@
 
     <div class="mt-8 flex justify-center gap-3">
       <%= if @current_scope && @current_scope.user do %>
-        <.link navigate={~p"/users/preferences"} class="btn btn-primary">
-          {gettext("Preferences")}
+        <.link navigate={~p"/home"} class="btn btn-primary">
+          {gettext("Go to your teams")}
         </.link>
       <% else %>
         <.link navigate={~p"/users/register"} class="btn btn-primary">

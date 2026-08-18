@@ -50,6 +50,18 @@ defmodule SprintLens.Teams.Membership do
   end
 
   @doc """
+  A changeset for the add-member form, which identifies people by email
+  rather than by id (FR-102).
+  """
+  @spec invite_changeset(map()) :: Ecto.Changeset.t()
+  def invite_changeset(attrs) do
+    {%{email: nil, role: "member"}, %{email: :string, role: :string}}
+    |> cast(attrs, [:email, :role])
+    |> validate_required([:email])
+    |> validate_inclusion(:role, @roles)
+  end
+
+  @doc """
   The role as an atom, which is what `SprintLens.Policy` reasons about.
   """
   @spec role(t() | String.t() | nil) :: role() | nil

@@ -227,6 +227,41 @@ defmodule SprintLens.Teams do
   end
 
   @doc """
+  Adds a member by email address (FR-102).
+
+  Leads invite people by the address they know, not by an internal id. An
+  unknown address is a changeset error on the email field rather than a
+  silent no-op, so the form can say what went wrong.
+  """
+  @spec add_member_by_email(User.t() | Scope.t(), Team.t(), String.t(), String.t()) ::
+          {:ok, Membership.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
+  def add_member_by_email(actor, %Team{} = team, email, role \\ "member") do
+    authorized(actor, team, :manage_members, fn ->
+      case Repo.get_by(User, email: String.trim(email || "")) do
+        nil ->
+          # Reported on the invite changeset, which has an `email` field, so
+          # the form can put the message next to the input the person typed
+          # into (FR-919).
+          {:error,
+           %{email: email, role: role}
+           |> Membership.invite_changeset()
+           |> Ecto.Changeset.add_error(:email, "no account with that address")}
+
+        %User{} = user ->
+          add_member(actor, team, user.id, role)
+      end
+    end)
+  end
+
+  @doc """
+  A changeset for the add-member form. Carries no schema field of its own for
+  the email, so it is built from a bare map.
+  """
+  def change_membership(attrs \\ %{}) do
+    Membership.invite_changeset(attrs)
+  end
+
+  @doc """
   Removes a member (FR-102).
 
   Refuses to remove the last lead: a team with no lead cannot have its

@@ -20,7 +20,10 @@ config :sprint_lens, SprintLensWeb.Endpoint,
 config :sprint_lens, SprintLens.Mailer, adapter: Swoosh.Adapters.Local
 config :swoosh, :api_client, false
 
-config :sprint_lens, dev_routes: false
+# The mailbox preview is how the e2e suite gets the sign-in link the app
+# emails: registration deliberately has no password step (see
+# `SprintLensWeb.UserLive.Registration`).
+config :sprint_lens, dev_routes: true
 
 config :logger, level: :warning
 
