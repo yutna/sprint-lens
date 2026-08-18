@@ -47,19 +47,19 @@ test title.
 | FR-208 | covered | |
 | FR-209 | covered | |
 | FR-210 | covered | |
-| FR-211 | **uncovered** | |
+| FR-211 | covered | |
 | FR-212 | **uncovered** | |
 | FR-213 | covered | |
-| FR-214 | **uncovered** | |
+| FR-214 | covered | |
 | FR-215 | covered | |
 | FR-301 | covered | |
 | FR-302 | covered | |
-| FR-303 | **uncovered** | |
-| FR-304 | **uncovered** | |
+| FR-303 | covered | |
+| FR-304 | covered | |
 | FR-305 | covered | |
 | FR-306 | covered | |
 | FR-307 | covered | |
-| FR-308 | **uncovered** | |
+| FR-308 | covered | |
 | FR-309 | covered | |
 | FR-401 | covered | |
 | FR-402 | **uncovered** | |
@@ -127,7 +127,7 @@ test title.
 | NFR-301 | documented gap | Legal conformance with Thailand's PDPA. The mechanisms it relies on (FR-805, NFR-303, NFR-304) are tested individually. |
 | NFR-302 | documented gap | Backup ageing is a property of the deployment's backup policy. The purge mechanism itself is tested under FR-803. |
 | NFR-303 | documented gap | A 30-day completion SLA cannot be observed in a test run. The erasure mechanism it bounds is tested under FR-805. |
-| NFR-304 | **uncovered** | |
+| NFR-304 | covered | |
 | NFR-305 | **uncovered** | |
 | NFR-401 | covered | |
 | NFR-402 | covered | |
