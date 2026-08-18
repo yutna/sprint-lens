@@ -138,6 +138,15 @@ defmodule SprintLensWeb.Api.V1.SessionApiTest do
       assert body["data"]["id"] == session.id
     end
 
+    @tag req: ["FR-919"]
+    test "an id that is not a number is not found rather than a crash", ctx do
+      # A path segment is whatever a stranger typed. Letting Ecto raise on it
+      # turns a mistyped link into a 500 and a stack trace in the logs.
+      body = ctx.conn |> get(~p"/api/v1/sessions/not-a-number") |> json_response(404)
+
+      assert body["error"]["code"] == "not_found"
+    end
+
     @tag req: ["FR-204"]
     test "an unknown code is not found", ctx do
       assert ctx.participant_conn

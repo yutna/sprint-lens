@@ -141,6 +141,33 @@ defmodule SprintLens.Retro.BoardTest do
     end
   end
 
+  describe "fetch_card/2" do
+    setup ctx, do: Map.merge(ctx, board(ctx))
+
+    @tag req: ["FR-301"]
+    test "finds a card together with its session", ctx do
+      card = write(ctx.participant, ctx.session, first_column(ctx.session), "found")
+
+      assert {:ok, session, found} = Board.fetch_card(ctx.participant, card.id)
+      assert session.id == ctx.session.id
+      assert found.id == card.id
+    end
+
+    @tag req: ["FR-103"]
+    test "refuses a card belonging to a team the caller is not in", ctx do
+      card = write(ctx.participant, ctx.session, first_column(ctx.session), "private")
+
+      assert Board.fetch_card(insert(:user), card.id) == {:error, :not_found}
+      assert Board.fetch_card(nil, card.id) == {:error, :not_found}
+    end
+
+    @tag req: ["FR-919"]
+    test "an id that is not a number is simply not found", ctx do
+      assert Board.fetch_card(ctx.participant, "not-a-number") == {:error, :not_found}
+      assert Board.fetch_card(ctx.participant, 0) == {:error, :not_found}
+    end
+  end
+
   describe "idempotency (§7.5)" do
     setup ctx, do: Map.merge(ctx, board(ctx))
 

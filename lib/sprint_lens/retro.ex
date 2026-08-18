@@ -63,7 +63,7 @@ defmodule SprintLens.Retro do
   @spec fetch_session(User.t() | Scope.t(), term()) ::
           {:ok, Session.t()} | {:error, :not_found}
   def fetch_session(actor, id) do
-    with %Session{} = session <- Repo.get(Session, id) |> preload(),
+    with %Session{} = session <- Repo.fetch(Session, id) |> preload(),
          true <- Policy.see_team?(actor, Teams.role(actor, session.team_id)) do
       {:ok, session}
     else

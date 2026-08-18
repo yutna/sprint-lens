@@ -164,7 +164,7 @@ test.describe('brainstorm with blind and anonymous modes', () => {
     await participant.close()
   })
 
-  test('[FR-306] the writing box counts down from five hundred', async ({ page, context }) => {
+  test('[FR-301] the writing box counts down from five hundred', async ({ page, context }) => {
     const { participant } = await brainstormWithTwoPeople(page, context)
     const [first] = await columnIds(page)
 

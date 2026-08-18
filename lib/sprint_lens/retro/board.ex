@@ -71,6 +71,25 @@ defmodule SprintLens.Retro.Board do
   end
 
   @doc """
+  A card and the session it belongs to, for a caller allowed to be there.
+
+  Reached through the session rather than by card id alone: the membership
+  check that guards every other path would otherwise be skipped, and a card id
+  is a much easier thing to guess than a board (FR-103).
+  """
+  @spec fetch_card(User.t() | Scope.t() | nil, term()) ::
+          {:ok, Session.t(), Card.t()} | {:error, :not_found}
+  def fetch_card(actor, card_id) do
+    with %Card{} = card <- Repo.fetch(Card, card_id),
+         %Column{} = column <- Repo.fetch(Column, card.column_id),
+         {:ok, session} <- Retro.fetch_session(actor, column.session_id) do
+      {:ok, session, card}
+    else
+      _no_access -> {:error, :not_found}
+    end
+  end
+
+  @doc """
   The cards a given viewer may see right now (FR-209).
 
   Filtering happens here rather than at the broadcast, because a broadcast

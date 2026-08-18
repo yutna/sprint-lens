@@ -393,6 +393,21 @@ defmodule SprintLensWeb.BoardLiveTest do
       refute html =~ ctx.participant.display_name
     end
 
+    @tag req: ["FR-210", "FR-605"]
+    test "an Org Admin on the board is told no more than anyone else", ctx do
+      # Scenario 10.2 names the Org Admin specifically. They can only reach a
+      # board they belong to (FR-605), so the case that matters is an admin
+      # who *is* a member: the extra role must buy them nothing here.
+      admin = insert(:org_admin, language: "en")
+      join_team(admin, ctx.team)
+
+      {:ok, lv, _html} = live(log_in_user(build_conn(), admin), ~p"/sessions/#{ctx.session}")
+
+      html = render(lv)
+      assert html =~ "unsigned"
+      refute html =~ ctx.participant.display_name
+    end
+
     @tag req: ["FR-210"]
     test "an attributed session does show who wrote what", ctx do
       open = brainstorming(ctx)

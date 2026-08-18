@@ -52,7 +52,7 @@ defmodule SprintLens.Teams do
   @spec fetch_team(User.t() | Scope.t(), term()) :: {:ok, Team.t()} | {:error, :not_found}
   def fetch_team(actor, id) do
     with %User{} = user <- user(actor),
-         %Team{} = team <- Repo.get(Team, id),
+         %Team{} = team <- Repo.fetch(Team, id),
          role when not is_nil(role) <- role(user, team) do
       {:ok, Repo.preload(team, memberships: membership_preload())}
     else
@@ -68,7 +68,7 @@ defmodule SprintLens.Teams do
           {:ok, Team.t()} | {:error, :not_found}
   def fetch_team_for_management(actor, id) do
     with %User{} = user <- user(actor),
-         %Team{} = team <- Repo.get(Team, id),
+         %Team{} = team <- Repo.fetch(Team, id),
          true <- user.is_org_admin or role(user, team) != nil do
       {:ok, Repo.preload(team, memberships: membership_preload())}
     else
@@ -342,7 +342,7 @@ defmodule SprintLens.Teams do
   """
   @spec fetch_template(Team.t(), term()) :: {:ok, Template.t()} | {:error, :not_found}
   def fetch_template(%Team{} = team, id) do
-    case Repo.get(Template, id) do
+    case Repo.fetch(Template, id) do
       %Template{is_builtin: true} = template -> {:ok, template}
       %Template{team_id: team_id} = template when team_id == team.id -> {:ok, template}
       _other -> {:error, :not_found}

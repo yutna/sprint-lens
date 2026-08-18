@@ -11,11 +11,8 @@ defmodule SprintLensWeb.Api.V1.CardController do
 
   use SprintLensWeb, :controller
 
-  alias SprintLens.Repo
   alias SprintLens.Retro
   alias SprintLens.Retro.Board
-  alias SprintLens.Retro.Card
-  alias SprintLens.Retro.Column
   alias SprintLens.Retro.MoodEntry
   alias SprintLensWeb.Api.V1.CardJSON
   alias SprintLensWeb.FallbackController
@@ -46,14 +43,14 @@ defmodule SprintLensWeb.Api.V1.CardController do
   end
 
   def update(conn, %{"id" => card_id} = params) do
-    with {:ok, session, card} <- fetch_card(conn, card_id),
+    with {:ok, session, card} <- Board.fetch_card(scope(conn), card_id),
          {:ok, updated} <- apply_update(scope(conn), session, card, card_params(params)) do
       json(conn, %{data: CardJSON.card(updated, session)})
     end
   end
 
   def delete(conn, %{"id" => card_id}) do
-    with {:ok, session, card} <- fetch_card(conn, card_id),
+    with {:ok, session, card} <- Board.fetch_card(scope(conn), card_id),
          :ok <- Board.delete_card(scope(conn), session, card) do
       send_resp(conn, :no_content, "")
     end
@@ -82,19 +79,6 @@ defmodule SprintLensWeb.Api.V1.CardController do
          {:ok, _entry} <-
            Board.record_mood(scope(conn), session, kind, params["score"], params["word"]) do
       json(conn, %{data: Board.mood_summary(session, kind)})
-    end
-  end
-
-  # A card is reached through its session so the same access rules apply as
-  # everywhere else; a bare card id would sidestep them.
-  defp fetch_card(conn, card_id) do
-    with %Card{} = card <- Repo.get(Card, card_id),
-         %Column{} = column <- Repo.get(Column, card.column_id),
-         {:ok, session} <- Retro.fetch_session(scope(conn), column.session_id) do
-      {:ok, session, card}
-    else
-      nil -> {:error, :not_found}
-      {:error, reason} -> {:error, reason}
     end
   end
 

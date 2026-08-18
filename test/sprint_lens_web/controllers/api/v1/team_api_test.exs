@@ -100,6 +100,13 @@ defmodule SprintLensWeb.Api.V1.TeamApiTest do
       refute Map.has_key?(member, "email")
     end
 
+    @tag req: ["FR-919"]
+    test "an id that is not a number is not found rather than a crash", %{conn: conn} do
+      body = conn |> get(~p"/api/v1/teams/not-a-number") |> json_response(404)
+
+      assert body["error"]["code"] == "not_found"
+    end
+
     @tag req: ["FR-103"]
     test "hides a team the caller does not belong to", %{conn: conn} do
       theirs = team_with_lead(insert(:user))

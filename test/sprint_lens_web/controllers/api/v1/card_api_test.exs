@@ -85,7 +85,7 @@ defmodule SprintLensWeb.Api.V1.CardApiTest do
       assert body["data"]["text"] == "Nested"
     end
 
-    @tag req: ["FR-306"]
+    @tag req: ["FR-301"]
     test "rejects text over the limit", ctx do
       session = brainstorming(ctx)
       [column | _] = columns(session)
@@ -141,7 +141,9 @@ defmodule SprintLensWeb.Api.V1.CardApiTest do
              |> json_response(404)
     end
 
-    @tag req: ["FR-307"]
+    # Idempotency is §7.5, which carries no FR id of its own; the behaviour
+    # belongs to creating a card.
+    @tag req: ["FR-301"]
     test "returns the same card for a repeated request id (§7.5)", ctx do
       session = brainstorming(ctx)
       [column | _] = columns(session)
@@ -234,6 +236,27 @@ defmodule SprintLensWeb.Api.V1.CardApiTest do
 
       # Not `nil` — absent. A key that appears only sometimes is a signal in
       # itself, and the facilitator is not an exception here.
+      refute Map.has_key?(card, "author")
+      refute body |> Jason.encode!() |> String.contains?(ctx.participant.display_name)
+    end
+
+    @tag req: ["FR-210", "FR-605"]
+    test "an Org Admin reading the API is told no more than anyone else", %{conn: conn} = ctx do
+      session = brainstorming(ctx, %{is_anonymous: true})
+      [column | _] = columns(session)
+      write(ctx.participant_conn, session, column, "Anon")
+
+      admin = insert(:org_admin, language: "en")
+      join_team(admin, ctx.team)
+
+      body =
+        conn
+        |> authed(admin)
+        |> get(~p"/api/v1/sessions/#{session}/cards")
+        |> json_response(200)
+
+      [card] = body["data"]["cards"]
+
       refute Map.has_key?(card, "author")
       refute body |> Jason.encode!() |> String.contains?(ctx.participant.display_name)
     end
