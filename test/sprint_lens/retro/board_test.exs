@@ -7,7 +7,6 @@ defmodule SprintLens.Retro.BoardTest do
   alias SprintLens.Retro.Card
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.MoodEntry
-  alias SprintLens.Retro.Session
 
   setup do
     facilitator = insert(:user)
@@ -211,6 +210,14 @@ defmodule SprintLens.Retro.BoardTest do
 
       assert Board.update_card(other, ctx.session, ctx.card, %{text: "hijacked"}) ==
                {:error, :unauthorized}
+    end
+
+    @tag req: ["FR-301", "FR-302"]
+    test "not even the facilitator, who may delete it but not rewrite it", ctx do
+      assert Board.update_card(ctx.facilitator, ctx.session, ctx.card, %{text: "reworded"}) ==
+               {:error, :unauthorized}
+
+      assert Board.delete_card(ctx.facilitator, ctx.session, ctx.card) == :ok
     end
 
     @tag req: ["FR-301"]

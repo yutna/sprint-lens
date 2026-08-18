@@ -78,7 +78,12 @@ defmodule SprintLensWeb.Layouts do
       |> assign(:theme, theme(assigns))
 
     ~H"""
-    <header class="navbar gap-2 border-b border-base-200 px-4 sm:px-6 lg:px-8">
+    <%!--
+      The nav wraps rather than holding its row: five buttons plus two
+      switchers do not fit across a phone, and FR-905 forbids the page
+      scrolling sideways to make room.
+    --%>
+    <header class="navbar flex-wrap gap-2 border-b border-base-200 px-4 sm:px-6 lg:px-8">
       <div class="flex-1">
         <.link navigate={~p"/"} class="flex w-fit items-center gap-2 text-base font-semibold">
           <img src={~p"/images/logo.svg"} width="28" alt="" />
@@ -86,7 +91,7 @@ defmodule SprintLensWeb.Layouts do
         </.link>
       </div>
 
-      <nav class="flex flex-none items-center gap-1" aria-label={gettext("Main")}>
+      <nav class="flex flex-wrap items-center justify-end gap-1" aria-label={gettext("Main")}>
         <.language_switcher locale={@locale} />
         <.theme_toggle theme={@theme} />
 

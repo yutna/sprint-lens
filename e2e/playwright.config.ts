@@ -48,16 +48,22 @@ export default defineConfig({
     timezoneId: 'Asia/Bangkok',
   },
   projects: [
+    // The mobile scenarios assert one column at a time and no sideways
+    // scrolling, which are false at a desktop width — so the desktop projects
+    // have to leave them alone rather than run them and fail.
     {
       name: 'chromium',
+      testIgnore: /.*\.mobile\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'firefox',
+      testIgnore: /.*\.mobile\.spec\.ts/,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
+      testIgnore: /.*\.mobile\.spec\.ts/,
       use: { ...devices['Desktop Safari'] },
     },
     {
@@ -67,6 +73,10 @@ export default defineConfig({
       testMatch: /.*\.mobile\.spec\.ts/,
       use: {
         ...devices['iPhone SE'],
+        // Playwright's iPhone SE profile is the 320 px first generation, and
+        // scenario 10.7 names 375 px. The touch and mobile flags come from the
+        // profile; only the viewport is ours.
+        viewport: { width: 375, height: 667 },
         colorScheme: 'dark',
       },
     },

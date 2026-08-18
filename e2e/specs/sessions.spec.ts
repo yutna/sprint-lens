@@ -76,7 +76,7 @@ test.describe('the live board', () => {
     await createSession(page, 'Sprint 1')
 
     // Start-Stop-Continue's three columns, and the six phases of section 4.3.
-    await expect(page.locator('#board li')).toHaveCount(3)
+    await expect(page.locator('#board section[role="tabpanel"]')).toHaveCount(3)
     await expect(page.locator('#phase-bar li')).toHaveCount(6)
     await expect(page.locator('#join-code')).toBeVisible()
   })

@@ -2,10 +2,13 @@ defmodule SprintLensWeb.SessionLive.Show do
   @moduledoc """
   SCR-07 Live board — the phase, timer, presence and facilitator controls.
 
-  The cards themselves arrive with the board milestone; what is here is the
-  frame they live in, and the realtime machinery underneath: the snapshot on
-  mount (FR-309), the section 7.3 events, presence with a ready count
-  (FR-213), and the facilitator hand-off (FR-207).
+  The phase bar, the timer, presence, the facilitator controls, and the board
+  itself: columns, cards, clustering and the check-in mood.
+
+  What a person can do here is decided by `SprintLens.Retro.Board`, not by
+  this module. The controls are rendered from the same `authorize/3` the
+  context enforces, so a hidden button and a refused event agree by
+  construction rather than by being kept in step (NFR-201).
 
   ## Reconnection
 
@@ -16,7 +19,10 @@ defmodule SprintLensWeb.SessionLive.Show do
 
   use SprintLensWeb, :live_view
 
+  import SprintLensWeb.BoardComponents
+
   alias SprintLens.Retro
+  alias SprintLens.Retro.Board
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.Session
   alias SprintLens.Retro.SessionServer
@@ -107,21 +113,105 @@ defmodule SprintLensWeb.SessionLive.Show do
       </section>
 
       <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
-        <section
-          id="board"
-          aria-label={gettext("Board")}
-          class="rounded-box border border-base-300 p-3"
-        >
-          <ol
-            class="grid gap-3"
-            style={"grid-template-columns: repeat(#{length(@columns)}, minmax(0, 1fr))"}
-          >
-            <li :for={column <- @columns} id={"column-#{column.id}"} class="min-w-0">
-              <h3 class="font-semibold">{column.name}</h3>
-              <p :if={column.hint} class="text-sm opacity-70">{column.hint}</p>
-            </li>
-          </ol>
-        </section>
+        <div id="board" aria-label={gettext("Board")}>
+          <.icebreaker :if={@phase == :checkin} session={@session} />
+
+          <.mood_panel
+            :if={@phase == :checkin}
+            kind={:checkin_mood}
+            prompt={gettext("How are you feeling?")}
+            summary={@mood}
+            mine={@my_mood}
+            open={@can_checkin}
+          />
+
+          <.mood_panel
+            :if={@phase == :wrapup}
+            kind={:roti}
+            prompt={gettext("Was this time well spent?")}
+            summary={@roti}
+            mine={@my_roti}
+            open={@can_roti}
+          />
+
+          <.column_tabs columns={@columns} active={@active_column} />
+
+          <div class={
+            [
+              "grid gap-3",
+              # One column at a time below the small breakpoint (FR-902); the
+              # page itself never scrolls sideways (FR-905).
+              "sm:grid-cols-#{min(length(@columns), 4)}"
+            ]
+          }>
+            <.board_column
+              :for={column <- @columns}
+              column={column}
+              cards={cards_in(@cards, column)}
+              session={@session}
+              active={@active_column}
+              columns={@columns}
+              can_write={@can_write}
+              can_move={@can_move}
+              current_user_id={@current_scope.user.id}
+              is_facilitator={@is_facilitator}
+              editing={@editing}
+            />
+          </div>
+
+          <div :if={@phase == :group} class="mt-3">
+            <.form
+              for={to_form(%{}, as: :group)}
+              id="group_form"
+              phx-submit="create_group"
+              class="flex flex-wrap items-end gap-2"
+            >
+              <div class="grow">
+                <.input
+                  field={to_form(%{}, as: :group)[:label]}
+                  type="text"
+                  label={gettext("Merge the selected cards into a group named")}
+                  required
+                />
+              </div>
+              <.button variant="primary" class="mb-2">{gettext("Group")}</.button>
+            </.form>
+
+            <ul id="groups" class="mt-2 space-y-1">
+              <li :for={group <- @groups} id={"group-#{group.id}"} class="flex items-center gap-2">
+                <span class="badge badge-outline">{group.label}</span>
+                <span class="text-sm opacity-60">
+                  {ngettext("%{count} card", "%{count} cards", length(group.cards),
+                    count: length(group.cards)
+                  )}
+                </span>
+                <.button
+                  id={"ungroup-#{group.id}"}
+                  phx-click="delete_group"
+                  phx-value-id={group.id}
+                  class="btn btn-ghost btn-xs"
+                >
+                  {gettext("Ungroup")}
+                </.button>
+              </li>
+            </ul>
+          </div>
+
+          <div :if={@session.is_blind and not @session.cards_revealed} class="mt-3">
+            <p class="text-sm opacity-70" id="blind-notice">
+              {gettext("Cards are hidden until the facilitator reveals them.")}
+            </p>
+            <.button
+              :if={@is_facilitator}
+              id="reveal-cards"
+              variant="primary"
+              phx-click="reveal_cards"
+              class="btn btn-primary btn-sm mt-1"
+            >
+              {gettext("Reveal all cards")}
+            </.button>
+          </div>
+        </div>
 
         <aside class="space-y-4">
           <section
@@ -229,6 +319,8 @@ defmodule SprintLensWeb.SessionLive.Show do
     socket
     |> assign(:page_title, session.title)
     |> assign(:ready, false)
+    |> assign(:editing, nil)
+    |> assign(:active_column, nil)
     |> apply_snapshot(session)
     |> assign_presence()
   end
@@ -237,14 +329,57 @@ defmodule SprintLensWeb.SessionLive.Show do
   # and a fresh mount produce the same state (FR-309).
   defp apply_snapshot(socket, session) do
     snapshot = Retro.snapshot(session)
+    scope = socket.assigns.current_scope
 
     socket
     |> assign(:session, session)
     |> assign(:phase, snapshot.phase)
     |> assign(:columns, snapshot.columns)
     |> assign(:timer, snapshot.timer)
-    |> assign(:is_facilitator, Retro.facilitator?(socket.assigns.current_scope, session))
+    |> assign(:is_facilitator, Retro.facilitator?(scope, session))
+    |> assign_active_column(snapshot.columns)
+    |> assign_permissions(session)
+    |> assign_board(session)
   end
+
+  # What the person may do, asked of the same function that enforces it. A
+  # hidden control and a refused event cannot disagree (NFR-201).
+  defp assign_permissions(socket, session) do
+    scope = socket.assigns.current_scope
+
+    socket
+    |> assign(:can_write, Board.authorize(scope, session, :write_card) == :ok)
+    |> assign(:can_move, Board.authorize(scope, session, :move_card) == :ok)
+    |> assign(:can_group, Board.authorize(scope, session, :group_cards) == :ok)
+    |> assign(:can_checkin, Board.authorize(scope, session, :checkin_mood) == :ok)
+    |> assign(:can_roti, Board.authorize(scope, session, :roti) == :ok)
+  end
+
+  defp assign_board(socket, session) do
+    scope = socket.assigns.current_scope
+
+    socket
+    |> assign(:cards, Board.visible_cards(session, scope))
+    |> assign(:groups, Board.list_groups(session))
+    |> assign(:mood, Board.mood_summary(session, :checkin_mood))
+    |> assign(:roti, Board.mood_summary(session, :roti))
+    |> assign(:my_mood, Board.my_mood(scope, session, :checkin_mood))
+    |> assign(:my_roti, Board.my_mood(scope, session, :roti))
+  end
+
+  # The narrow-screen board shows one column at a time (FR-902); the first is
+  # active until someone chooses another.
+  defp assign_active_column(socket, columns) do
+    active = socket.assigns[:active_column]
+
+    if active && Enum.any?(columns, &(&1.id == active)) do
+      socket
+    else
+      assign(socket, :active_column, columns |> List.first() |> then(&(&1 && &1.id)))
+    end
+  end
+
+  defp cards_in(cards, column), do: Enum.filter(cards, &(&1.column_id == column.id))
 
   @impl Phoenix.LiveView
   def handle_info({:retro_event, "phase.changed", _payload}, socket),
@@ -264,7 +399,16 @@ defmodule SprintLensWeb.SessionLive.Show do
      |> put_flash(:info, gettext("This session is closed."))}
   end
 
-  def handle_info({:retro_event, _event, _payload}, socket), do: {:noreply, socket}
+  def handle_info({:retro_event, "mood.updated", _payload}, socket) do
+    {:noreply, assign_board(socket, socket.assigns.session)}
+  end
+
+  # Cards, clusters and reveals all change what is on the board, and the
+  # board is re-read rather than patched from the payload: the event says
+  # something changed, the database says what is true.
+  def handle_info({:retro_event, _event, _payload}, socket) do
+    {:noreply, reload(socket)}
+  end
 
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff"}, socket) do
     SessionServer.presence_changed(socket.assigns.session.id)
@@ -326,6 +470,95 @@ defmodule SprintLensWeb.SessionLive.Show do
     )
   end
 
+  def handle_event("select_column", %{"column-id" => column_id}, socket) do
+    {:noreply, assign(socket, :active_column, String.to_integer(column_id))}
+  end
+
+  def handle_event("create_card", %{"card" => params}, socket) do
+    socket.assigns.current_scope
+    |> Board.create_card(socket.assigns.session, params)
+    |> board_result(socket)
+  end
+
+  def handle_event("edit_card", %{"id" => id}, socket) do
+    {:noreply, assign(socket, :editing, String.to_integer(id))}
+  end
+
+  def handle_event("cancel_edit", _params, socket) do
+    {:noreply, assign(socket, :editing, nil)}
+  end
+
+  def handle_event("update_card", %{"card" => %{"id" => id, "text" => text}}, socket) do
+    with {:ok, card} <- fetch_card(socket, id),
+         {:ok, _updated} <-
+           Board.update_card(socket.assigns.current_scope, socket.assigns.session, card, %{
+             text: text
+           }) do
+      {:noreply, socket |> assign(:editing, nil) |> refresh()}
+    else
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("delete_card", %{"id" => id}, socket) do
+    with {:ok, card} <- fetch_card(socket, id),
+         :ok <- Board.delete_card(socket.assigns.current_scope, socket.assigns.session, card) do
+      {:noreply, refresh(socket)}
+    else
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("move_card", %{"id" => id, "column-id" => column_id}, socket) do
+    with {:ok, card} <- fetch_card(socket, id),
+         {:ok, _moved} <-
+           Board.move_card(
+             socket.assigns.current_scope,
+             socket.assigns.session,
+             card,
+             String.to_integer(column_id),
+             0
+           ) do
+      {:noreply, socket |> assign(:active_column, String.to_integer(column_id)) |> refresh()}
+    else
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("create_group", %{"group" => %{"label" => label}}, socket) do
+    card_ids = Enum.map(socket.assigns.cards, & &1.id)
+
+    socket.assigns.current_scope
+    |> Board.create_group(socket.assigns.session, label, card_ids)
+    |> board_result(socket)
+  end
+
+  def handle_event("delete_group", %{"id" => id}, socket) do
+    with {:ok, group} <- fetch_group(socket, id),
+         :ok <- Board.delete_group(socket.assigns.current_scope, socket.assigns.session, group) do
+      {:noreply, refresh(socket)}
+    else
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("reveal_cards", _params, socket) do
+    case Board.reveal_cards(socket.assigns.current_scope, socket.assigns.session) do
+      {:ok, session} -> {:noreply, apply_snapshot(socket, session)}
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("record_mood", %{"kind" => kind, "score" => score}, socket) do
+    socket.assigns.current_scope
+    |> Board.record_mood(
+      socket.assigns.session,
+      to_mood_kind(kind),
+      String.to_integer(score)
+    )
+    |> board_result(socket)
+  end
+
   def handle_event("toggle_ready", _params, socket) do
     ready = not socket.assigns.ready
 
@@ -341,6 +574,47 @@ defmodule SprintLensWeb.SessionLive.Show do
     {:noreply, socket |> assign(:ready, ready) |> assign_presence()}
   end
 
+  defp board_result({:ok, _record}, socket), do: {:noreply, refresh(socket)}
+
+  defp board_result({:error, %Ecto.Changeset{} = changeset}, socket) do
+    {:noreply, put_flash(socket, :error, changeset_message(changeset))}
+  end
+
+  defp board_result({:error, reason}, socket) do
+    {:noreply, put_flash(socket, :error, error_message(reason))}
+  end
+
+  # The card that was clicked, looked up among the ones this person can
+  # actually see — a card hidden by blind mode is not a card they can act on.
+  defp fetch_card(socket, id) do
+    id = String.to_integer(id)
+
+    case Enum.find(socket.assigns.cards, &(&1.id == id)) do
+      nil -> {:error, :not_found}
+      card -> {:ok, card}
+    end
+  end
+
+  defp fetch_group(socket, id) do
+    id = String.to_integer(id)
+
+    case Enum.find(socket.assigns.groups, &(&1.id == id)) do
+      nil -> {:error, :not_found}
+      group -> {:ok, group}
+    end
+  end
+
+  defp refresh(socket), do: assign_board(socket, socket.assigns.session)
+
+  defp changeset_message(changeset) do
+    changeset
+    |> SprintLensWeb.FallbackController.changeset_errors()
+    |> Enum.map_join("; ", fn {field, messages} -> "#{field} #{Enum.join(messages, ", ")}" end)
+  end
+
+  defp to_mood_kind("checkin_mood"), do: :checkin_mood
+  defp to_mood_kind("roti"), do: :roti
+
   defp respond(socket, {:ok, session}), do: {:noreply, apply_snapshot(socket, session)}
 
   defp respond(socket, {:error, %Ecto.Changeset{}}) do
@@ -355,6 +629,7 @@ defmodule SprintLensWeb.SessionLive.Show do
   defp error_message(:wrong_phase), do: gettext("That action is not available in this phase.")
   defp error_message(:wrong_state), do: gettext("That action is not available right now.")
   defp error_message(:not_found), do: gettext("That resource does not exist.")
+  defp error_message(:session_closed), do: gettext("This session is closed.")
 
   # Re-reads rather than trusting the broadcast payload: the payload says what
   # changed, the database says what is true.

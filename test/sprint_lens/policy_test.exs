@@ -170,6 +170,22 @@ defmodule SprintLens.PolicyTest do
     end
   end
 
+  describe "edit_card?/2" do
+    @tag req: ["FR-301"]
+    test "only the author may edit their own words" do
+      assert Policy.edit_card?(member(), member().id)
+      refute Policy.edit_card?(member(), 999)
+    end
+
+    @tag req: ["FR-210", "FR-302"]
+    test "nobody may edit a card with no author, and a signed-out caller may edit nothing" do
+      # The shape an anonymous session leaves behind, and the shape a forged
+      # request arrives in.
+      refute Policy.edit_card?(member(), nil)
+      refute Policy.edit_card?(nil, 1)
+    end
+  end
+
   describe "delete_card?/3" do
     @tag req: ["FR-302"]
     test "the facilitator may delete any card" do

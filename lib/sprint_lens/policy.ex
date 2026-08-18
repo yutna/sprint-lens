@@ -147,6 +147,18 @@ defmodule SprintLens.Policy do
   def session_can?(:participant, _control), do: false
 
   @doc """
+  Whether `user` may edit `card`.
+
+  Only the author. FR-301 gives people the right to edit *their own* cards;
+  FR-302 gives the facilitator the right to *delete* any card, which is a
+  different thing — removing something from the board is moderation, while
+  rewriting it puts words in someone else's mouth.
+  """
+  @spec edit_card?(User.t() | nil, author_id :: term()) :: boolean()
+  def edit_card?(%User{id: id}, author_id) when not is_nil(author_id), do: id == author_id
+  def edit_card?(_user, _author_id), do: false
+
+  @doc """
   Whether `user` may delete `card`, which they may if they wrote it or if they
   are facilitating (FR-301, FR-302).
   """

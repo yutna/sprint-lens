@@ -164,7 +164,7 @@ defmodule SprintLens.Retro.Board do
           {:ok, Card.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized | :wrong_phase}
   def update_card(actor, %Session{} = session, %Card{} = card, attrs) do
     with :ok <- authorize(actor, session, :write_card),
-         :ok <- own_card(actor, session, card) do
+         :ok <- may_edit(actor, card) do
       card
       |> Card.update_changeset(stringify(attrs))
       |> Repo.update()
@@ -180,7 +180,7 @@ defmodule SprintLens.Retro.Board do
           :ok | {:error, :unauthorized | :session_closed}
   def delete_card(actor, %Session{} = session, %Card{} = card) do
     with :ok <- authorize_open(actor, session),
-         :ok <- own_card(actor, session, card) do
+         :ok <- may_delete(actor, session, card) do
       Repo.delete!(card)
       Events.broadcast(session.id, "card.deleted", %{card_id: card.id, column_id: card.column_id})
 
@@ -485,9 +485,14 @@ defmodule SprintLens.Retro.Board do
     end
   end
 
-  # FR-301 lets people edit and delete their own cards; FR-302 lets the
-  # facilitator delete any.
-  defp own_card(actor, session, card) do
+  # Editing is the author's alone (FR-301). The facilitator's power in FR-302
+  # is to remove a card, not to rewrite it.
+  defp may_edit(actor, card) do
+    if Policy.edit_card?(user(actor), card.author_id), do: :ok, else: {:error, :unauthorized}
+  end
+
+  # Deleting is the author's or the facilitator's (FR-301, FR-302).
+  defp may_delete(actor, session, card) do
     role = Retro.session_role(actor, session)
 
     if Policy.delete_card?(role, user(actor), card.author_id) do

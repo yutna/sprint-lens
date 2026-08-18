@@ -173,7 +173,7 @@ defmodule SprintLensWeb.TeamLiveTest do
     end
 
     @tag req: ["FR-104"]
-    test "a member can leave", %{conn: conn, team: team} do
+    test "a member can leave", %{team: team} do
       member = insert(:user)
       join_team(member, team)
       member_conn = log_in_user(build_conn(), member)

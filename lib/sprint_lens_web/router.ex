@@ -69,6 +69,14 @@ defmodule SprintLensWeb.Router do
     post "/sessions/:id/timer", SessionController, :timer
     post "/sessions/:id/facilitator", SessionController, :facilitator
 
+    get "/sessions/:id/cards", CardController, :index
+    post "/sessions/:id/cards", CardController, :create
+    post "/sessions/:id/groups", CardController, :create_group
+    post "/sessions/:id/reveal", CardController, :reveal
+    post "/sessions/:id/mood", CardController, :mood
+    patch "/cards/:id", CardController, :update
+    delete "/cards/:id", CardController, :delete
+
     get "/teams/:id/templates", TeamController, :templates
     post "/teams/:id/templates", TeamController, :create_template
     delete "/teams/:id/templates/:template_id", TeamController, :delete_template
