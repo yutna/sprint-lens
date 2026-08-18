@@ -5,6 +5,7 @@
     "output_dir": "cover/"
   },
   "skip_files": [
-    "test/support/"
+    "test/support/",
+    "lib/mix/tasks/sprint_lens.e2e.ex"
   ]
 }

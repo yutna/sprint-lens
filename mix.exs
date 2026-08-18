@@ -16,7 +16,9 @@ defmodule SprintLens.MixProject do
       dialyzer: [
         plt_add_apps: [:mix, :ex_unit],
         plt_local_path: "priv/plts",
-        plt_core_path: "priv/plts"
+        plt_core_path: "priv/plts",
+        ignore_warnings: ".dialyzer_ignore.exs",
+        list_unused_filters: true
       ]
     ]
   end
@@ -35,6 +37,7 @@ defmodule SprintLens.MixProject do
     [
       preferred_envs: [
         precommit: :test,
+        dialyzer: :test,
         ci: :test,
         verify: :test,
         trace: :test,
@@ -146,6 +149,7 @@ defmodule SprintLens.MixProject do
         "ecto.create --quiet",
         "ecto.migrate --quiet",
         "coveralls",
+        "dialyzer",
         "sprint_lens.trace --report --write"
       ],
       # Acceptance gate. The finished app must pass this.

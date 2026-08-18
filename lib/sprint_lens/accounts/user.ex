@@ -15,6 +15,8 @@ defmodule SprintLens.Accounts.User do
   @languages ~w(th en)
   @themes ~w(light dark system)
 
+  @type t :: %__MODULE__{}
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
