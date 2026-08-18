@@ -1,0 +1,480 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: th\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:141
+#, elixir-autogen, elixir-format
+msgid "A confirmation link is on its way to the new address."
+msgstr "ส่งลิงก์ยืนยันไปยังอีเมลใหม่แล้ว"
+
+#: lib/sprint_lens_web/api_error.ex:81
+#, elixir-autogen, elixir-format
+msgid "A required service is unavailable."
+msgstr "บริการที่จำเป็นไม่พร้อมใช้งาน"
+
+#: lib/sprint_lens_web/api_error.ex:77
+#, elixir-autogen, elixir-format
+msgid "AI features are turned off."
+msgstr "ฟีเจอร์ AI ถูกปิดอยู่"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:24
+#: lib/sprint_lens_web/live/user_live/settings.ex:21
+#, elixir-autogen, elixir-format
+msgid "Account settings"
+msgstr "ตั้งค่าบัญชี"
+
+#: lib/sprint_lens_web/components/core_components.ex:375
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr "การดำเนินการ"
+
+#: lib/sprint_lens_web/live/user_live/registration.ex:26
+#, elixir-autogen, elixir-format
+msgid "Already have an account?"
+msgstr "มีบัญชีอยู่แล้ว?"
+
+#: lib/sprint_lens_web/components/layouts.ex:144
+#: lib/sprint_lens_web/components/layouts.ex:159
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr "กำลังเชื่อมต่อใหม่"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:46
+#, elixir-autogen, elixir-format
+msgid "Avatar URL"
+msgstr "ลิงก์รูปโปรไฟล์"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:49
+#, elixir-autogen, elixir-format
+msgid "Back to log in"
+msgstr "กลับไปหน้าเข้าสู่ระบบ"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:41
+#, elixir-autogen, elixir-format
+msgid "Change email"
+msgstr "เปลี่ยนอีเมล"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:40
+#, elixir-autogen, elixir-format
+msgid "Changing..."
+msgstr "กำลังเปลี่ยน..."
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Collect reflections, agree on actions, and see whether they get done — session after session."
+msgstr "รวบรวมความคิดเห็น ตกลงสิ่งที่จะทำ แล้วติดตามว่าทำสำเร็จหรือไม่ ต่อเนื่องทุก session"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:39
+#, elixir-autogen, elixir-format
+msgid "Confirm and log in only this time"
+msgstr "ยืนยันและเข้าสู่ระบบเฉพาะครั้งนี้"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:36
+#, elixir-autogen, elixir-format
+msgid "Confirm and stay logged in"
+msgstr "ยืนยันและจดจำการเข้าสู่ระบบ"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:74
+#, elixir-autogen, elixir-format
+msgid "Confirm new password"
+msgstr "ยืนยันรหัสผ่านใหม่"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:33
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:38
+#, elixir-autogen, elixir-format
+msgid "Confirming..."
+msgstr "กำลังยืนยัน..."
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:19
+#: lib/sprint_lens_web/live/user_live/registration.ex:53
+#, elixir-autogen, elixir-format
+msgid "Create an account"
+msgstr "สร้างบัญชี"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:26
+#, elixir-autogen, elixir-format
+msgid "Create one"
+msgstr "สร้างบัญชีใหม่"
+
+#: lib/sprint_lens_web/live/user_live/registration.ex:24
+#, elixir-autogen, elixir-format
+msgid "Create your account"
+msgstr "สร้างบัญชีของคุณ"
+
+#: lib/sprint_lens_web/live/user_live/registration.ex:52
+#, elixir-autogen, elixir-format
+msgid "Creating account..."
+msgstr "กำลังสร้างบัญชี..."
+
+#: lib/sprint_lens_web/components/layouts.ex:242
+#, elixir-autogen, elixir-format
+msgid "Dark"
+msgstr "มืด"
+
+#: lib/sprint_lens_web/components/layouts.ex:230
+#, elixir-autogen, elixir-format
+msgid "Dark theme"
+msgstr "ธีมมืด"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:39
+#: lib/sprint_lens_web/live/user_live/registration.ex:38
+#, elixir-autogen, elixir-format
+msgid "Display name"
+msgstr "ชื่อที่แสดง"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:36
+#: lib/sprint_lens_web/live/user_live/login.ex:55
+#: lib/sprint_lens_web/live/user_live/login.ex:80
+#: lib/sprint_lens_web/live/user_live/registration.ex:46
+#: lib/sprint_lens_web/live/user_live/settings.ex:35
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr "อีเมล"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:91
+#, elixir-autogen, elixir-format
+msgid "Email changed successfully."
+msgstr "เปลี่ยนอีเมลเรียบร้อยแล้ว"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:62
+#, elixir-autogen, elixir-format
+msgid "Email me a sign-in link"
+msgstr "ส่งลิงก์เข้าสู่ระบบทางอีเมล"
+
+#: lib/sprint_lens_web/components/layouts.ex:240
+#, elixir-autogen, elixir-format
+msgid "Follow the system"
+msgstr "ตามระบบ"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:102
+#, elixir-autogen, elixir-format
+msgid "Forgot your password?"
+msgstr "ลืมรหัสผ่าน?"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:21
+#, elixir-autogen, elixir-format
+msgid "How you appear, and how the app appears to you."
+msgstr "ข้อมูลที่คนอื่นเห็น และหน้าตาของแอปที่คุณเห็น"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:72
+#, elixir-autogen, elixir-format
+msgid "If that email has an account, a reset link is on its way."
+msgstr "ถ้าอีเมลนี้มีบัญชีอยู่ ลิงก์ตั้งรหัสผ่านใหม่กำลังจะไปถึง"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:134
+#, elixir-autogen, elixir-format
+msgid "If that email has an account, a sign-in link is on its way."
+msgstr "ถ้าอีเมลนี้มีบัญชีอยู่ ลิงก์เข้าสู่ระบบกำลังจะไปถึง"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:64
+#, elixir-autogen, elixir-format
+msgid "Keep me logged in on this device"
+msgstr "จดจำการเข้าสู่ระบบบนอุปกรณ์นี้"
+
+#: lib/sprint_lens_web/components/layouts.ex:177
+#: lib/sprint_lens_web/live/user_live/preferences.ex:52
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr "ภาษา"
+
+#: lib/sprint_lens_web/components/layouts.ex:241
+#, elixir-autogen, elixir-format
+msgid "Light"
+msgstr "สว่าง"
+
+#: lib/sprint_lens_web/components/layouts.ex:229
+#, elixir-autogen, elixir-format
+msgid "Light theme"
+msgstr "ธีมสว่าง"
+
+#: lib/sprint_lens_web/components/layouts.ex:105
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:22
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:55
+#: lib/sprint_lens_web/live/user_live/login.ex:19
+#: lib/sprint_lens_web/live/user_live/registration.ex:28
+#, elixir-autogen, elixir-format
+msgid "Log in"
+msgstr "เข้าสู่ระบบ"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:93
+#, elixir-autogen, elixir-format
+msgid "Log in and stay logged in"
+msgstr "เข้าสู่ระบบและจดจำไว้"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:96
+#, elixir-autogen, elixir-format
+msgid "Log in only this time"
+msgstr "เข้าสู่ระบบเฉพาะครั้งนี้"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:67
+#, elixir-autogen, elixir-format
+msgid "Log me in only this time"
+msgstr "เข้าสู่ระบบเฉพาะครั้งนี้"
+
+#: lib/sprint_lens_web/components/layouts.ex:98
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr "ออกจากระบบ"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:54
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:61
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:66
+#, elixir-autogen, elixir-format
+msgid "Logging in..."
+msgstr "กำลังเข้าสู่ระบบ..."
+
+#: lib/sprint_lens_web/components/layouts.ex:89
+#, elixir-autogen, elixir-format
+msgid "Main"
+msgstr "เมนูหลัก"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:66
+#, elixir-autogen, elixir-format
+msgid "New password"
+msgstr "รหัสผ่านใหม่"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:24
+#, elixir-autogen, elixir-format
+msgid "No account yet?"
+msgstr "ยังไม่มีบัญชี?"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:88
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr "รหัสผ่าน"
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:64
+#, elixir-autogen, elixir-format
+msgid "Password updated."
+msgstr "อัปเดตรหัสผ่านแล้ว"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:22
+#, elixir-autogen, elixir-format
+msgid "Please sign in again to change your account settings."
+msgstr "กรุณาเข้าสู่ระบบอีกครั้งเพื่อแก้ไขการตั้งค่าบัญชี"
+
+#: lib/sprint_lens_web/components/layouts.ex:95
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:15
+#: lib/sprint_lens_web/live/user_live/preferences.ex:20
+#: lib/sprint_lens_web/live/user_live/settings.ex:25
+#, elixir-autogen, elixir-format
+msgid "Preferences"
+msgstr "การตั้งค่าส่วนตัว"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:100
+#, elixir-autogen, elixir-format
+msgid "Preferences saved."
+msgstr "บันทึกการตั้งค่าแล้ว"
+
+#: lib/sprint_lens_web/components/layouts.ex:102
+#, elixir-autogen, elixir-format
+msgid "Register"
+msgstr "สมัครสมาชิก"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:25
+#, elixir-autogen, elixir-format
+msgid "Reset your password"
+msgstr "ตั้งรหัสผ่านใหม่"
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:4
+#, elixir-autogen, elixir-format
+msgid "Retrospectives your team actually acts on"
+msgstr "Retrospective ที่ทีมลงมือทำจริง"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:79
+#, elixir-autogen, elixir-format
+msgid "Save password"
+msgstr "บันทึกรหัสผ่าน"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:63
+#, elixir-autogen, elixir-format
+msgid "Save preferences"
+msgstr "บันทึกการตั้งค่า"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:62
+#: lib/sprint_lens_web/live/user_live/settings.ex:78
+#, elixir-autogen, elixir-format
+msgid "Saving..."
+msgstr "กำลังบันทึก..."
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:43
+#, elixir-autogen, elixir-format
+msgid "Send reset link"
+msgstr "ส่งลิงก์ตั้งรหัสผ่านใหม่"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:42
+#, elixir-autogen, elixir-format
+msgid "Sending..."
+msgstr "กำลังส่ง..."
+
+#: lib/sprint_lens_web/live/user_live/login.ex:38
+#, elixir-autogen, elixir-format
+msgid "Sent emails appear in"
+msgstr "อีเมลที่ส่งออกจะปรากฏใน"
+
+#: lib/sprint_lens_web/api_error.ex:72
+#, elixir-autogen, elixir-format
+msgid "Some fields need attention."
+msgstr "มีบางช่องที่ต้องแก้ไข"
+
+#: lib/sprint_lens_web/api_error.ex:80
+#, elixir-autogen, elixir-format
+msgid "Something went wrong on our side."
+msgstr "เกิดข้อผิดพลาดที่ฝั่งระบบ"
+
+#: lib/sprint_lens_web/components/layouts.ex:151
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr "เกิดข้อผิดพลาด"
+
+#: lib/sprint_lens_web/components/layouts.ex:228
+#, elixir-autogen, elixir-format
+msgid "System theme"
+msgstr "ธีมตามระบบ"
+
+#: lib/sprint_lens_web/api_error.ex:74
+#, elixir-autogen, elixir-format
+msgid "That action is not available in this phase."
+msgstr "ทำสิ่งนี้ไม่ได้ในเฟสปัจจุบัน"
+
+#: lib/sprint_lens_web/api_error.ex:71
+#, elixir-autogen, elixir-format
+msgid "That change conflicts with the current state."
+msgstr "การเปลี่ยนแปลงนี้ขัดแย้งกับสถานะปัจจุบัน"
+
+#: lib/sprint_lens_web/api_error.ex:68
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:48
+#, elixir-autogen, elixir-format
+msgid "That email and password do not match."
+msgstr "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:94
+#, elixir-autogen, elixir-format
+msgid "That email change link is invalid or has expired."
+msgstr "ลิงก์เปลี่ยนอีเมลไม่ถูกต้องหรือหมดอายุแล้ว"
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:32
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:90
+#, elixir-autogen, elixir-format
+msgid "That link is invalid or has expired."
+msgstr "ลิงก์ไม่ถูกต้องหรือหมดอายุแล้ว"
+
+#: lib/sprint_lens_web/api_error.ex:70
+#, elixir-autogen, elixir-format
+msgid "That resource does not exist."
+msgstr "ไม่พบข้อมูลที่ต้องการ"
+
+#: lib/sprint_lens_web/components/layouts.ex:207
+#: lib/sprint_lens_web/live/user_live/preferences.ex:58
+#, elixir-autogen, elixir-format
+msgid "Theme"
+msgstr "ธีม"
+
+#: lib/sprint_lens_web/api_error.ex:75
+#, elixir-autogen, elixir-format
+msgid "This session is closed."
+msgstr "Session นี้ปิดแล้ว"
+
+#: lib/sprint_lens_web/api_error.ex:76
+#, elixir-autogen, elixir-format
+msgid "This team is archived and read-only."
+msgstr "ทีมนี้ถูกเก็บเข้าคลังแล้ว แก้ไขไม่ได้"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:73
+#, elixir-autogen, elixir-format
+msgid "Tip: you can set a password in your account settings."
+msgstr "เคล็ดลับ: คุณตั้งรหัสผ่านได้ในหน้าตั้งค่าบัญชี"
+
+#: lib/sprint_lens_web/api_error.ex:79
+#, elixir-autogen, elixir-format
+msgid "Too many requests. Please slow down."
+msgstr "มีคำขอมากเกินไป กรุณาชะลอลง"
+
+#: lib/sprint_lens_web/components/layouts.ex:136
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr "ไม่พบการเชื่อมต่ออินเทอร์เน็ต"
+
+#: lib/sprint_lens_web/live/user_live/registration.ex:83
+#, elixir-autogen, elixir-format
+msgid "We sent a confirmation link to %{email}."
+msgstr "เราส่งลิงก์ยืนยันไปที่ %{email} แล้ว"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:27
+#, elixir-autogen, elixir-format
+msgid "We will email you a link to sign in, so you can choose a new password."
+msgstr "เราจะส่งลิงก์เข้าสู่ระบบไปทางอีเมล เพื่อให้คุณตั้งรหัสผ่านใหม่ได้"
+
+#: lib/sprint_lens_web/api_error.ex:78
+#, elixir-autogen, elixir-format
+msgid "Webhooks are turned off."
+msgstr "Webhook ถูกปิดอยู่"
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:17
+#, elixir-autogen, elixir-format
+msgid "Welcome back!"
+msgstr "ยินดีต้อนรับกลับมา"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:17
+#, elixir-autogen, elixir-format
+msgid "Welcome, %{name}"
+msgstr "ยินดีต้อนรับ %{name}"
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:69
+#, elixir-autogen, elixir-format
+msgid "You are logged out."
+msgstr "ออกจากระบบแล้ว"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:36
+#, elixir-autogen, elixir-format
+msgid "You are running the local mail adapter."
+msgstr "คุณกำลังใช้ mail adapter แบบ local"
+
+#: lib/sprint_lens_web/api_error.ex:69
+#, elixir-autogen, elixir-format
+msgid "You do not have permission to do that."
+msgstr "คุณไม่มีสิทธิ์ทำสิ่งนี้"
+
+#: lib/sprint_lens_web/api_error.ex:73
+#, elixir-autogen, elixir-format
+msgid "You have no votes left in this session."
+msgstr "โควตาโหวตของคุณใน session นี้หมดแล้ว"
+
+#: lib/sprint_lens_web/api_error.ex:67
+#, elixir-autogen, elixir-format
+msgid "You must be signed in to do that."
+msgstr "คุณต้องเข้าสู่ระบบก่อน"
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:13
+#, elixir-autogen, elixir-format
+msgid "Your account is confirmed."
+msgstr "ยืนยันบัญชีเรียบร้อยแล้ว"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:22
+#, elixir-autogen, elixir-format
+msgid "Your email address and password."
+msgstr "อีเมลและรหัสผ่านของคุณ"
+
+#: lib/sprint_lens_web/components/core_components.ex:81
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr "ปิด"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:66
+#, elixir-autogen, elixir-format
+msgid "or"
+msgstr "หรือ"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:39
+#, elixir-autogen, elixir-format
+msgid "the mailbox"
+msgstr "กล่องจดหมาย"

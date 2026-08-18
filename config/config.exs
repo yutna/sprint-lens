@@ -7,9 +7,26 @@
 # General application configuration
 import Config
 
+config :sprint_lens, :scopes,
+  user: [
+    default: true,
+    module: SprintLens.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: SprintLens.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :sprint_lens,
   ecto_repos: [SprintLens.Repo],
   generators: [timestamp_type: :utc_datetime]
+
+# Times are stored in UTC and rendered in the viewer's zone (section 11), so
+# the runtime needs a time zone database.
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 # SQLite tuning shared by every environment.
 #

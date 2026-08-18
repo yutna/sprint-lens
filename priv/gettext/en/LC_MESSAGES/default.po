@@ -1,0 +1,480 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:141
+#, elixir-autogen, elixir-format
+msgid "A confirmation link is on its way to the new address."
+msgstr "A confirmation link is on its way to the new address."
+
+#: lib/sprint_lens_web/api_error.ex:81
+#, elixir-autogen, elixir-format
+msgid "A required service is unavailable."
+msgstr "A required service is unavailable."
+
+#: lib/sprint_lens_web/api_error.ex:77
+#, elixir-autogen, elixir-format
+msgid "AI features are turned off."
+msgstr "AI features are turned off."
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:24
+#: lib/sprint_lens_web/live/user_live/settings.ex:21
+#, elixir-autogen, elixir-format
+msgid "Account settings"
+msgstr "Account settings"
+
+#: lib/sprint_lens_web/components/core_components.ex:375
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr "Actions"
+
+#: lib/sprint_lens_web/live/user_live/registration.ex:26
+#, elixir-autogen, elixir-format
+msgid "Already have an account?"
+msgstr "Already have an account?"
+
+#: lib/sprint_lens_web/components/layouts.ex:144
+#: lib/sprint_lens_web/components/layouts.ex:159
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr "Attempting to reconnect"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:46
+#, elixir-autogen, elixir-format
+msgid "Avatar URL"
+msgstr "Avatar URL"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:49
+#, elixir-autogen, elixir-format
+msgid "Back to log in"
+msgstr "Back to log in"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:41
+#, elixir-autogen, elixir-format
+msgid "Change email"
+msgstr "Change email"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:40
+#, elixir-autogen, elixir-format
+msgid "Changing..."
+msgstr "Changing..."
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Collect reflections, agree on actions, and see whether they get done — session after session."
+msgstr "Collect reflections, agree on actions, and see whether they get done — session after session."
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:39
+#, elixir-autogen, elixir-format
+msgid "Confirm and log in only this time"
+msgstr "Confirm and log in only this time"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:36
+#, elixir-autogen, elixir-format
+msgid "Confirm and stay logged in"
+msgstr "Confirm and stay logged in"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:74
+#, elixir-autogen, elixir-format
+msgid "Confirm new password"
+msgstr "Confirm new password"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:33
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:38
+#, elixir-autogen, elixir-format
+msgid "Confirming..."
+msgstr "Confirming..."
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:19
+#: lib/sprint_lens_web/live/user_live/registration.ex:53
+#, elixir-autogen, elixir-format
+msgid "Create an account"
+msgstr "Create an account"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:26
+#, elixir-autogen, elixir-format
+msgid "Create one"
+msgstr "Create one"
+
+#: lib/sprint_lens_web/live/user_live/registration.ex:24
+#, elixir-autogen, elixir-format
+msgid "Create your account"
+msgstr "Create your account"
+
+#: lib/sprint_lens_web/live/user_live/registration.ex:52
+#, elixir-autogen, elixir-format
+msgid "Creating account..."
+msgstr "Creating account..."
+
+#: lib/sprint_lens_web/components/layouts.ex:242
+#, elixir-autogen, elixir-format
+msgid "Dark"
+msgstr "Dark"
+
+#: lib/sprint_lens_web/components/layouts.ex:230
+#, elixir-autogen, elixir-format
+msgid "Dark theme"
+msgstr "Dark theme"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:39
+#: lib/sprint_lens_web/live/user_live/registration.ex:38
+#, elixir-autogen, elixir-format
+msgid "Display name"
+msgstr "Display name"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:36
+#: lib/sprint_lens_web/live/user_live/login.ex:55
+#: lib/sprint_lens_web/live/user_live/login.ex:80
+#: lib/sprint_lens_web/live/user_live/registration.ex:46
+#: lib/sprint_lens_web/live/user_live/settings.ex:35
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr "Email"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:91
+#, elixir-autogen, elixir-format
+msgid "Email changed successfully."
+msgstr "Email changed successfully."
+
+#: lib/sprint_lens_web/live/user_live/login.ex:62
+#, elixir-autogen, elixir-format
+msgid "Email me a sign-in link"
+msgstr "Email me a sign-in link"
+
+#: lib/sprint_lens_web/components/layouts.ex:240
+#, elixir-autogen, elixir-format
+msgid "Follow the system"
+msgstr "Follow the system"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:102
+#, elixir-autogen, elixir-format
+msgid "Forgot your password?"
+msgstr "Forgot your password?"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:21
+#, elixir-autogen, elixir-format
+msgid "How you appear, and how the app appears to you."
+msgstr "How you appear, and how the app appears to you."
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:72
+#, elixir-autogen, elixir-format
+msgid "If that email has an account, a reset link is on its way."
+msgstr "If that email has an account, a reset link is on its way."
+
+#: lib/sprint_lens_web/live/user_live/login.ex:134
+#, elixir-autogen, elixir-format
+msgid "If that email has an account, a sign-in link is on its way."
+msgstr "If that email has an account, a sign-in link is on its way."
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:64
+#, elixir-autogen, elixir-format
+msgid "Keep me logged in on this device"
+msgstr "Keep me logged in on this device"
+
+#: lib/sprint_lens_web/components/layouts.ex:177
+#: lib/sprint_lens_web/live/user_live/preferences.ex:52
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr "Language"
+
+#: lib/sprint_lens_web/components/layouts.ex:241
+#, elixir-autogen, elixir-format
+msgid "Light"
+msgstr "Light"
+
+#: lib/sprint_lens_web/components/layouts.ex:229
+#, elixir-autogen, elixir-format
+msgid "Light theme"
+msgstr "Light theme"
+
+#: lib/sprint_lens_web/components/layouts.ex:105
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:22
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:55
+#: lib/sprint_lens_web/live/user_live/login.ex:19
+#: lib/sprint_lens_web/live/user_live/registration.ex:28
+#, elixir-autogen, elixir-format
+msgid "Log in"
+msgstr "Log in"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:93
+#, elixir-autogen, elixir-format
+msgid "Log in and stay logged in"
+msgstr "Log in and stay logged in"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:96
+#, elixir-autogen, elixir-format
+msgid "Log in only this time"
+msgstr "Log in only this time"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:67
+#, elixir-autogen, elixir-format
+msgid "Log me in only this time"
+msgstr "Log me in only this time"
+
+#: lib/sprint_lens_web/components/layouts.ex:98
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr "Log out"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:54
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:61
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:66
+#, elixir-autogen, elixir-format
+msgid "Logging in..."
+msgstr "Logging in..."
+
+#: lib/sprint_lens_web/components/layouts.ex:89
+#, elixir-autogen, elixir-format
+msgid "Main"
+msgstr "Main"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:66
+#, elixir-autogen, elixir-format
+msgid "New password"
+msgstr "New password"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:24
+#, elixir-autogen, elixir-format
+msgid "No account yet?"
+msgstr "No account yet?"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:88
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr "Password"
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:64
+#, elixir-autogen, elixir-format
+msgid "Password updated."
+msgstr "Password updated."
+
+#: lib/sprint_lens_web/live/user_live/login.ex:22
+#, elixir-autogen, elixir-format
+msgid "Please sign in again to change your account settings."
+msgstr "Please sign in again to change your account settings."
+
+#: lib/sprint_lens_web/components/layouts.ex:95
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:15
+#: lib/sprint_lens_web/live/user_live/preferences.ex:20
+#: lib/sprint_lens_web/live/user_live/settings.ex:25
+#, elixir-autogen, elixir-format
+msgid "Preferences"
+msgstr "Preferences"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:100
+#, elixir-autogen, elixir-format
+msgid "Preferences saved."
+msgstr "Preferences saved."
+
+#: lib/sprint_lens_web/components/layouts.ex:102
+#, elixir-autogen, elixir-format
+msgid "Register"
+msgstr "Register"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:25
+#, elixir-autogen, elixir-format
+msgid "Reset your password"
+msgstr "Reset your password"
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:4
+#, elixir-autogen, elixir-format
+msgid "Retrospectives your team actually acts on"
+msgstr "Retrospectives your team actually acts on"
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:79
+#, elixir-autogen, elixir-format
+msgid "Save password"
+msgstr "Save password"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:63
+#, elixir-autogen, elixir-format
+msgid "Save preferences"
+msgstr "Save preferences"
+
+#: lib/sprint_lens_web/live/user_live/preferences.ex:62
+#: lib/sprint_lens_web/live/user_live/settings.ex:78
+#, elixir-autogen, elixir-format
+msgid "Saving..."
+msgstr "Saving..."
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:43
+#, elixir-autogen, elixir-format
+msgid "Send reset link"
+msgstr "Send reset link"
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:42
+#, elixir-autogen, elixir-format
+msgid "Sending..."
+msgstr "Sending..."
+
+#: lib/sprint_lens_web/live/user_live/login.ex:38
+#, elixir-autogen, elixir-format
+msgid "Sent emails appear in"
+msgstr "Sent emails appear in"
+
+#: lib/sprint_lens_web/api_error.ex:72
+#, elixir-autogen, elixir-format
+msgid "Some fields need attention."
+msgstr "Some fields need attention."
+
+#: lib/sprint_lens_web/api_error.ex:80
+#, elixir-autogen, elixir-format
+msgid "Something went wrong on our side."
+msgstr "Something went wrong on our side."
+
+#: lib/sprint_lens_web/components/layouts.ex:151
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr "Something went wrong!"
+
+#: lib/sprint_lens_web/components/layouts.ex:228
+#, elixir-autogen, elixir-format
+msgid "System theme"
+msgstr "System theme"
+
+#: lib/sprint_lens_web/api_error.ex:74
+#, elixir-autogen, elixir-format
+msgid "That action is not available in this phase."
+msgstr "That action is not available in this phase."
+
+#: lib/sprint_lens_web/api_error.ex:71
+#, elixir-autogen, elixir-format
+msgid "That change conflicts with the current state."
+msgstr "That change conflicts with the current state."
+
+#: lib/sprint_lens_web/api_error.ex:68
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:48
+#, elixir-autogen, elixir-format
+msgid "That email and password do not match."
+msgstr "That email and password do not match."
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:94
+#, elixir-autogen, elixir-format
+msgid "That email change link is invalid or has expired."
+msgstr "That email change link is invalid or has expired."
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:32
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:90
+#, elixir-autogen, elixir-format
+msgid "That link is invalid or has expired."
+msgstr "That link is invalid or has expired."
+
+#: lib/sprint_lens_web/api_error.ex:70
+#, elixir-autogen, elixir-format
+msgid "That resource does not exist."
+msgstr "That resource does not exist."
+
+#: lib/sprint_lens_web/components/layouts.ex:207
+#: lib/sprint_lens_web/live/user_live/preferences.ex:58
+#, elixir-autogen, elixir-format
+msgid "Theme"
+msgstr "Theme"
+
+#: lib/sprint_lens_web/api_error.ex:75
+#, elixir-autogen, elixir-format
+msgid "This session is closed."
+msgstr "This session is closed."
+
+#: lib/sprint_lens_web/api_error.ex:76
+#, elixir-autogen, elixir-format
+msgid "This team is archived and read-only."
+msgstr "This team is archived and read-only."
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:73
+#, elixir-autogen, elixir-format
+msgid "Tip: you can set a password in your account settings."
+msgstr "Tip: you can set a password in your account settings."
+
+#: lib/sprint_lens_web/api_error.ex:79
+#, elixir-autogen, elixir-format
+msgid "Too many requests. Please slow down."
+msgstr "Too many requests. Please slow down."
+
+#: lib/sprint_lens_web/components/layouts.ex:136
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr "We can't find the internet"
+
+#: lib/sprint_lens_web/live/user_live/registration.ex:83
+#, elixir-autogen, elixir-format
+msgid "We sent a confirmation link to %{email}."
+msgstr "We sent a confirmation link to %{email}."
+
+#: lib/sprint_lens_web/live/user_live/forgot_password.ex:27
+#, elixir-autogen, elixir-format
+msgid "We will email you a link to sign in, so you can choose a new password."
+msgstr "We will email you a link to sign in, so you can choose a new password."
+
+#: lib/sprint_lens_web/api_error.ex:78
+#, elixir-autogen, elixir-format
+msgid "Webhooks are turned off."
+msgstr "Webhooks are turned off."
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:17
+#, elixir-autogen, elixir-format
+msgid "Welcome back!"
+msgstr "Welcome back!"
+
+#: lib/sprint_lens_web/live/user_live/confirmation.ex:17
+#, elixir-autogen, elixir-format
+msgid "Welcome, %{name}"
+msgstr "Welcome, %{name}"
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:69
+#, elixir-autogen, elixir-format
+msgid "You are logged out."
+msgstr "You are logged out."
+
+#: lib/sprint_lens_web/live/user_live/login.ex:36
+#, elixir-autogen, elixir-format
+msgid "You are running the local mail adapter."
+msgstr "You are running the local mail adapter."
+
+#: lib/sprint_lens_web/api_error.ex:69
+#, elixir-autogen, elixir-format
+msgid "You do not have permission to do that."
+msgstr "You do not have permission to do that."
+
+#: lib/sprint_lens_web/api_error.ex:73
+#, elixir-autogen, elixir-format
+msgid "You have no votes left in this session."
+msgstr "You have no votes left in this session."
+
+#: lib/sprint_lens_web/api_error.ex:67
+#, elixir-autogen, elixir-format
+msgid "You must be signed in to do that."
+msgstr "You must be signed in to do that."
+
+#: lib/sprint_lens_web/controllers/user_session_controller.ex:13
+#, elixir-autogen, elixir-format
+msgid "Your account is confirmed."
+msgstr "Your account is confirmed."
+
+#: lib/sprint_lens_web/live/user_live/settings.ex:22
+#, elixir-autogen, elixir-format
+msgid "Your email address and password."
+msgstr "Your email address and password."
+
+#: lib/sprint_lens_web/components/core_components.ex:81
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr "close"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:66
+#, elixir-autogen, elixir-format
+msgid "or"
+msgstr "or"
+
+#: lib/sprint_lens_web/live/user_live/login.ex:39
+#, elixir-autogen, elixir-format
+msgid "the mailbox"
+msgstr "the mailbox"

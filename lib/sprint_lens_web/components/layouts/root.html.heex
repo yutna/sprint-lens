@@ -1,43 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html
+  lang={assigns[:locale] || "th"}
+  data-theme={SprintLensWeb.Layouts.initial_theme(assigns)}
+  data-theme-source={SprintLensWeb.Layouts.theme_source(assigns)}
+>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="SprintLens" suffix=" · Phoenix Framework" phx-no-format>{assigns[:page_title]}</.live_title>
+    <.live_title default="SprintLens" suffix=" · SprintLens" phx-no-format>
+      {assigns[:page_title]}
+    </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
+    <%!--
+      Runs before first paint so the page never flashes the wrong theme
+      (FR-911). The server has already stamped data-theme from the signed-in
+      user's profile; this only resolves "system" against the OS preference,
+      which the server cannot know, and keeps the choice in sync across tabs.
+    --%>
     <script>
       (() => {
         const systemTheme = () => matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        const root = document.documentElement;
 
         const setTheme = (theme) => {
           if (theme === "system") {
             localStorage.removeItem("phx:theme");
-            document.documentElement.setAttribute("data-theme", systemTheme());
-            document.documentElement.setAttribute("data-theme-source", "system");
+            root.setAttribute("data-theme", systemTheme());
+            root.setAttribute("data-theme-source", "system");
           } else {
             localStorage.setItem("phx:theme", theme);
-            document.documentElement.setAttribute("data-theme", theme);
-            document.documentElement.setAttribute("data-theme-source", "user");
+            root.setAttribute("data-theme", theme);
+            root.setAttribute("data-theme-source", "user");
           }
         };
-        if (!document.documentElement.hasAttribute("data-theme")) {
+
+        if (root.getAttribute("data-theme-source") === "system") {
+          root.setAttribute("data-theme", systemTheme());
+        } else if (!root.hasAttribute("data-theme")) {
           setTheme(localStorage.getItem("phx:theme") || "system");
         }
+
         window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
         window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
 
-        matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-          if (document.documentElement.getAttribute("data-theme-source") === "system") {
-            document.documentElement.setAttribute("data-theme", systemTheme());
+        matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+          if (root.getAttribute("data-theme-source") === "system") {
+            root.setAttribute("data-theme", systemTheme());
           }
         });
       })();
     </script>
   </head>
-  <body>
+  <body class="min-h-screen bg-base-100 text-base-content">
     {@inner_content}
   </body>
 </html>

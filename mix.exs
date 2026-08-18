@@ -58,6 +58,7 @@ defmodule SprintLens.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.8.9"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
@@ -95,7 +96,10 @@ defmodule SprintLens.MixProject do
       {:oban, "~> 2.23"},
       # Rate limiting per user and per IP (NFR-202)
       {:hammer, "~> 7.4"},
-      # Locale-aware dates, times and numbers (FR-908)
+      # Locale-aware dates, times and numbers (FR-908). `tz` supplies the
+      # time zone database Elixir needs to render UTC values in the viewer's
+      # zone (section 11).
+      {:tz, "~> 0.28"},
       {:ex_cldr, "~> 2.47"},
       {:ex_cldr_dates_times, "~> 2.25"},
       {:ex_cldr_numbers, "~> 2.38"},

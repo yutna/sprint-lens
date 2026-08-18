@@ -1,0 +1,93 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: th\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "can't be blank"
+msgstr "ต้องไม่เว้นว่าง"
+
+msgid "has already been taken"
+msgstr "ถูกใช้ไปแล้ว"
+
+msgid "is invalid"
+msgstr "ไม่ถูกต้อง"
+
+msgid "must be accepted"
+msgstr "ต้องยอมรับ"
+
+msgid "has invalid format"
+msgstr "รูปแบบไม่ถูกต้อง"
+
+msgid "has an invalid entry"
+msgstr "มีรายการที่ไม่ถูกต้อง"
+
+msgid "is reserved"
+msgstr "ถูกสงวนไว้"
+
+msgid "does not match confirmation"
+msgstr "ยืนยันไม่ตรงกัน"
+
+msgid "is still associated with this entry"
+msgstr "ยังถูกอ้างอิงอยู่"
+
+msgid "are still associated with this entry"
+msgstr "ยังถูกอ้างอิงอยู่"
+
+msgid "should have %{count} item(s)"
+msgid_plural "should have %{count} item(s)"
+msgstr[0] "ต้องมี %{count} รายการ"
+
+msgid "should be %{count} character(s)"
+msgid_plural "should be %{count} character(s)"
+msgstr[0] "ต้องมี %{count} ตัวอักษร"
+
+msgid "should be %{count} byte(s)"
+msgid_plural "should be %{count} byte(s)"
+msgstr[0] "ต้องมี %{count} ไบต์"
+
+msgid "should have at least %{count} item(s)"
+msgid_plural "should have at least %{count} item(s)"
+msgstr[0] "ต้องมีอย่างน้อย %{count} รายการ"
+
+msgid "should be at least %{count} character(s)"
+msgid_plural "should be at least %{count} character(s)"
+msgstr[0] "ต้องมีอย่างน้อย %{count} ตัวอักษร"
+
+msgid "should be at least %{count} byte(s)"
+msgid_plural "should be at least %{count} byte(s)"
+msgstr[0] "ต้องมีอย่างน้อย %{count} ไบต์"
+
+msgid "should have at most %{count} item(s)"
+msgid_plural "should have at most %{count} item(s)"
+msgstr[0] "ต้องมีไม่เกิน %{count} รายการ"
+
+msgid "should be at most %{count} character(s)"
+msgid_plural "should be at most %{count} character(s)"
+msgstr[0] "ต้องมีไม่เกิน %{count} ตัวอักษร"
+
+msgid "should be at most %{count} byte(s)"
+msgid_plural "should be at most %{count} byte(s)"
+msgstr[0] "ต้องมีไม่เกิน %{count} ไบต์"
+
+msgid "must be less than %{number}"
+msgstr "ต้องน้อยกว่า %{number}"
+
+msgid "must be greater than %{number}"
+msgstr "ต้องมากกว่า %{number}"
+
+msgid "must be less than or equal to %{number}"
+msgstr "ต้องน้อยกว่าหรือเท่ากับ %{number}"
+
+msgid "must be greater than or equal to %{number}"
+msgstr "ต้องมากกว่าหรือเท่ากับ %{number}"
+
+msgid "must be equal to %{number}"
+msgstr "ต้องเท่ากับ %{number}"
