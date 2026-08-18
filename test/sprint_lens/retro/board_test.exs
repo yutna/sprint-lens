@@ -7,6 +7,8 @@ defmodule SprintLens.Retro.BoardTest do
   alias SprintLens.Retro.Card
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.MoodEntry
+  alias SprintLens.Retro.Session
+  alias SprintLens.Retro.Vote
 
   setup do
     facilitator = insert(:user)
@@ -25,6 +27,56 @@ defmodule SprintLens.Retro.BoardTest do
   end
 
   defp first_column(session), do: hd(session.columns)
+
+  # A board part-way through a retro: two cards merged into a cluster, one
+  # loose card, one nobody voted for, and votes already cast by two people.
+  defp voted_board(ctx) do
+    board = board(ctx)
+    column = hd(board.columns)
+
+    clustered = [
+      write(ctx.participant, board.session, column, "Slow builds"),
+      write(ctx.participant, board.session, column, "Flaky CI")
+    ]
+
+    loose = write(ctx.participant, board.session, column, "Good pairing")
+    quiet = write(ctx.participant, board.session, column, "Nobody cared")
+
+    {:ok, grouping} = Retro.set_phase(ctx.facilitator, board.session, :group)
+
+    {:ok, group} =
+      Board.create_group(ctx.participant, grouping, "Tooling", Enum.map(clustered, & &1.id))
+
+    {:ok, session} = Retro.set_phase(ctx.facilitator, grouping, :vote)
+    session = %{session | multi_vote: true}
+
+    # Two on the cluster itself, one on a card inside it, one on the loose
+    # card — enough to tell a rollup from a plain count.
+    {:ok, _} = Board.cast_vote(ctx.facilitator, session, {:group, group.id})
+    {:ok, _} = Board.cast_vote(ctx.facilitator, session, {:group, group.id})
+    {:ok, _} = Board.cast_vote(ctx.participant, session, {:card, hd(clustered).id})
+    {:ok, _} = Board.cast_vote(ctx.participant, session, {:card, loose.id})
+
+    %{
+      session: session,
+      columns: board.columns,
+      clustered: clustered,
+      group: group,
+      loose: loose,
+      quiet: quiet
+    }
+  end
+
+  defp cast(ctx, count) do
+    session = %{ctx.session | multi_vote: true}
+
+    for _ <- 1..count do
+      {:ok, vote} = Board.cast_vote(ctx.participant, session, {:card, ctx.card.id})
+      vote
+    end
+  end
+
+  defp reload_session(id), do: SprintLens.Repo.get!(Session, id)
 
   defp write(actor, session, column, text, attrs \\ %{}) do
     {:ok, card} =
@@ -582,6 +634,35 @@ defmodule SprintLens.Retro.BoardTest do
       assert Repo.get(MoodEntry, mood.id).user_id == nil
     end
 
+    @tag req: ["FR-210", "NFR-304"]
+    test "closing deletes the voter references too", ctx do
+      {:ok, voting} = Retro.set_phase(ctx.facilitator, ctx.session, :vote)
+      {:ok, vote} = Board.cast_vote(ctx.participant, voting, {:card, hd(ctx.cards).id})
+
+      {:ok, _closed} = Retro.close_session(ctx.facilitator, voting)
+
+      # Section 6.4 names author *and* voter references. A vote still says who
+      # was in the room and what they cared about.
+      assert Repo.get(Vote, vote.id).voter_id == nil
+      assert Repo.get(Vote, vote.id).card_id == hd(ctx.cards).id
+    end
+
+    @tag req: ["FR-215", "FR-602"]
+    test "closing reveals the cards and the totals the recap has to show", ctx do
+      blind = board(ctx, %{is_blind: true})
+
+      refute blind.session.cards_revealed
+      refute blind.session.votes_revealed
+
+      assert {:ok, closed} = Retro.close_session(ctx.facilitator, blind.session)
+
+      # FR-602 requires the recap to show the cards and the vote totals. A
+      # session that ended before the facilitator revealed them would leave a
+      # recap that withholds them for good.
+      assert closed.cards_revealed
+      assert closed.votes_revealed
+    end
+
     @tag req: ["NFR-304"]
     test "the cards themselves survive — only the authorship goes", ctx do
       {:ok, _closed} = Retro.close_session(ctx.facilitator, ctx.session)
@@ -706,6 +787,513 @@ defmodule SprintLens.Retro.BoardTest do
     test "someone outside the team cannot answer", ctx do
       assert Board.record_mood(insert(:user), ctx.session, :checkin_mood, 3) ==
                {:error, :unauthorized}
+    end
+  end
+
+  describe "casting votes (FR-401, FR-402, FR-403)" do
+    setup ctx do
+      board = board(ctx)
+      column = hd(board.columns)
+      card = write(ctx.participant, board.session, column, "Slow builds")
+      other = write(ctx.participant, board.session, column, "Flaky tests")
+      {:ok, session} = Retro.set_phase(ctx.facilitator, board.session, :vote)
+
+      Map.merge(ctx, %{session: session, columns: board.columns, card: card, other: other})
+    end
+
+    @tag req: ["FR-403"]
+    test "a participant casts a vote on a card", ctx do
+      assert {:ok, vote} = Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id})
+
+      assert vote.card_id == ctx.card.id
+      assert vote.card_group_id == nil
+      assert vote.voter_id == ctx.participant.id
+    end
+
+    @tag req: ["FR-403"]
+    test "a topic key names the same thing a tuple does", ctx do
+      assert {:ok, vote} = Board.cast_vote(ctx.participant, ctx.session, "card:#{ctx.card.id}")
+
+      assert vote.card_id == ctx.card.id
+    end
+
+    @tag req: ["FR-401"]
+    test "the budget is spent down and reported to its owner", ctx do
+      assert Board.vote_summary(ctx.session, ctx.participant) == %{
+               budget: 5,
+               used: 0,
+               remaining: 5,
+               revealed: false
+             }
+
+      cast(ctx, 2)
+
+      assert %{used: 2, remaining: 3} = Board.vote_summary(ctx.session, ctx.participant)
+    end
+
+    @tag req: ["FR-401"]
+    test "spending past the budget is refused, and says what the budget was", ctx do
+      {:ok, session} = Retro.set_phase(ctx.facilitator, ctx.session, :vote)
+      session = %{session | vote_budget: 2}
+
+      cast(%{ctx | session: session}, 2)
+
+      assert {:error, :vote_budget_exceeded, details} =
+               Board.cast_vote(ctx.participant, session, {:card, ctx.card.id})
+
+      assert details == %{budget: 2, used: 2}
+    end
+
+    @tag req: ["FR-403"]
+    test "one person's spending is not another's", ctx do
+      cast(ctx, 3)
+
+      assert %{used: 3} = Board.vote_summary(ctx.session, ctx.participant)
+      assert %{used: 0, remaining: 5} = Board.vote_summary(ctx.session, ctx.facilitator)
+    end
+
+    @tag req: ["FR-403"]
+    test "a signed-out viewer has spent nothing", ctx do
+      assert %{used: 0} = Board.vote_summary(ctx.session, nil)
+    end
+
+    @tag req: ["FR-402"]
+    test "a second vote on the same topic is refused by default", ctx do
+      {:ok, _vote} = Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id})
+
+      assert Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id}) ==
+               {:error, :already_voted}
+    end
+
+    @tag req: ["FR-402"]
+    test "a session that allows it takes more than one", ctx do
+      session = %{ctx.session | multi_vote: true}
+
+      assert {:ok, _first} = Board.cast_vote(ctx.participant, session, {:card, ctx.card.id})
+      assert {:ok, _second} = Board.cast_vote(ctx.participant, session, {:card, ctx.card.id})
+
+      assert %{used: 2} = Board.vote_summary(session, ctx.participant)
+    end
+
+    @tag req: ["FR-402"]
+    test "the one-vote rule is per topic, not per session", ctx do
+      assert {:ok, _first} = Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id})
+      assert {:ok, _second} = Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.other.id})
+    end
+
+    @tag req: ["FR-403"]
+    test "a topic in another session is not found", ctx do
+      elsewhere = board(ctx)
+      stray = write(ctx.participant, elsewhere.session, hd(elsewhere.columns), "elsewhere")
+
+      assert Board.cast_vote(ctx.participant, ctx.session, {:card, stray.id}) ==
+               {:error, :not_found}
+
+      assert Board.cast_vote(ctx.participant, ctx.session, {:group, 0}) == {:error, :not_found}
+      assert Board.cast_vote(ctx.participant, ctx.session, "nonsense") == {:error, :not_found}
+    end
+
+    @tag req: ["FR-403"]
+    test "voting outside the vote phase is refused", ctx do
+      {:ok, discussing} = Retro.set_phase(ctx.facilitator, ctx.session, :discuss)
+
+      assert Board.cast_vote(ctx.participant, discussing, {:card, ctx.card.id}) ==
+               {:error, :wrong_phase}
+    end
+
+    @tag req: ["FR-103"]
+    test "someone outside the team cannot vote", ctx do
+      assert Board.cast_vote(insert(:user), ctx.session, {:card, ctx.card.id}) ==
+               {:error, :unauthorized}
+    end
+
+    @tag req: ["FR-301"]
+    test "a repeated request id casts one vote, not two (§7.5)", ctx do
+      opts = [client_request_id: "vote-1"]
+
+      assert {:ok, first} =
+               Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id}, opts)
+
+      assert {:ok, again} =
+               Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id}, opts)
+
+      assert first.id == again.id
+      assert %{used: 1} = Board.vote_summary(ctx.session, ctx.participant)
+    end
+
+    @tag req: ["FR-306"]
+    test "casting is announced without saying who or how many", ctx do
+      Events.subscribe(ctx.session.id)
+
+      Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id})
+
+      assert_receive {:retro_event, "vote.updated", payload}
+      assert payload == %{topic: "card:#{ctx.card.id}"}
+    end
+  end
+
+  describe "retracting votes (FR-403)" do
+    setup ctx do
+      board = board(ctx)
+      column = hd(board.columns)
+      card = write(ctx.participant, board.session, column, "Slow builds")
+      {:ok, session} = Retro.set_phase(ctx.facilitator, board.session, :vote)
+
+      Map.merge(ctx, %{session: session, columns: board.columns, card: card})
+    end
+
+    @tag req: ["FR-403"]
+    test "a vote comes back to the budget it came from", ctx do
+      {:ok, _vote} = Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id})
+      assert %{used: 1} = Board.vote_summary(ctx.session, ctx.participant)
+
+      assert Board.retract_vote(ctx.participant, ctx.session, {:card, ctx.card.id}) == :ok
+      assert %{used: 0, remaining: 5} = Board.vote_summary(ctx.session, ctx.participant)
+    end
+
+    @tag req: ["FR-403"]
+    test "retracting a vote never cast is not found", ctx do
+      assert Board.retract_vote(ctx.participant, ctx.session, {:card, ctx.card.id}) ==
+               {:error, :not_found}
+    end
+
+    @tag req: ["FR-403"]
+    test "one retraction takes back one vote", ctx do
+      session = %{ctx.session | multi_vote: true}
+      Board.cast_vote(ctx.participant, session, {:card, ctx.card.id})
+      Board.cast_vote(ctx.participant, session, {:card, ctx.card.id})
+
+      assert Board.retract_vote(ctx.participant, session, {:card, ctx.card.id}) == :ok
+      assert %{used: 1} = Board.vote_summary(session, ctx.participant)
+    end
+
+    @tag req: ["FR-403"]
+    test "nobody retracts someone else's vote", ctx do
+      {:ok, _vote} = Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id})
+
+      assert Board.retract_vote(ctx.facilitator, ctx.session, {:card, ctx.card.id}) ==
+               {:error, :not_found}
+
+      assert %{used: 1} = Board.vote_summary(ctx.session, ctx.participant)
+    end
+
+    @tag req: ["FR-403"]
+    test "a topic that is not in this session is not found", ctx do
+      assert Board.retract_vote(ctx.participant, ctx.session, "card:0") == {:error, :not_found}
+    end
+
+    @tag req: ["FR-403"]
+    test "retracting outside the vote phase is refused", ctx do
+      {:ok, _vote} = Board.cast_vote(ctx.participant, ctx.session, {:card, ctx.card.id})
+      {:ok, discussing} = Retro.set_phase(ctx.facilitator, ctx.session, :discuss)
+
+      assert Board.retract_vote(ctx.participant, discussing, {:card, ctx.card.id}) ==
+               {:error, :wrong_phase}
+    end
+  end
+
+  describe "topics and their totals (FR-404, FR-405)" do
+    setup ctx, do: Map.merge(ctx, voted_board(ctx))
+
+    @tag req: ["FR-404"]
+    test "totals are hidden from everyone until the facilitator reveals them", ctx do
+      for actor <- [ctx.participant, ctx.facilitator] do
+        assert ctx.session |> Board.topics(actor) |> Enum.map(& &1.votes) == [nil, nil, nil]
+      end
+    end
+
+    @tag req: ["FR-403"]
+    test "each person sees their own votes even while totals are hidden", ctx do
+      mine = Map.new(Board.topics(ctx.session, ctx.participant), &{&1.key, &1.my_votes})
+
+      assert mine["group:#{ctx.group.id}"] == 1
+      assert mine["card:#{ctx.loose.id}"] == 1
+
+      theirs = Map.new(Board.topics(ctx.session, ctx.facilitator), &{&1.key, &1.my_votes})
+
+      assert theirs["group:#{ctx.group.id}"] == 2
+      assert theirs["card:#{ctx.loose.id}"] == 0
+    end
+
+    @tag req: ["FR-404"]
+    test "after the reveal everyone sees the same totals", ctx do
+      {:ok, revealed} = Board.reveal_votes(ctx.facilitator, ctx.session)
+
+      for actor <- [ctx.participant, ctx.facilitator] do
+        totals = Map.new(Board.topics(revealed, actor), &{&1.key, &1.votes})
+
+        assert totals["group:#{ctx.group.id}"] == 3
+        assert totals["card:#{ctx.loose.id}"] == 1
+        assert totals["card:#{ctx.quiet.id}"] == 0
+      end
+    end
+
+    @tag req: ["FR-405"]
+    test "a cluster's total counts the votes cast on its cards", ctx do
+      # Voting follows grouping, but a facilitator can step back a phase and
+      # the room can regroup — votes already on a card must not vanish.
+      {:ok, revealed} = Board.reveal_votes(ctx.facilitator, ctx.session)
+
+      topic = Enum.find(Board.topics(revealed, ctx.participant), &(&1.kind == :group))
+
+      assert topic.votes == 3
+    end
+
+    @tag req: ["FR-405"]
+    test "revealed topics are ordered by votes, highest first", ctx do
+      {:ok, revealed} = Board.reveal_votes(ctx.facilitator, ctx.session)
+
+      assert revealed |> Board.topics(ctx.participant) |> Enum.map(& &1.key) == [
+               "group:#{ctx.group.id}",
+               "card:#{ctx.loose.id}",
+               "card:#{ctx.quiet.id}"
+             ]
+    end
+
+    @tag req: ["FR-404"]
+    test "an unrevealed board is not ordered by the totals it is hiding", ctx do
+      top = "group:#{ctx.group.id}"
+      keys = ctx.session |> Board.topics(ctx.participant) |> Enum.map(& &1.key)
+
+      # The cluster has the most votes. If it led the list, the order would be
+      # announcing the total the reveal is supposed to withhold.
+      assert top in keys
+      refute List.first(keys) == top
+
+      {:ok, revealed} = Board.reveal_votes(ctx.facilitator, ctx.session)
+      revealed_keys = revealed |> Board.topics(ctx.participant) |> Enum.map(& &1.key)
+
+      assert List.first(revealed_keys) == top
+    end
+
+    @tag req: ["FR-405"]
+    test "a card inside a cluster is not a topic of its own", ctx do
+      keys = ctx.session |> Board.topics(ctx.participant) |> Enum.map(& &1.key)
+
+      for card <- ctx.clustered, do: refute("card:#{card.id}" in keys)
+    end
+
+    @tag req: ["FR-209"]
+    test "a card the caller cannot see yet is not a topic for them", ctx do
+      blind = board(ctx, %{is_blind: true})
+      column = hd(blind.columns)
+      write(ctx.facilitator, blind.session, column, "theirs")
+      mine = write(ctx.participant, blind.session, column, "mine")
+      {:ok, session} = Retro.set_phase(ctx.facilitator, blind.session, :vote)
+
+      assert session |> Board.topics(ctx.participant) |> Enum.map(& &1.key) == ["card:#{mine.id}"]
+    end
+
+    @tag req: ["FR-404"]
+    test "only the facilitator reveals", ctx do
+      assert Board.reveal_votes(ctx.participant, ctx.session) == {:error, :unauthorized}
+    end
+
+    @tag req: ["FR-306"]
+    test "the reveal is announced", ctx do
+      Events.subscribe(ctx.session.id)
+
+      Board.reveal_votes(ctx.facilitator, ctx.session)
+
+      assert_receive {:retro_event, "vote.revealed", %{votes_revealed: true}}
+    end
+  end
+
+  describe "a cluster's vote set (FR-402, FR-403)" do
+    setup ctx, do: Map.merge(ctx, voted_board(ctx))
+
+    @tag req: ["FR-403"]
+    test "retracting on a cluster takes back a vote cast on one of its cards", ctx do
+      # The participant's only vote in this set was cast on a card, before it
+      # was merged. If the total rolls the card up and retraction does not,
+      # the screen offers a vote back that nothing can return.
+      topic = fn ->
+        Enum.find(Board.topics(ctx.session, ctx.participant), &(&1.kind == :group))
+      end
+
+      assert topic.().my_votes == 1
+
+      assert Board.retract_vote(ctx.participant, ctx.session, {:group, ctx.group.id}) == :ok
+      assert topic.().my_votes == 0
+    end
+
+    @tag req: ["FR-402"]
+    test "one vote per cluster means the cards inside it too", ctx do
+      single = %{ctx.session | multi_vote: false}
+
+      # Already voted on a card in this cluster.
+      assert Board.cast_vote(ctx.participant, single, {:group, ctx.group.id}) ==
+               {:error, :already_voted}
+
+      # ...and someone who has not may still vote on it.
+      other = insert(:user)
+      join_team(other, ctx.team)
+
+      assert {:ok, _vote} = Board.cast_vote(other, single, {:group, ctx.group.id})
+    end
+  end
+
+  describe "the focused topic (FR-406, FR-408)" do
+    setup ctx, do: Map.merge(ctx, voted_board(ctx))
+
+    @tag req: ["FR-406"]
+    test "the facilitator points every screen at one topic", ctx do
+      assert {:ok, focused} =
+               Board.set_focus(ctx.facilitator, ctx.session, {:group, ctx.group.id})
+
+      assert Session.focus(focused) == {:group, ctx.group.id}
+      assert Enum.find(Board.topics(focused, ctx.participant), & &1.focused?).kind == :group
+    end
+
+    @tag req: ["FR-406"]
+    test "the spotlight can be emptied again", ctx do
+      {:ok, focused} = Board.set_focus(ctx.facilitator, ctx.session, {:group, ctx.group.id})
+
+      assert {:ok, cleared} = Board.set_focus(ctx.facilitator, focused, nil)
+      assert Session.focus(cleared) == nil
+      assert Enum.all?(Board.topics(cleared, ctx.participant), &(not &1.focused?))
+    end
+
+    @tag req: ["FR-406"]
+    test "a participant does not decide what the room looks at", ctx do
+      assert Board.set_focus(ctx.participant, ctx.session, {:group, ctx.group.id}) ==
+               {:error, :unauthorized}
+
+      assert Board.set_focus(ctx.participant, ctx.session, nil) == {:error, :unauthorized}
+    end
+
+    @tag req: ["FR-406"]
+    test "a topic from somewhere else cannot be focused", ctx do
+      assert Board.set_focus(ctx.facilitator, ctx.session, "card:0") == {:error, :not_found}
+    end
+
+    @tag req: ["FR-306"]
+    test "the focus change is announced by topic key", ctx do
+      Events.subscribe(ctx.session.id)
+
+      Board.set_focus(ctx.facilitator, ctx.session, {:card, ctx.loose.id})
+      assert_receive {:retro_event, "focus.changed", %{topic: topic}}
+      assert topic == "card:#{ctx.loose.id}"
+
+      Board.set_focus(ctx.facilitator, ctx.session, nil)
+      assert_receive {:retro_event, "focus.changed", %{topic: nil}}
+    end
+
+    @tag req: ["FR-408"]
+    test "focusing can timebox the discussion in the same breath", ctx do
+      assert {:ok, focused} =
+               Board.set_focus(ctx.facilitator, ctx.session, {:card, ctx.loose.id}, 300)
+
+      assert Session.timer_running?(focused)
+      assert Session.timer_remaining(focused) in 299..300
+    end
+
+    @tag req: ["FR-406"]
+    test "deleting the focused card says the spotlight is empty", ctx do
+      {:ok, session} = Retro.set_phase(ctx.facilitator, ctx.session, :brainstorm)
+      {:ok, focused} = Board.set_focus(ctx.facilitator, session, {:card, ctx.loose.id})
+      Events.subscribe(focused.id)
+
+      :ok = Board.delete_card(ctx.facilitator, focused, ctx.loose)
+
+      assert_receive {:retro_event, "focus.changed", %{topic: nil}}
+      assert focused.id |> reload_session() |> Session.focus() == nil
+    end
+
+    @tag req: ["FR-406"]
+    test "deleting an unfocused card leaves the spotlight alone", ctx do
+      {:ok, session} = Retro.set_phase(ctx.facilitator, ctx.session, :brainstorm)
+      {:ok, focused} = Board.set_focus(ctx.facilitator, session, {:card, ctx.loose.id})
+      Events.subscribe(focused.id)
+
+      :ok = Board.delete_card(ctx.facilitator, focused, ctx.quiet)
+
+      assert_receive {:retro_event, "card.deleted", _payload}
+      refute_receive {:retro_event, "focus.changed", _payload}
+    end
+
+    @tag req: ["FR-406"]
+    test "ungrouping the focused cluster says the spotlight is empty", ctx do
+      {:ok, session} = Retro.set_phase(ctx.facilitator, ctx.session, :group)
+      {:ok, focused} = Board.set_focus(ctx.facilitator, session, {:group, ctx.group.id})
+      Events.subscribe(focused.id)
+
+      :ok = Board.delete_group(ctx.facilitator, focused, ctx.group)
+
+      assert_receive {:retro_event, "focus.changed", %{topic: nil}}
+    end
+  end
+
+  describe "discussion notes (FR-407)" do
+    setup ctx, do: Map.merge(ctx, voted_board(ctx))
+
+    @tag req: ["FR-407"]
+    test "the facilitator records what the room decided", ctx do
+      assert {:ok, note} =
+               Board.write_note(
+                 ctx.facilitator,
+                 ctx.session,
+                 {:group, ctx.group.id},
+                 "Ship weekly"
+               )
+
+      assert note.body == "Ship weekly"
+      assert note.card_group_id == ctx.group.id
+
+      topic = Enum.find(Board.topics(ctx.session, ctx.participant), &(&1.kind == :group))
+      assert topic.note == "Ship weekly"
+    end
+
+    @tag req: ["FR-407"]
+    test "writing again edits the note rather than adding a second", ctx do
+      {:ok, first} =
+        Board.write_note(ctx.facilitator, ctx.session, {:card, ctx.loose.id}, "draft")
+
+      {:ok, again} =
+        Board.write_note(ctx.facilitator, ctx.session, {:card, ctx.loose.id}, "final")
+
+      assert first.id == again.id
+      assert again.body == "final"
+      assert length(Board.list_notes(ctx.session)) == 1
+    end
+
+    @tag req: ["FR-407"]
+    test "an empty note is refused", ctx do
+      assert {:error, changeset} =
+               Board.write_note(ctx.facilitator, ctx.session, {:card, ctx.loose.id}, "   ")
+
+      assert %{body: [_message]} = errors_on(changeset)
+    end
+
+    @tag req: ["FR-407"]
+    test "a participant does not write the record", ctx do
+      assert Board.write_note(ctx.participant, ctx.session, {:card, ctx.loose.id}, "mine") ==
+               {:error, :unauthorized}
+    end
+
+    @tag req: ["FR-407"]
+    test "a topic from another session has no note here", ctx do
+      assert Board.write_note(ctx.facilitator, ctx.session, "group:0", "stray") ==
+               {:error, :not_found}
+    end
+
+    @tag req: ["FR-306"]
+    test "the note is announced by topic, never by its words", ctx do
+      Events.subscribe(ctx.session.id)
+
+      Board.write_note(ctx.facilitator, ctx.session, {:card, ctx.loose.id}, "sensitive")
+
+      assert_receive {:retro_event, "note.updated", payload}
+      assert payload == %{topic: "card:#{ctx.loose.id}"}
+      refute inspect(payload) =~ "sensitive"
+    end
+
+    @tag req: ["FR-407"]
+    test "notes on a closed session are refused", ctx do
+      {:ok, closed} = Retro.close_session(ctx.facilitator, ctx.session)
+
+      assert Board.write_note(ctx.facilitator, closed, {:card, ctx.loose.id}, "late") ==
+               {:error, :session_closed}
     end
   end
 

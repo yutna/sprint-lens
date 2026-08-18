@@ -26,7 +26,10 @@ defmodule SprintLens.Retro.Session do
   import Ecto.Changeset
 
   alias SprintLens.Accounts.User
+  alias SprintLens.Retro.Card
+  alias SprintLens.Retro.CardGroup
   alias SprintLens.Retro.Column
+  alias SprintLens.Retro.Topic
   alias SprintLens.Teams.Team
   alias SprintLens.Teams.Template
 
@@ -72,6 +75,11 @@ defmodule SprintLens.Retro.Session do
     belongs_to :team, Team
     belongs_to :template, Template
     belongs_to :facilitator, User
+
+    # The topic everyone's screen is following (FR-406). Two references with
+    # at most one set, the same shape a vote and a note use.
+    belongs_to :focus_card, Card
+    belongs_to :focus_card_group, CardGroup
 
     has_many :columns, Column, foreign_key: :session_id, preload_order: [asc: :position]
 
@@ -147,6 +155,31 @@ defmodule SprintLens.Retro.Session do
   """
   def reveal_changeset(session, attrs) do
     cast(session, attrs, [:cards_revealed, :votes_revealed])
+  end
+
+  @doc """
+  A changeset for the focused topic (FR-406).
+
+  Passing `nil` for both clears the spotlight, which is what "no topic" means
+  — there is no separate flag for it.
+  """
+  def focus_changeset(session, card_id, card_group_id) do
+    session
+    |> change(focus_card_id: card_id, focus_card_group_id: card_group_id)
+    |> foreign_key_constraint(:focus_card_id)
+    |> foreign_key_constraint(:focus_card_group_id)
+  end
+
+  @doc """
+  The focused topic as a `SprintLens.Retro.Topic` reference, or `nil`
+  (FR-406).
+  """
+  @spec focus(t()) :: Topic.ref() | nil
+  def focus(%__MODULE__{focus_card_id: card_id, focus_card_group_id: group_id}) do
+    case Topic.from_ids(card_id, group_id) do
+      {:ok, ref} -> ref
+      :error -> nil
+    end
   end
 
   @doc """

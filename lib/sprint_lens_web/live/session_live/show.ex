@@ -134,6 +134,16 @@ defmodule SprintLensWeb.SessionLive.Show do
             open={@can_roti}
           />
 
+          <.topics_panel
+            :if={@phase in [:vote, :discuss]}
+            topics={@topics}
+            summary={@vote_summary}
+            phase={@phase}
+            can_vote={@can_vote}
+            is_facilitator={@is_facilitator}
+            editing_note={@editing_note}
+          />
+
           <.column_tabs columns={@columns} active={@active_column} />
 
           <div class={
@@ -156,6 +166,8 @@ defmodule SprintLensWeb.SessionLive.Show do
               current_user_id={@current_scope.user.id}
               is_facilitator={@is_facilitator}
               editing={@editing}
+              can_group={@can_group}
+              selected={@selected}
             />
           </div>
 
@@ -320,6 +332,8 @@ defmodule SprintLensWeb.SessionLive.Show do
     |> assign(:page_title, session.title)
     |> assign(:ready, false)
     |> assign(:editing, nil)
+    |> assign(:editing_note, nil)
+    |> assign(:selected, MapSet.new())
     |> assign(:active_column, nil)
     |> apply_snapshot(session)
     |> assign_presence()
@@ -353,6 +367,7 @@ defmodule SprintLensWeb.SessionLive.Show do
     |> assign(:can_group, Board.authorize(scope, session, :group_cards) == :ok)
     |> assign(:can_checkin, Board.authorize(scope, session, :checkin_mood) == :ok)
     |> assign(:can_roti, Board.authorize(scope, session, :roti) == :ok)
+    |> assign(:can_vote, Board.authorize(scope, session, :cast_vote) == :ok)
   end
 
   defp assign_board(socket, session) do
@@ -365,6 +380,8 @@ defmodule SprintLensWeb.SessionLive.Show do
     |> assign(:roti, Board.mood_summary(session, :roti))
     |> assign(:my_mood, Board.my_mood(scope, session, :checkin_mood))
     |> assign(:my_roti, Board.my_mood(scope, session, :roti))
+    |> assign(:topics, Board.topics(session, scope))
+    |> assign(:vote_summary, Board.vote_summary(session, scope))
   end
 
   # The narrow-screen board shows one column at a time (FR-902); the first is
@@ -525,12 +542,28 @@ defmodule SprintLensWeb.SessionLive.Show do
     end
   end
 
-  def handle_event("create_group", %{"group" => %{"label" => label}}, socket) do
-    card_ids = Enum.map(socket.assigns.cards, & &1.id)
+  def handle_event("toggle_card", %{"id" => id}, socket) do
+    id = String.to_integer(id)
+    selected = socket.assigns.selected
 
-    socket.assigns.current_scope
-    |> Board.create_group(socket.assigns.session, label, card_ids)
-    |> board_result(socket)
+    selected =
+      if MapSet.member?(selected, id),
+        do: MapSet.delete(selected, id),
+        else: MapSet.put(selected, id)
+
+    {:noreply, assign(socket, :selected, selected)}
+  end
+
+  def handle_event("create_group", %{"group" => %{"label" => label}}, socket) do
+    case MapSet.to_list(socket.assigns.selected) do
+      [] ->
+        {:noreply, put_flash(socket, :error, gettext("Choose the cards to merge first."))}
+
+      card_ids ->
+        socket.assigns.current_scope
+        |> Board.create_group(socket.assigns.session, label, card_ids)
+        |> group_result(socket)
+    end
   end
 
   def handle_event("delete_group", %{"id" => id}, socket) do
@@ -559,6 +592,48 @@ defmodule SprintLensWeb.SessionLive.Show do
     |> board_result(socket)
   end
 
+  def handle_event("cast_vote", %{"topic" => topic}, socket) do
+    socket.assigns.current_scope
+    |> Board.cast_vote(socket.assigns.session, topic)
+    |> board_result(socket)
+  end
+
+  def handle_event("retract_vote", %{"topic" => topic}, socket) do
+    socket.assigns.current_scope
+    |> Board.retract_vote(socket.assigns.session, topic)
+    |> board_result(socket)
+  end
+
+  def handle_event("reveal_votes", _params, socket) do
+    case Board.reveal_votes(socket.assigns.current_scope, socket.assigns.session) do
+      {:ok, session} -> {:noreply, apply_snapshot(socket, session)}
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("set_focus", %{"topic" => topic}, socket) do
+    focus(socket, topic)
+  end
+
+  def handle_event("clear_focus", _params, socket) do
+    focus(socket, nil)
+  end
+
+  def handle_event("edit_note", %{"topic" => topic}, socket) do
+    {:noreply, assign(socket, :editing_note, topic)}
+  end
+
+  def handle_event("cancel_note", _params, socket) do
+    {:noreply, assign(socket, :editing_note, nil)}
+  end
+
+  def handle_event("save_note", %{"note" => %{"topic" => topic, "body" => body}}, socket) do
+    case Board.write_note(socket.assigns.current_scope, socket.assigns.session, topic, body) do
+      {:ok, _note} -> {:noreply, socket |> assign(:editing_note, nil) |> refresh()}
+      error -> board_result(error, socket)
+    end
+  end
+
   def handle_event("toggle_ready", _params, socket) do
     ready = not socket.assigns.ready
 
@@ -574,7 +649,30 @@ defmodule SprintLensWeb.SessionLive.Show do
     {:noreply, socket |> assign(:ready, ready) |> assign_presence()}
   end
 
+  defp focus(socket, topic) do
+    case Board.set_focus(socket.assigns.current_scope, socket.assigns.session, topic) do
+      {:ok, session} -> {:noreply, apply_snapshot(socket, session)}
+      error -> board_result(error, socket)
+    end
+  end
+
+  defp group_result({:ok, _group}, socket) do
+    {:noreply, socket |> assign(:selected, MapSet.new()) |> refresh()}
+  end
+
+  defp group_result(error, socket), do: board_result(error, socket)
+
+  defp board_result(:ok, socket), do: {:noreply, refresh(socket)}
   defp board_result({:ok, _record}, socket), do: {:noreply, refresh(socket)}
+
+  # The budget error carries what the budget was, because "you have no votes
+  # left" is only useful next to the number (FR-403, FR-919).
+  defp board_result({:error, :vote_budget_exceeded, details}, socket) do
+    message =
+      gettext("You have spent all %{budget} of your votes.", budget: details.budget)
+
+    {:noreply, put_flash(socket, :error, message)}
+  end
 
   defp board_result({:error, %Ecto.Changeset{} = changeset}, socket) do
     {:noreply, put_flash(socket, :error, changeset_message(changeset))}
@@ -630,6 +728,7 @@ defmodule SprintLensWeb.SessionLive.Show do
   defp error_message(:wrong_state), do: gettext("That action is not available right now.")
   defp error_message(:not_found), do: gettext("That resource does not exist.")
   defp error_message(:session_closed), do: gettext("This session is closed.")
+  defp error_message(:already_voted), do: gettext("You have already voted on this topic.")
 
   # Re-reads rather than trusting the broadcast payload: the payload says what
   # changed, the database says what is true.

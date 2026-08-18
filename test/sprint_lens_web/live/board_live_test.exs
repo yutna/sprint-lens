@@ -438,14 +438,70 @@ defmodule SprintLensWeb.BoardLiveTest do
     end
 
     @tag req: ["FR-304"]
-    test "cards are merged into a labelled group", ctx do
+    test "the cards chosen are the cards merged", ctx do
       {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{ctx.session}")
+      [first, second] = Board.list_cards(ctx.session)
+
+      lv |> element("#select-card-#{first.id}") |> render_click()
+      lv |> element("#select-card-#{second.id}") |> render_click()
 
       html = lv |> form("#group_form", group: %{label: "Deploys"}) |> render_submit()
 
       assert html =~ "Deploys"
       assert [group] = Board.list_groups(ctx.session)
       assert length(group.cards) == 2
+    end
+
+    @tag req: ["FR-304"]
+    test "only the chosen cards are merged", ctx do
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{ctx.session}")
+      [first, _second] = Board.list_cards(ctx.session)
+
+      lv |> element("#select-card-#{first.id}") |> render_click()
+      lv |> form("#group_form", group: %{label: "Deploys"}) |> render_submit()
+
+      assert [group] = Board.list_groups(ctx.session)
+      assert Enum.map(group.cards, & &1.id) == [first.id]
+    end
+
+    @tag req: ["FR-304"]
+    test "a card can be unchosen before merging", ctx do
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{ctx.session}")
+      [first, second] = Board.list_cards(ctx.session)
+
+      lv |> element("#select-card-#{first.id}") |> render_click()
+      lv |> element("#select-card-#{second.id}") |> render_click()
+      lv |> element("#select-card-#{first.id}") |> render_click()
+
+      lv |> form("#group_form", group: %{label: "Deploys"}) |> render_submit()
+
+      assert [group] = Board.list_groups(ctx.session)
+      assert Enum.map(group.cards, & &1.id) == [second.id]
+    end
+
+    @tag req: ["FR-304"]
+    test "an unnamed cluster is reported and the choice is kept", ctx do
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{ctx.session}")
+      [first, _second] = Board.list_cards(ctx.session)
+
+      lv |> element("#select-card-#{first.id}") |> render_click()
+
+      assert lv |> form("#group_form", group: %{label: "  "}) |> render_submit() =~ "label"
+      assert Board.list_groups(ctx.session) == []
+
+      # The selection survives the failure, so nobody has to tick the boxes
+      # again to fix a typo.
+      assert has_element?(lv, "#select-card-#{first.id}[checked]")
+    end
+
+    @tag req: ["FR-304"]
+    test "merging nothing says so rather than making an empty cluster", ctx do
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{ctx.session}")
+
+      html = lv |> form("#group_form", group: %{label: "Deploys"}) |> render_submit()
+
+      assert html =~ "Choose the cards"
+      assert Board.list_groups(ctx.session) == []
     end
 
     @tag req: ["FR-304"]

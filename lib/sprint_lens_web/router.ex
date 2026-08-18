@@ -77,6 +77,12 @@ defmodule SprintLensWeb.Router do
     patch "/cards/:id", CardController, :update
     delete "/cards/:id", CardController, :delete
 
+    get "/sessions/:id/topics", VoteController, :index
+    post "/sessions/:id/votes", VoteController, :vote
+    post "/sessions/:id/votes/reveal", VoteController, :reveal
+    post "/sessions/:id/focus", VoteController, :focus
+    post "/sessions/:id/notes", VoteController, :note
+
     get "/teams/:id/templates", TeamController, :templates
     post "/teams/:id/templates", TeamController, :create_template
     delete "/teams/:id/templates/:template_id", TeamController, :delete_template

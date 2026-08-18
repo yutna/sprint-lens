@@ -38,9 +38,12 @@ defmodule SprintLens.Retro.Board do
   alias SprintLens.Retro.Card
   alias SprintLens.Retro.CardGroup
   alias SprintLens.Retro.Column
+  alias SprintLens.Retro.DiscussionNote
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.MoodEntry
   alias SprintLens.Retro.Session
+  alias SprintLens.Retro.Topic
+  alias SprintLens.Retro.Vote
   alias SprintLens.Teams
 
   # Which phases each action belongs to (section 4.3). Writing during vote
@@ -50,6 +53,7 @@ defmodule SprintLens.Retro.Board do
     move_card: [:brainstorm, :group],
     group_cards: [:group],
     checkin_mood: [:checkin],
+    cast_vote: [:vote],
     roti: [:wrapup]
   }
 
@@ -202,6 +206,7 @@ defmodule SprintLens.Retro.Board do
          :ok <- may_delete(actor, session, card) do
       Repo.delete!(card)
       Events.broadcast(session.id, "card.deleted", %{card_id: card.id, column_id: card.column_id})
+      announce_lost_focus(session, {:card, card.id})
 
       :ok
     end
@@ -304,6 +309,7 @@ defmodule SprintLens.Retro.Board do
     with :ok <- authorize(actor, session, :group_cards) do
       Repo.delete!(group)
       Events.broadcast(session.id, "group.deleted", %{group_id: group.id})
+      announce_lost_focus(session, {:group, group.id})
 
       :ok
     end
@@ -451,7 +457,433 @@ defmodule SprintLens.Retro.Board do
       set: [user_id: nil]
     )
 
+    # Section 6.4 names author *and voter* references. A vote nobody wrote a
+    # card for still says who was in the room and what they cared about.
+    Repo.update_all(votes_in(session), set: [voter_id: nil])
+
     :ok
+  end
+
+  ## Voting (FR-401 to FR-404)
+
+  @doc """
+  Casts one vote on a topic (FR-401, FR-402, FR-403).
+
+  A vote is a row, so the total and the budget are both just counts and
+  retracting is a delete. The budget is checked inside the same transaction as
+  the insert: SQLite takes one writer at a time, which makes a check-then-write
+  here as strong as a constraint would be, and no constraint could express
+  "at most `session.vote_budget` rows for this voter" anyway.
+
+  Repeating a request id returns the original vote rather than casting a
+  second one (§7.5).
+  """
+  @spec cast_vote(User.t() | Scope.t(), Session.t(), Topic.ref() | String.t(), keyword()) ::
+          {:ok, Vote.t()}
+          | {:error, Ecto.Changeset.t()}
+          | {:error, atom()}
+          | {:error, :vote_budget_exceeded, map()}
+  def cast_vote(actor, %Session{} = session, target, opts \\ []) do
+    request_id = Keyword.get(opts, :client_request_id)
+
+    with :ok <- authorize(actor, session, :cast_vote),
+         {:ok, ref} <- fetch_topic(session, target) do
+      case existing_vote_by_request_id(session, request_id) do
+        %Vote{} = vote -> {:ok, vote}
+        nil -> insert_vote(actor, session, ref, request_id)
+      end
+    end
+  end
+
+  defp insert_vote(actor, session, ref, request_id) do
+    voter = user(actor)
+    {card_id, group_id} = Topic.to_ids(ref)
+
+    Multi.new()
+    |> Multi.run(:budget, fn _repo, _changes -> check_budget(session, voter) end)
+    |> Multi.run(:once, fn _repo, _changes -> check_multi_vote(session, voter, ref) end)
+    |> Multi.insert(
+      :vote,
+      Vote.changeset(%Vote{}, %{
+        session_id: session.id,
+        voter_id: voter.id,
+        card_id: card_id,
+        card_group_id: group_id,
+        client_request_id: request_id
+      })
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{vote: vote}} ->
+        broadcast_vote(session, ref)
+        {:ok, vote}
+
+      {:error, :budget, details, _changes} ->
+        {:error, :vote_budget_exceeded, details}
+
+      {:error, _step, reason, _changes} ->
+        {:error, reason}
+    end
+  end
+
+  defp check_budget(session, voter) do
+    used = Repo.aggregate(votes_by(session, voter), :count)
+
+    if used < session.vote_budget do
+      {:ok, used}
+    else
+      {:error, %{budget: session.vote_budget, used: used}}
+    end
+  end
+
+  # FR-402: unless the session allows it, a person gets one vote per topic.
+  # Checked over the topic's whole vote set, the same set `retract_vote/3`
+  # deletes from, so the two can never disagree about what "already voted"
+  # means.
+  defp check_multi_vote(%Session{multi_vote: true}, _voter, _ref), do: {:ok, :allowed}
+
+  defp check_multi_vote(session, voter, ref) do
+    query = from v in votes_for(session, ref), where: v.voter_id == ^voter.id
+
+    if Repo.exists?(query), do: {:error, :already_voted}, else: {:ok, :first}
+  end
+
+  @doc """
+  Takes back one vote on a topic (FR-403).
+
+  Removes the most recent of the caller's votes in the topic's set — the set
+  the total is computed from, so a screen that offers a vote back always has
+  one to give.
+  """
+  @spec retract_vote(User.t() | Scope.t(), Session.t(), Topic.ref() | String.t()) ::
+          :ok | {:error, atom()}
+  def retract_vote(actor, %Session{} = session, target) do
+    voter = user(actor)
+
+    with :ok <- authorize(actor, session, :cast_vote),
+         {:ok, ref} <- fetch_topic(session, target),
+         %Vote{} = vote <- newest_vote(session, voter, ref) do
+      Repo.delete!(vote)
+      broadcast_vote(session, ref)
+
+      :ok
+    else
+      nil -> {:error, :not_found}
+      error -> error
+    end
+  end
+
+  defp newest_vote(session, voter, ref) do
+    Repo.one(
+      from v in votes_for(session, ref),
+        where: v.voter_id == ^voter.id,
+        order_by: [desc: v.inserted_at, desc: v.id],
+        limit: 1
+    )
+  end
+
+  @doc """
+  Reveals the vote totals to everyone (FR-404).
+  """
+  @spec reveal_votes(User.t() | Scope.t(), Session.t()) ::
+          {:ok, Session.t()} | {:error, :unauthorized | :session_closed}
+  def reveal_votes(actor, %Session{} = session) do
+    with :ok <- authorize_control(actor, session, :reveal) do
+      {:ok, updated} =
+        session
+        |> Session.reveal_changeset(%{votes_revealed: true})
+        |> Repo.update()
+
+      Events.broadcast(session.id, "vote.revealed", %{votes_revealed: true})
+
+      {:ok, Retro.preload(updated)}
+    end
+  end
+
+  @doc """
+  How many votes the caller has spent and has left (FR-403).
+
+  Always about the caller, never about anyone else: FR-403 promises people
+  their *own* remaining budget, and one person's spending is not the room's
+  business before the reveal.
+  """
+  @spec vote_summary(Session.t(), User.t() | Scope.t() | nil) :: map()
+  def vote_summary(%Session{} = session, actor) do
+    used =
+      case user(actor) do
+        nil -> 0
+        voter -> Repo.aggregate(votes_by(session, voter), :count)
+      end
+
+    %{
+      budget: session.vote_budget,
+      used: used,
+      remaining: max(session.vote_budget - used, 0),
+      revealed: session.votes_revealed
+    }
+  end
+
+  ## Discussion (FR-405 to FR-408)
+
+  @doc """
+  The session's topics, ranked the way the discuss phase presents them
+  (FR-405).
+
+  Every topic carries the caller's own vote count; the shared total is `nil`
+  until the facilitator reveals it, and the ranking falls back to creation
+  order until then. An order derived from hidden totals would publish them as
+  plainly as a number does (FR-404).
+
+  Cards the caller cannot see yet are not topics for them, so blind mode holds
+  here as it does everywhere else (FR-209).
+  """
+  @spec topics(Session.t(), User.t() | Scope.t() | nil) :: [Topic.t()]
+  def topics(%Session{} = session, actor) do
+    visible = visible_cards(session, actor)
+    groups = list_groups(session)
+
+    totals = vote_totals(session)
+    mine = vote_totals(session, user(actor))
+    notes = notes_by_target(session)
+    focus = Session.focus(session)
+
+    grouped_ids = MapSet.new(groups, & &1.id)
+
+    group_topics = Enum.map(groups, &Topic.from_group/1)
+
+    card_topics =
+      visible
+      |> Enum.reject(&(&1.card_group_id in grouped_ids))
+      |> Enum.map(&Topic.from_card/1)
+
+    (group_topics ++ card_topics)
+    |> Enum.map(&decorate(&1, session, totals, mine, notes, focus))
+    |> Topic.rank()
+  end
+
+  defp decorate(topic, session, totals, mine, notes, focus) do
+    ref = {topic.kind, topic.id}
+
+    %{
+      topic
+      | votes: if(session.votes_revealed, do: rollup(topic, totals), else: nil),
+        my_votes: rollup(topic, mine),
+        note: Map.get(notes, ref),
+        focused?: focus == ref
+    }
+  end
+
+  # A cluster's total is its own votes plus its members' (see `Topic`).
+  defp rollup(%Topic{kind: :group} = topic, counts) do
+    own = Map.get(counts, {:group, topic.id}, 0)
+
+    Enum.reduce(topic.cards, own, &(&2 + Map.get(counts, {:card, &1.id}, 0)))
+  end
+
+  defp rollup(%Topic{kind: :card} = topic, counts), do: Map.get(counts, {:card, topic.id}, 0)
+
+  @doc """
+  Points every screen at one topic, or clears the spotlight with `nil`
+  (FR-406).
+
+  Optionally starts the timer in the same breath, which is all FR-408 asks
+  for: timeboxing a discussion is the session timer, aimed at a topic.
+
+  Not gated by phase. FR-406 names no phase of its own, and a facilitator who
+  steps back to look at the board again (FR-206) should not find the spotlight
+  frozen where they left it.
+  """
+  @spec set_focus(
+          User.t() | Scope.t(),
+          Session.t(),
+          Topic.ref() | String.t() | nil,
+          pos_integer() | nil
+        ) ::
+          {:ok, Session.t()} | {:error, atom()}
+  def set_focus(actor, session, target, timer_s \\ nil)
+
+  def set_focus(actor, %Session{} = session, nil, _timer_s) do
+    with :ok <- authorize_control(actor, session, :set_focus) do
+      write_focus(session, nil, nil)
+    end
+  end
+
+  def set_focus(actor, %Session{} = session, target, timer_s) do
+    with :ok <- authorize_control(actor, session, :set_focus),
+         {:ok, ref} <- fetch_topic(session, target) do
+      {card_id, group_id} = Topic.to_ids(ref)
+
+      with {:ok, updated} <- write_focus(session, card_id, group_id) do
+        start_topic_timer(actor, updated, timer_s)
+      end
+    end
+  end
+
+  defp write_focus(session, card_id, group_id) do
+    {:ok, updated} =
+      session
+      |> Session.focus_changeset(card_id, group_id)
+      |> Repo.update()
+
+    Events.broadcast(session.id, "focus.changed", %{
+      topic: updated |> Session.focus() |> topic_key()
+    })
+
+    {:ok, Retro.preload(updated)}
+  end
+
+  defp start_topic_timer(_actor, session, nil), do: {:ok, session}
+
+  defp start_topic_timer(actor, session, timer_s), do: Retro.start_timer(actor, session, timer_s)
+
+  defp topic_key(nil), do: nil
+  defp topic_key(ref), do: Topic.key(ref)
+
+  @doc """
+  Records what the room decided about a topic (FR-407).
+
+  Writing again edits the note rather than adding a second one: a topic has
+  one record of its conversation, which is what the recap shows (FR-602).
+  """
+  @spec write_note(User.t() | Scope.t(), Session.t(), Topic.ref() | String.t(), String.t()) ::
+          {:ok, DiscussionNote.t()} | {:error, Ecto.Changeset.t()} | {:error, atom()}
+  def write_note(actor, %Session{} = session, target, body) do
+    with :ok <- authorize_control(actor, session, :edit_notes),
+         {:ok, ref} <- fetch_topic(session, target) do
+      {card_id, group_id} = Topic.to_ids(ref)
+
+      (existing_note(session, ref) || %DiscussionNote{})
+      |> DiscussionNote.changeset(%{
+        session_id: session.id,
+        card_id: card_id,
+        card_group_id: group_id,
+        body: body
+      })
+      |> Repo.insert_or_update()
+      |> case do
+        {:ok, note} ->
+          Events.broadcast(session.id, "note.updated", %{topic: Topic.key(ref)})
+          {:ok, note}
+
+        error ->
+          error
+      end
+    end
+  end
+
+  @doc """
+  Every discussion note in a session, newest topic order irrelevant — the
+  recap and the search index both read them whole (FR-602, FR-603).
+  """
+  @spec list_notes(Session.t()) :: [DiscussionNote.t()]
+  def list_notes(%Session{} = session) do
+    Repo.all(from n in DiscussionNote, where: n.session_id == ^session.id, order_by: [asc: n.id])
+  end
+
+  ## Vote and note queries
+
+  defp votes_in(%Session{} = session), do: from(v in Vote, where: v.session_id == ^session.id)
+
+  defp votes_by(session, voter) do
+    from v in votes_in(session), where: v.voter_id == ^voter.id
+  end
+
+  defp votes_for(session, {:card, id}), do: from(v in votes_in(session), where: v.card_id == ^id)
+
+  defp votes_for(session, {:group, id}) do
+    members = from(c in Card, where: c.card_group_id == ^id, select: c.id)
+
+    from v in votes_in(session),
+      where: v.card_group_id == ^id or v.card_id in subquery(members)
+  end
+
+  defp vote_totals(session, voter \\ nil) do
+    query =
+      case voter do
+        nil -> votes_in(session)
+        %User{} = voter -> votes_by(session, voter)
+      end
+
+    query
+    |> group_by([v], [v.card_id, v.card_group_id])
+    |> select([v], {v.card_id, v.card_group_id, count(v.id)})
+    |> Repo.all()
+    |> Map.new(fn {card_id, group_id, count} ->
+      {:ok, ref} = Topic.from_ids(card_id, group_id)
+      {ref, count}
+    end)
+  end
+
+  defp existing_vote_by_request_id(_session, nil), do: nil
+
+  defp existing_vote_by_request_id(session, request_id) do
+    Repo.get_by(Vote, session_id: session.id, client_request_id: request_id)
+  end
+
+  defp notes_by_target(session) do
+    session
+    |> list_notes()
+    |> Map.new(fn note ->
+      {:ok, ref} = Topic.from_ids(note.card_id, note.card_group_id)
+      {ref, note.body}
+    end)
+  end
+
+  # Written out rather than passed to `get_by/2`: half of the pair is always
+  # `nil`, and Ecto refuses to compare with `nil` because SQL does not.
+  defp existing_note(session, {:card, id}) do
+    Repo.one(from n in DiscussionNote, where: n.session_id == ^session.id and n.card_id == ^id)
+  end
+
+  defp existing_note(session, {:group, id}) do
+    Repo.one(
+      from n in DiscussionNote, where: n.session_id == ^session.id and n.card_group_id == ^id
+    )
+  end
+
+  # Deleting the focused topic clears the spotlight through the foreign key,
+  # which is silent — so say so, or every other screen keeps highlighting a
+  # topic that is no longer there (FR-406).
+  defp announce_lost_focus(session, ref) do
+    if Session.focus(session) == ref do
+      Events.broadcast(session.id, "focus.changed", %{topic: nil})
+    end
+
+    :ok
+  end
+
+  # A vote event names the topic and nothing else. Budgets differ per person
+  # and totals are hidden until the reveal, so both are recomputed where the
+  # viewer is known rather than carried in a broadcast that reaches everyone.
+  defp broadcast_vote(session, ref) do
+    Events.broadcast(session.id, "vote.updated", %{topic: Topic.key(ref)})
+  end
+
+  # Reached from the API and from LiveView params, so a topic that does not
+  # belong to this session is a `:not_found` rather than a crash.
+  defp fetch_topic(session, target) do
+    with {:ok, ref} <- parse_target(target), do: confirm_topic(session, ref)
+  end
+
+  defp parse_target(target) do
+    case Topic.parse(target) do
+      {:ok, ref} -> {:ok, ref}
+      :error -> {:error, :not_found}
+    end
+  end
+
+  defp confirm_topic(session, {:card, id} = ref) do
+    if Repo.exists?(from c in cards_in_session(session), where: c.id == ^id) do
+      {:ok, ref}
+    else
+      {:error, :not_found}
+    end
+  end
+
+  defp confirm_topic(session, {:group, id} = ref) do
+    query = from g in CardGroup, where: g.session_id == ^session.id and g.id == ^id
+
+    if Repo.exists?(query), do: {:ok, ref}, else: {:error, :not_found}
   end
 
   ## Authorisation

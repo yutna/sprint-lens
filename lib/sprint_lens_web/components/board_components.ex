@@ -21,7 +21,9 @@ defmodule SprintLensWeb.BoardComponents do
   use SprintLensWeb, :html
 
   alias SprintLens.Retro.Card
+  alias SprintLens.Retro.DiscussionNote
   alias SprintLens.Retro.Session
+  alias SprintLens.Retro.Topic
 
   @doc """
   The column tabs a narrow screen uses to move between columns (FR-902).
@@ -67,6 +69,8 @@ defmodule SprintLensWeb.BoardComponents do
   attr :current_user_id, :any, required: true
   attr :is_facilitator, :boolean, default: false
   attr :editing, :any, default: nil
+  attr :can_group, :boolean, default: false
+  attr :selected, :any, default: nil
 
   def board_column(assigns) do
     ~H"""
@@ -126,6 +130,8 @@ defmodule SprintLensWeb.BoardComponents do
             current_user_id={@current_user_id}
             is_facilitator={@is_facilitator}
             editing={@editing}
+            can_group={@can_group}
+            selected={@selected}
           />
         </li>
       </ul>
@@ -161,6 +167,8 @@ defmodule SprintLensWeb.BoardComponents do
   attr :current_user_id, :any, required: true
   attr :is_facilitator, :boolean, default: false
   attr :editing, :any, default: nil
+  attr :can_group, :boolean, default: false
+  attr :selected, :any, default: nil
 
   def card_body(assigns) do
     assigns = assign(assigns, :mine, assigns.card.author_id == assigns.current_user_id)
@@ -199,6 +207,23 @@ defmodule SprintLensWeb.BoardComponents do
         <span :if={not @session.is_anonymous and @card.author}>{@card.author.display_name}</span>
         <span :if={@session.is_anonymous}>{gettext("Anonymous")}</span>
       </p>
+
+      <%!--
+        Merging is choosing *which* cards belong together (FR-304), so the
+        cards have to be selectable. A real checkbox, so it is reachable by
+        keyboard and announced as what it is (FR-914).
+      --%>
+      <label :if={@can_group} class="mt-1 flex w-fit items-center gap-1 text-xs">
+        <input
+          type="checkbox"
+          id={"select-card-#{@card.id}"}
+          class="checkbox checkbox-xs"
+          checked={@selected && MapSet.member?(@selected, @card.id)}
+          phx-click="toggle_card"
+          phx-value-id={@card.id}
+        />
+        {gettext("Merge this")}
+      </label>
 
       <div class="mt-1 flex flex-wrap gap-1">
         <.button
@@ -240,6 +265,184 @@ defmodule SprintLensWeb.BoardComponents do
         </.button>
       </div>
     </div>
+    """
+  end
+
+  @doc """
+  The vote and discuss phases: topics, budgets, the spotlight and the record
+  (FR-403 to FR-408).
+
+  One panel for both phases, because they are two views of the same list. What
+  changes is what you can do to it — spend votes, or follow the facilitator.
+  """
+  attr :topics, :list, required: true
+  attr :summary, :map, required: true
+  attr :phase, :atom, required: true
+  attr :can_vote, :boolean, default: false
+  attr :is_facilitator, :boolean, default: false
+  attr :editing_note, :any, default: nil
+
+  def topics_panel(assigns) do
+    ~H"""
+    <section id="topics-panel" class="rounded-box border border-base-300 p-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <h3 class="font-semibold">{gettext("Topics")}</h3>
+
+        <%!--
+          Your own budget, always (FR-403). Nobody else's, ever: one person's
+          spending is not the room's business.
+        --%>
+        <span :if={@can_vote} id="vote-remaining" class="badge badge-outline">
+          {gettext("%{remaining} of %{budget} votes left",
+            remaining: @summary.remaining,
+            budget: @summary.budget
+          )}
+        </span>
+
+        <span :if={not @summary.revealed} id="votes-hidden" class="text-sm opacity-70">
+          {gettext("Totals are hidden until the facilitator reveals them.")}
+        </span>
+
+        <.button
+          :if={@is_facilitator and not @summary.revealed}
+          id="reveal-votes"
+          variant="primary"
+          phx-click="reveal_votes"
+          class="btn btn-primary btn-xs"
+        >
+          {gettext("Reveal totals")}
+        </.button>
+      </div>
+
+      <ol id="topics" class="mt-3 space-y-2">
+        <li
+          :for={topic <- @topics}
+          id={"topic-#{Topic.dom_id(topic)}"}
+          aria-current={to_string(topic.focused?)}
+          class={[
+            "rounded-box border p-2",
+            if(topic.focused?, do: "border-primary bg-primary/5", else: "border-base-200")
+          ]}
+        >
+          <div class="flex flex-wrap items-start gap-2">
+            <p class="grow whitespace-pre-wrap break-words">{topic.title}</p>
+
+            <span
+              :if={not is_nil(topic.votes)}
+              id={"topic-total-#{Topic.dom_id(topic)}"}
+              class="badge badge-primary badge-sm"
+            >
+              {ngettext("%{count} vote", "%{count} votes", topic.votes, count: topic.votes)}
+            </span>
+
+            <span
+              :if={topic.my_votes > 0}
+              id={"topic-mine-#{Topic.dom_id(topic)}"}
+              class="badge badge-sm"
+            >
+              {gettext("you: %{count}", count: topic.my_votes)}
+            </span>
+          </div>
+
+          <ul :if={topic.kind == :group and topic.cards != []} class="mt-1 space-y-1 pl-3">
+            <li :for={card <- topic.cards} class="text-sm opacity-70">{card.text}</li>
+          </ul>
+
+          <p
+            :if={topic.note}
+            id={"topic-note-#{Topic.dom_id(topic)}"}
+            class="mt-2 rounded-box bg-base-200 p-2 text-sm"
+          >
+            {topic.note}
+          </p>
+
+          <div class="mt-2 flex flex-wrap gap-1">
+            <.button
+              :if={@can_vote}
+              id={"vote-up-#{Topic.dom_id(topic)}"}
+              phx-click="cast_vote"
+              phx-value-topic={topic.key}
+              class="btn btn-ghost btn-xs"
+            >
+              {gettext("Vote")}
+            </.button>
+
+            <.button
+              :if={@can_vote and topic.my_votes > 0}
+              id={"vote-down-#{Topic.dom_id(topic)}"}
+              phx-click="retract_vote"
+              phx-value-topic={topic.key}
+              class="btn btn-ghost btn-xs"
+            >
+              {gettext("Take back")}
+            </.button>
+
+            <.button
+              :if={@is_facilitator and not topic.focused?}
+              id={"focus-#{Topic.dom_id(topic)}"}
+              phx-click="set_focus"
+              phx-value-topic={topic.key}
+              class="btn btn-ghost btn-xs"
+            >
+              {gettext("Discuss this")}
+            </.button>
+
+            <.button
+              :if={@is_facilitator and topic.focused?}
+              id="clear-focus"
+              phx-click="clear_focus"
+              class="btn btn-ghost btn-xs"
+            >
+              {gettext("Stop discussing")}
+            </.button>
+
+            <.button
+              :if={@is_facilitator and @editing_note != topic.key}
+              id={"note-#{Topic.dom_id(topic)}"}
+              phx-click="edit_note"
+              phx-value-topic={topic.key}
+              class="btn btn-ghost btn-xs"
+            >
+              {if topic.note, do: gettext("Edit note"), else: gettext("Add note")}
+            </.button>
+          </div>
+
+          <.form
+            :if={@editing_note == topic.key}
+            for={to_form(%{}, as: :note)}
+            id={"note-form-#{Topic.dom_id(topic)}"}
+            phx-submit="save_note"
+            class="mt-2"
+          >
+            <input type="hidden" name="note[topic]" value={topic.key} />
+            <textarea
+              id={"note-body-#{Topic.dom_id(topic)}"}
+              name="note[body]"
+              rows="2"
+              maxlength={DiscussionNote.max_body()}
+              class="w-full textarea"
+              aria-label={gettext("Discussion note")}
+            >{topic.note}</textarea>
+            <div class="flex gap-1">
+              <.button
+                id={"save-note-#{Topic.dom_id(topic)}"}
+                variant="primary"
+                class="btn btn-primary btn-xs"
+              >
+                {gettext("Save")}
+              </.button>
+              <.button id="cancel-note" phx-click="cancel_note" class="btn btn-ghost btn-xs">
+                {gettext("Cancel")}
+              </.button>
+            </div>
+          </.form>
+        </li>
+      </ol>
+
+      <p :if={@topics == []} id="topics-empty" class="mt-2 text-sm opacity-60">
+        {gettext("There is nothing on the board to discuss yet.")}
+      </p>
+    </section>
     """
   end
 

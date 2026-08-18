@@ -238,9 +238,17 @@ defmodule SprintLens.Retro do
       # Closing is the moment an anonymous session's authorship is destroyed
       # (FR-210, NFR-304). Done in the same transaction as the state change so
       # a session cannot end up closed with its authorship intact.
+      #
+      # Both reveals go up here too. FR-602 requires the recap to show the
+      # cards and the vote totals, and a session that ended before the
+      # facilitator revealed them would otherwise have a recap that either
+      # withholds them forever or leaks them without anyone deciding to.
       Multi.new()
       |> Multi.update(:session, Session.state_changeset(session, "closed"))
-      |> Multi.run(:strip, fn _repo, %{session: closed} ->
+      |> Multi.update(:reveal, fn %{session: closed} ->
+        Session.reveal_changeset(closed, %{cards_revealed: true, votes_revealed: true})
+      end)
+      |> Multi.run(:strip, fn _repo, %{reveal: closed} ->
         {SprintLens.Retro.Board.strip_authorship(closed), nil}
       end)
       |> Repo.transaction()
@@ -248,7 +256,7 @@ defmodule SprintLens.Retro do
       # a bare `change/2` and the strip is an `update_all`. A failure here
       # would mean an invariant broke, and should be loud rather than turned
       # into a changeset nobody expects.
-      |> then(fn {:ok, %{session: closed}} ->
+      |> then(fn {:ok, %{reveal: closed}} ->
         broadcast_result({:ok, closed}, "session.closed", fn c ->
           %{session_id: c.id, closed_at: c.closed_at}
         end)
