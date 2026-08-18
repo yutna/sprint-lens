@@ -129,7 +129,7 @@ test title.
 | NFR-303 | documented gap | A 30-day completion SLA cannot be observed in a test run. The erasure mechanism it bounds is tested under FR-805. |
 | NFR-304 | **uncovered** | |
 | NFR-305 | **uncovered** | |
-| NFR-401 | **uncovered** | |
+| NFR-401 | covered | |
 | NFR-402 | covered | |
 | NFR-403 | documented gap | Backup and restore with standard tools is a deployment property. The app-side commitment (a single SQLite file with no exotic state) is structural. |
 | NFR-404 | covered | |

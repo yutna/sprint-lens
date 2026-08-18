@@ -61,6 +61,14 @@ defmodule SprintLensWeb.Router do
     delete "/teams/:id/members/:user_id", TeamController, :remove_member
     delete "/teams/:id/members", TeamController, :leave
 
+    get "/teams/:id/sessions", SessionController, :index
+    post "/teams/:id/sessions", SessionController, :create
+    post "/sessions/join", SessionController, :join
+    get "/sessions/:id", SessionController, :show
+    post "/sessions/:id/phase", SessionController, :phase
+    post "/sessions/:id/timer", SessionController, :timer
+    post "/sessions/:id/facilitator", SessionController, :facilitator
+
     get "/teams/:id/templates", TeamController, :templates
     post "/teams/:id/templates", TeamController, :create_template
     delete "/teams/:id/templates/:template_id", TeamController, :delete_template
@@ -98,6 +106,10 @@ defmodule SprintLensWeb.Router do
       live "/teams", TeamLive.Index, :index
       live "/teams/:id", TeamLive.Show, :show
       live "/teams/:team_id/templates", TemplateLive.Index, :index
+      live "/teams/:team_id/sessions", SessionLive.Index, :index
+      live "/sessions/:id", SessionLive.Show, :show
+      live "/join", SessionLive.Join, :new
+      live "/join/:code", SessionLive.Join, :new
     end
 
     # Changing an email address or a password demands a recent authentication,

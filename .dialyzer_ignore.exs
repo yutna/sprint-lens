@@ -10,5 +10,7 @@
   # `Ecto.Multi.t()` is opaque and its struct holds a `MapSet`, which is also
   # opaque. Piping `Multi.new()` into `Multi.insert/3` — the documented usage
   # — trips the nested-opaqueness check. Nothing here can change it either.
-  {"lib/sprint_lens/teams.ex", :call_without_opaque}
+  # Applies to every module that builds a multi.
+  {"lib/sprint_lens/teams.ex", :call_without_opaque},
+  {"lib/sprint_lens/retro.ex", :call_without_opaque}
 ]

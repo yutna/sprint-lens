@@ -24,6 +24,9 @@ defmodule SprintLensWeb.TeamLive.Show do
           <span :if={@team.description}>{@team.description}</span>
         </:subtitle>
         <:actions>
+          <.link navigate={~p"/teams/#{@team}/sessions"} class="btn btn-primary btn-sm">
+            {gettext("Retrospectives")}
+          </.link>
           <.link navigate={~p"/teams/#{@team}/templates"} class="btn btn-ghost btn-sm">
             {gettext("Templates")}
           </.link>

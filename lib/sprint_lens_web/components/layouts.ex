@@ -93,6 +93,7 @@ defmodule SprintLensWeb.Layouts do
         <%= if @current_scope && @current_scope.user do %>
           <.link navigate={~p"/home"} class="btn btn-ghost btn-sm">{gettext("Home")}</.link>
           <.link navigate={~p"/teams"} class="btn btn-ghost btn-sm">{gettext("Teams")}</.link>
+          <.link navigate={~p"/join"} class="btn btn-ghost btn-sm">{gettext("Join")}</.link>
           <.link navigate={~p"/users/preferences"} class="btn btn-ghost btn-sm">
             {gettext("Preferences")}
           </.link>

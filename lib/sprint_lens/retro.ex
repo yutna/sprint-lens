@@ -146,21 +146,24 @@ defmodule SprintLens.Retro do
     with {:ok, columns} <- template_columns(team, attrs[:template_id] || attrs["template_id"]) do
       Multi.new()
       |> Multi.insert(:session, Session.create_changeset(%Session{}, attrs))
-      |> Multi.insert_all(:columns, Column, fn %{session: session} ->
-        now = DateTime.utc_now(:second)
-
-        Enum.map(columns, fn column ->
-          column
-          |> Map.merge(%{session_id: session.id, inserted_at: now, updated_at: now})
-          |> Map.new(fn {key, value} -> {key, value} end)
-        end)
-      end)
+      |> Multi.insert_all(:columns, Column, &column_rows(columns, &1.session))
       |> Repo.transaction()
       |> case do
         {:ok, %{session: session}} -> {:ok, preload(session)}
         {:error, _step, changeset, _changes} -> {:error, changeset}
       end
     end
+  end
+
+  # `insert_all` takes plain maps rather than changesets, so the timestamps
+  # `timestamps()` would normally fill in have to be supplied here.
+  defp column_rows(columns, session) do
+    now = DateTime.utc_now(:second)
+
+    Enum.map(
+      columns,
+      &Map.merge(&1, %{session_id: session.id, inserted_at: now, updated_at: now})
+    )
   end
 
   # The form sends strings; internal callers send atoms. Normalising once here
