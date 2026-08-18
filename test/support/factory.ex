@@ -11,6 +11,8 @@ defmodule SprintLens.Factory do
   use ExMachina.Ecto, repo: SprintLens.Repo
 
   alias SprintLens.Accounts.User
+  alias SprintLens.Retro.Column
+  alias SprintLens.Retro.Session
   alias SprintLens.Teams.Membership
   alias SprintLens.Teams.Team
   alias SprintLens.Teams.Template
@@ -66,6 +68,46 @@ defmodule SprintLens.Factory do
         %{"name" => "To improve", "hint" => nil}
       ]
     }
+  end
+
+  def session_factory do
+    %Session{
+      title: unique("Retro"),
+      team: build(:team),
+      facilitator: build(:user),
+      state: "created",
+      phase: "checkin",
+      vote_budget: 5,
+      join_code: Session.generate_join_code()
+    }
+  end
+
+  def column_factory do
+    %Column{
+      session: build(:session),
+      name: unique("Column"),
+      position: 0
+    }
+  end
+
+  @doc """
+  An active session for `team`, facilitated by `facilitator`, with the three
+  columns a default board has.
+  """
+  def active_session(team, facilitator, attrs \\ %{}) do
+    session =
+      insert(
+        :session,
+        Map.merge(%{team: team, facilitator: facilitator, state: "active"}, Map.new(attrs))
+      )
+
+    ["Went well", "To improve", "Actions"]
+    |> Enum.with_index()
+    |> Enum.each(fn {name, position} ->
+      insert(:column, session: session, name: name, position: position)
+    end)
+
+    SprintLens.Retro.preload(session)
   end
 
   @doc """
