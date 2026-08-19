@@ -143,6 +143,12 @@ test.describe('brainstorm with blind and anonymous modes', () => {
     // responds to Enter is what FR-914 is actually about.
     await page.locator(`#card-text-${first}`).focus()
     await page.keyboard.type('Typed, not clicked')
+
+    // Wait for the box to actually hold what was typed before submitting.
+    // Keystrokes and a LiveView patch race under load, and a form submitted
+    // mid-patch sends an empty card.
+    await expect(page.locator(`#card-text-${first}`)).toHaveValue('Typed, not clicked')
+
     await page.locator(`#add-card-${first}`).press('Enter')
 
     await expect(page.locator(`#cards-${first} li`)).toHaveCount(1)

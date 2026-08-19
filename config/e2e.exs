@@ -36,3 +36,7 @@ config :sprint_lens, Oban, testing: :disabled
 # Short enough that an e2e test can observe the hand-off without a long wait,
 # long enough that a normal page transition never trips it (FR-207).
 config :sprint_lens, :facilitator_grace_ms, 3_000
+
+# Same reason as the test environment: the browser suite exercises every AI
+# path without a model or a network (AI-004).
+config :sprint_lens, :ai_adapter, SprintLens.AI.FakeAdapter

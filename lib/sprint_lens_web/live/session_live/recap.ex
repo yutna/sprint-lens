@@ -14,8 +14,11 @@ defmodule SprintLensWeb.SessionLive.Recap do
   use SprintLensWeb, :live_view
 
   import SprintLensWeb.ActionComponents
+  import SprintLensWeb.AIComponents
 
+  alias SprintLens.AI
   alias SprintLens.Insights
+  alias SprintLens.Retro
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -99,6 +102,36 @@ defmodule SprintLensWeb.SessionLive.Recap do
           </div>
         </dl>
       </section>
+
+      <%!--
+        The accepted summary, if the facilitator kept one (AI-009). Shown
+        before the board because it is what somebody opening a recap a month
+        later actually wants.
+      --%>
+      <section :if={@session.summary} aria-labelledby="recap-narrative-heading">
+        <h2 id="recap-narrative-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
+          {gettext("Summary")}
+        </h2>
+
+        <pre
+          id="recap-summary-text"
+          class="whitespace-pre-wrap break-words rounded-box border border-base-300 p-3 text-sm"
+        >{@session.summary}</pre>
+      </section>
+
+      <%!--
+        Absent, not disabled, when the team has not opted in or the switch is
+        off — AI-001's visible half.
+      --%>
+      <.suggestion_slot
+        :if={@ai_available and @is_facilitator}
+        id="ai-summary"
+        type={:session_summary}
+        title={gettext("Suggested summary")}
+        hint={gettext("A draft for you to read. Nothing is attached until you accept it.")}
+        suggestion={@summary_suggestion}
+        editing={@editing_suggestion}
+      />
 
       <section aria-labelledby="recap-board-heading">
         <h2 id="recap-board-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
@@ -187,12 +220,13 @@ defmodule SprintLensWeb.SessionLive.Recap do
   def mount(%{"id" => id}, _session, socket) do
     case Insights.fetch_closed_session(socket.assigns.current_scope, id) do
       {:ok, session} ->
+        if connected?(socket), do: AI.subscribe(session.team_id)
+
         {:ok,
          socket
          |> assign(:page_title, session.title)
-         |> assign(:session, session)
-         |> assign(:now, DateTime.utc_now())
-         |> assign(:recap, Insights.recap(session, socket.assigns.current_scope))}
+         |> assign(:editing_suggestion, false)
+         |> load(session)}
 
       {:error, :not_found} ->
         {:ok,
@@ -200,6 +234,96 @@ defmodule SprintLensWeb.SessionLive.Recap do
          |> put_flash(:error, gettext("That resource does not exist."))
          |> push_navigate(to: ~p"/home")}
     end
+  end
+
+  @impl Phoenix.LiveView
+  def handle_info({:ai_suggestion, _payload}, socket) do
+    {:noreply, reload(socket)}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("request_suggestion", %{"type" => type}, socket) do
+    session = socket.assigns.session
+
+    case AI.request(socket.assigns.current_scope, session.team, String.to_existing_atom(type), %{
+           session: session
+         }) do
+      {:ok, _suggestion} -> {:noreply, reload(socket)}
+      {:error, reason} -> {:noreply, report(socket, reason)}
+    end
+  end
+
+  def handle_event("retry_suggestion", %{"id" => id}, socket) do
+    with {:ok, suggestion} <- AI.fetch_suggestion(socket.assigns.current_scope, id),
+         {:ok, _retried} <- AI.retry(socket.assigns.current_scope, suggestion) do
+      {:noreply, reload(socket)}
+    else
+      {:error, reason} -> {:noreply, report(socket, reason)}
+    end
+  end
+
+  def handle_event("edit_suggestion", _params, socket) do
+    {:noreply, assign(socket, :editing_suggestion, true)}
+  end
+
+  def handle_event("cancel_edit_suggestion", _params, socket) do
+    {:noreply, assign(socket, :editing_suggestion, false)}
+  end
+
+  def handle_event(
+        "accept_suggestion",
+        %{"suggestion" => %{"id" => id, "output" => output}},
+        socket
+      ) do
+    decide(socket, id, &AI.accept(socket.assigns.current_scope, &1, output))
+  end
+
+  def handle_event("accept_suggestion", %{"id" => id}, socket) do
+    decide(socket, id, &AI.accept(socket.assigns.current_scope, &1))
+  end
+
+  def handle_event("reject_suggestion", %{"id" => id}, socket) do
+    decide(socket, id, &AI.reject(socket.assigns.current_scope, &1))
+  end
+
+  defp decide(socket, id, fun) do
+    with {:ok, suggestion} <- AI.fetch_suggestion(socket.assigns.current_scope, id),
+         {:ok, _decided} <- fun.(suggestion) do
+      {:noreply, socket |> assign(:editing_suggestion, false) |> reload()}
+    else
+      {:error, reason} -> {:noreply, report(socket, reason)}
+    end
+  end
+
+  defp reload(socket) do
+    case Insights.fetch_closed_session(socket.assigns.current_scope, socket.assigns.session.id) do
+      {:ok, session} -> load(socket, session)
+      {:error, :not_found} -> socket
+    end
+  end
+
+  defp load(socket, session) do
+    scope = socket.assigns.current_scope
+
+    socket
+    |> assign(:session, session)
+    |> assign(:now, DateTime.utc_now())
+    |> assign(:recap, Insights.recap(session, scope))
+    |> assign(:is_facilitator, Retro.facilitator?(scope, session))
+    |> assign(:ai_available, AI.can_request?(scope, session.team))
+    |> assign(:summary_suggestion, latest_summary(session))
+  end
+
+  defp latest_summary(session) do
+    session |> AI.list_session_suggestions(:session_summary) |> List.first()
+  end
+
+  defp report(socket, :ai_disabled) do
+    put_flash(socket, :error, gettext("AI features are turned off."))
+  end
+
+  defp report(socket, _reason) do
+    put_flash(socket, :error, gettext("That resource does not exist."))
   end
 
   defp cards_in(cards, column), do: Enum.filter(cards, &(&1.column_id == column.id))

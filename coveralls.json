@@ -6,6 +6,7 @@
   },
   "skip_files": [
     "test/support/",
-    "lib/mix/tasks/sprint_lens.e2e.ex"
+    "lib/mix/tasks/sprint_lens.e2e.ex",
+    "lib/sprint_lens/ai/claude_cli/runner.ex"
   ]
 }

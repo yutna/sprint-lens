@@ -71,6 +71,11 @@ config :sprint_lens, Oban,
      ]}
   ]
 
+# The AI provider (AI-004). The reference adapter shells out to the Claude
+# Code CLI (AI-007); test and e2e override this with a fake, which is the
+# proof that the interface is provider-agnostic.
+config :sprint_lens, :ai_adapter, SprintLens.AI.ClaudeCliAdapter
+
 # Rate limiting per user and per IP (NFR-202). `{limit, scale_ms}` per bucket.
 config :sprint_lens, SprintLens.RateLimit,
   enabled: true,

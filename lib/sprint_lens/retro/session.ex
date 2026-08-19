@@ -77,6 +77,11 @@ defmodule SprintLens.Retro.Session do
     # See the migration for why it is stored rather than counted.
     field :participant_count, :integer
 
+    # The recap summary a facilitator accepted, if they accepted one
+    # (AI-009). Copied here rather than read back through the suggestion, so
+    # purging the suggestions cannot empty a recap somebody signed off.
+    field :summary, :string
+
     belongs_to :team, Team
     belongs_to :template, Template
     belongs_to :facilitator, User
@@ -161,6 +166,11 @@ defmodule SprintLens.Retro.Session do
   def participants_changeset(session, count) do
     change(session, participant_count: count)
   end
+
+  @doc """
+  A changeset for the accepted AI summary (AI-002, AI-009).
+  """
+  def summary_changeset(session, summary), do: change(session, summary: summary)
 
   @doc """
   A changeset for the reveal flags (FR-209, FR-404).

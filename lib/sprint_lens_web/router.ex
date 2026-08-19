@@ -104,6 +104,10 @@ defmodule SprintLensWeb.Router do
     delete "/admin/sessions/:id", AdminController, :purge_session
     delete "/admin/teams/:id", AdminController, :purge_team
 
+    post "/sessions/:id/suggestions", SuggestionController, :create
+    get "/suggestions/:id", SuggestionController, :show
+    patch "/suggestions/:id", SuggestionController, :update
+
     get "/teams/:id/templates", TeamController, :templates
     post "/teams/:id/templates", TeamController, :create_template
     delete "/teams/:id/templates/:template_id", TeamController, :delete_template

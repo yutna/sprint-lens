@@ -25,6 +25,11 @@ config :sprint_lens, Oban, testing: :manual
 # the exact bytes (FR-705).
 config :sprint_lens, :webhook_req_options, plug: {Req.Test, SprintLens.Webhooks}
 
+# The suite runs against a different adapter from production, which is what
+# makes AI-004's "swap providers without app changes" a fact about this
+# codebase rather than a claim in a document.
+config :sprint_lens, :ai_adapter, SprintLens.AI.FakeAdapter
+
 # Keep the facilitator hand-off deterministic without sleeping for a minute
 # (FR-207).
 config :sprint_lens, :facilitator_grace_ms, 50

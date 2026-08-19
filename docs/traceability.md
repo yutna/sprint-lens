@@ -8,24 +8,24 @@ test title.
 
 | Requirement | Status | Note |
 | --- | --- | --- |
-| AI-001 | **uncovered** | |
-| AI-002 | **uncovered** | |
+| AI-001 | covered | |
+| AI-002 | covered | |
 | AI-003 | covered | |
-| AI-004 | **uncovered** | |
+| AI-004 | covered | |
 | AI-005 | covered | |
-| AI-006 | **uncovered** | |
-| AI-007 | **uncovered** | |
-| AI-008 | **uncovered** | |
-| AI-009 | **uncovered** | |
-| AI-010 | **uncovered** | |
-| AI-011 | **uncovered** | |
-| AI-012 | **uncovered** | |
-| AI-013 | **uncovered** | |
-| AI-014 | **uncovered** | |
-| AI-015 | **uncovered** | |
-| AI-016 | **uncovered** | |
+| AI-006 | covered | |
+| AI-007 | covered | |
+| AI-008 | covered | |
+| AI-009 | covered | |
+| AI-010 | covered | |
+| AI-011 | covered | |
+| AI-012 | covered | |
+| AI-013 | covered | |
+| AI-014 | covered | |
+| AI-015 | covered | |
+| AI-016 | covered | |
 | AI-017 | covered | |
-| AI-018 | **uncovered** | |
+| AI-018 | covered | |
 | FR-001 | covered | |
 | FR-002 | covered | |
 | FR-003 | covered | |
@@ -128,7 +128,7 @@ test title.
 | NFR-302 | documented gap | Backup ageing is a property of the deployment's backup policy. The purge mechanism itself is tested under FR-803. |
 | NFR-303 | documented gap | A 30-day completion SLA cannot be observed in a test run. The erasure mechanism it bounds is tested under FR-805. |
 | NFR-304 | covered | |
-| NFR-305 | **uncovered** | |
+| NFR-305 | covered | |
 | NFR-401 | covered | |
 | NFR-402 | covered | |
 | NFR-403 | documented gap | Backup and restore with standard tools is a deployment property. The app-side commitment (a single SQLite file with no exotic state) is structural. |
