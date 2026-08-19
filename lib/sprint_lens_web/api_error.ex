@@ -24,6 +24,7 @@ defmodule SprintLensWeb.ApiError do
     not_found: 404,
     conflict: 409,
     validation_failed: 422,
+    empty_query: 422,
     vote_budget_exceeded: 422,
     already_voted: 422,
     wrong_phase: 422,
@@ -74,6 +75,7 @@ defmodule SprintLensWeb.ApiError do
   def message(:not_found), do: gettext("That resource does not exist.")
   def message(:conflict), do: gettext("That change conflicts with the current state.")
   def message(:validation_failed), do: gettext("Some fields need attention.")
+  def message(:empty_query), do: gettext("Type something to search for.")
   def message(:vote_budget_exceeded), do: gettext("You have no votes left in this session.")
   def message(:already_voted), do: gettext("You have already voted on this topic.")
   def message(:wrong_phase), do: gettext("That action is not available in this phase.")

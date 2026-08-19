@@ -438,6 +438,23 @@ defmodule SprintLens.Retro.Board do
   ## Anonymity (FR-210, NFR-304)
 
   @doc """
+  How many different people took part in a session (FR-601, FR-604).
+
+  Counted from what they did rather than from who was in the room: presence is
+  not stored, and someone who joined and said nothing did not take part in a
+  way any metric can see. Must be called before `strip_authorship/1`, which is
+  why `SprintLens.Retro.close_session/2` does both in one transaction.
+  """
+  @spec count_participants(Session.t()) :: non_neg_integer()
+  def count_participants(%Session{} = session) do
+    cards = Repo.all(from c in cards_in_session(session), select: c.author_id)
+    votes = Repo.all(from v in votes_in(session), select: v.voter_id)
+    moods = Repo.all(from m in MoodEntry, where: m.session_id == ^session.id, select: m.user_id)
+
+    (cards ++ votes ++ moods) |> Enum.reject(&is_nil/1) |> Enum.uniq() |> length()
+  end
+
+  @doc """
   Strips authorship from an anonymous session's content, irreversibly.
 
   Called when the session closes. Section 6.4 and NFR-304 are explicit that

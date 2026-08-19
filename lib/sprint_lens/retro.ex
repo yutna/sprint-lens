@@ -17,6 +17,7 @@ defmodule SprintLens.Retro do
   alias SprintLens.Accounts.User
   alias SprintLens.Policy
   alias SprintLens.Repo
+  alias SprintLens.Retro.Board
   alias SprintLens.Retro.Column
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.Session
@@ -248,15 +249,21 @@ defmodule SprintLens.Retro do
       |> Multi.update(:reveal, fn %{session: closed} ->
         Session.reveal_changeset(closed, %{cards_revealed: true, votes_revealed: true})
       end)
-      |> Multi.run(:strip, fn _repo, %{reveal: closed} ->
-        {SprintLens.Retro.Board.strip_authorship(closed), nil}
+      # Counted before the strip, in the same transaction: for an anonymous
+      # session this is the only form of the number that survives (FR-601,
+      # FR-604, section 6.4).
+      |> Multi.update(:participants, fn %{reveal: closed} ->
+        Session.participants_changeset(closed, Board.count_participants(closed))
+      end)
+      |> Multi.run(:strip, fn _repo, %{participants: closed} ->
+        {Board.strip_authorship(closed), nil}
       end)
       |> Repo.transaction()
       # Matched rather than cased: neither step can fail. The state change is
       # a bare `change/2` and the strip is an `update_all`. A failure here
       # would mean an invariant broke, and should be loud rather than turned
       # into a changeset nobody expects.
-      |> then(fn {:ok, %{reveal: closed}} ->
+      |> then(fn {:ok, %{participants: closed}} ->
         broadcast_result({:ok, closed}, "session.closed", fn c ->
           %{session_id: c.id, closed_at: c.closed_at}
         end)

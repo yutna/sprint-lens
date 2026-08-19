@@ -9,6 +9,7 @@ defmodule SprintLensWeb.SessionLive.Index do
 
   use SprintLensWeb, :live_view
 
+  alias SprintLens.Insights
   alias SprintLens.Retro
   alias SprintLens.Retro.Session
   alias SprintLens.Teams
@@ -88,7 +89,7 @@ defmodule SprintLensWeb.SessionLive.Index do
         <ul :if={@sessions != []} id="sessions" class="grid gap-3">
           <li :for={session <- @sessions} id={"session-#{session.id}"}>
             <.link
-              navigate={~p"/sessions/#{session}"}
+              navigate={session_path(session)}
               class="block rounded-box border border-base-300 p-4 hover:border-primary"
             >
               <div class="flex flex-wrap items-center gap-2">
@@ -114,8 +115,70 @@ defmodule SprintLensWeb.SessionLive.Index do
           </li>
         </ul>
       </section>
+
+      <%!--
+        The archive (FR-601): every retrospective that has finished, with what
+        it came to. Separate from the list above because a closed session is
+        read rather than joined.
+      --%>
+      <section aria-labelledby="archive-heading">
+        <h2 id="archive-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
+          {gettext("Archive")}
+        </h2>
+
+        <p :if={@archive == []} id="archive-empty" class="rounded-box border border-base-300 p-6">
+          {gettext("No retrospective has finished yet.")}
+        </p>
+
+        <ul :if={@archive != []} id="archive" class="grid gap-3">
+          <li :for={entry <- @archive} id={"archive-#{entry.session.id}"}>
+            <.link
+              navigate={~p"/sessions/#{entry.session}/recap"}
+              class="block rounded-box border border-base-300 p-4 hover:border-primary"
+            >
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-semibold">{entry.session.title}</span>
+                <span :if={entry.template} class="badge badge-ghost badge-sm">
+                  {entry.template}
+                </span>
+                <span :if={entry.session.is_anonymous} class="badge badge-ghost badge-sm">
+                  {gettext("Anonymous")}
+                </span>
+              </div>
+
+              <p class="flex flex-wrap gap-3 text-sm opacity-70">
+                <span :if={entry.closed_at}>
+                  {gettext("Closed %{at}", at: Locale.format_datetime(entry.closed_at))}
+                </span>
+                <span id={"archive-participants-#{entry.session.id}"}>
+                  {ngettext("%{count} person", "%{count} people", entry.participant_count,
+                    count: entry.participant_count
+                  )}
+                </span>
+                <span id={"archive-cards-#{entry.session.id}"}>
+                  {ngettext("%{count} card", "%{count} cards", entry.card_count,
+                    count: entry.card_count
+                  )}
+                </span>
+                <span id={"archive-mood-#{entry.session.id}"}>
+                  {gettext("mood %{score}", score: entry.mood || "—")}
+                </span>
+              </p>
+            </.link>
+          </li>
+        </ul>
+      </section>
     </Layouts.app>
     """
+  end
+
+  # A closed session has no board to join, only a recap to read (FR-602).
+  defp session_path(session) do
+    if Session.state(session) == :closed do
+      ~p"/sessions/#{session}/recap"
+    else
+      ~p"/sessions/#{session}"
+    end
   end
 
   @impl Phoenix.LiveView
@@ -165,7 +228,9 @@ defmodule SprintLensWeb.SessionLive.Index do
   defp error_message(:unauthorized), do: gettext("You do not have permission to do that.")
 
   defp assign_sessions(socket) do
-    assign(socket, :sessions, Retro.list_sessions(socket.assigns.team))
+    socket
+    |> assign(:sessions, Retro.list_sessions(socket.assigns.team))
+    |> assign(:archive, Insights.archive(socket.assigns.team))
   end
 
   defp assign_form(socket, changeset) do

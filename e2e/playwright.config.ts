@@ -82,7 +82,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'cd .. && MIX_ENV=e2e mix phx.server',
+    // Migrating here as well as in `mix e2e`: running `npx playwright test`
+    // directly is a normal thing to do while writing a spec, and a server
+    // booted against a stale schema fails in ways that look like UI bugs.
+    command: 'cd .. && MIX_ENV=e2e mix do ecto.create --quiet, ecto.migrate --quiet, phx.server',
     url: `${BASE_URL}/api/v1/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

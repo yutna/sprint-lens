@@ -73,6 +73,10 @@ defmodule SprintLens.Retro.Session do
 
     field :closed_at, :utc_datetime
 
+    # Taken at close, before an anonymous session's references are destroyed.
+    # See the migration for why it is stored rather than counted.
+    field :participant_count, :integer
+
     belongs_to :team, Team
     belongs_to :template, Template
     belongs_to :facilitator, User
@@ -149,6 +153,13 @@ defmodule SprintLens.Retro.Session do
     session
     |> change(facilitator_id: user_id)
     |> foreign_key_constraint(:facilitator_id)
+  end
+
+  @doc """
+  A changeset for the count of people who took part (FR-601, FR-604).
+  """
+  def participants_changeset(session, count) do
+    change(session, participant_count: count)
   end
 
   @doc """

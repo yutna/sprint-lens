@@ -89,6 +89,12 @@ defmodule SprintLensWeb.Router do
     get "/teams/:id/actions/open", ActionController, :open
     patch "/actions/:id", ActionController, :update
 
+    get "/teams/:id/insights", InsightsController, :show
+    get "/teams/:id/archive", InsightsController, :archive
+    get "/teams/:id/search", InsightsController, :search
+    get "/sessions/:id/recap", InsightsController, :recap
+    get "/insights/org", InsightsController, :org
+
     get "/teams/:id/templates", TeamController, :templates
     post "/teams/:id/templates", TeamController, :create_template
     delete "/teams/:id/templates/:template_id", TeamController, :delete_template
@@ -128,7 +134,10 @@ defmodule SprintLensWeb.Router do
       live "/teams/:team_id/templates", TemplateLive.Index, :index
       live "/teams/:team_id/sessions", SessionLive.Index, :index
       live "/teams/:team_id/actions", ActionLive.Index, :index
+      live "/teams/:team_id/insights", InsightsLive.Index, :index
+      live "/teams/:team_id/search", SearchLive.Index, :index
       live "/sessions/:id", SessionLive.Show, :show
+      live "/sessions/:id/recap", SessionLive.Recap, :show
       live "/join", SessionLive.Join, :new
       live "/join/:code", SessionLive.Join, :new
     end
