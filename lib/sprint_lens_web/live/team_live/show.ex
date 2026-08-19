@@ -12,6 +12,9 @@ defmodule SprintLensWeb.TeamLive.Show do
 
   alias SprintLens.Policy
   alias SprintLens.Teams
+  alias SprintLens.Webhooks
+  alias SprintLens.Webhooks.Delivery
+  alias SprintLens.Webhooks.Subscription
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -174,8 +177,150 @@ defmodule SprintLensWeb.TeamLive.Show do
           </.button>
         </.form>
       </section>
+
+      <%!--
+        SCR-04's webhook section (FR-704 to FR-706). Lead-only, because
+        section 3.1 puts `manage_webhooks` there, and because the shared
+        secret is the sort of thing a smaller audience is better for.
+      --%>
+      <section :if={@can_manage_webhooks} aria-labelledby="webhook-heading">
+        <h2 id="webhook-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
+          {gettext("Webhook")}
+        </h2>
+
+        <.form
+          for={@webhook_form}
+          id="webhook_form"
+          phx-submit="save_webhook"
+          class="max-w-md space-y-2"
+        >
+          <.input
+            field={@webhook_form[:url]}
+            type="url"
+            label={gettext("Where to POST")}
+            placeholder="https://hooks.example.com/sprintlens"
+            required
+          />
+
+          <%!--
+            Never rendered with the stored value: a shared secret that
+            appears on every page render has a much larger surface than it
+            needs. Leaving it blank keeps the one already saved.
+          --%>
+          <.input
+            field={@webhook_form[:secret]}
+            type="password"
+            label={gettext("Shared secret")}
+            value=""
+            autocomplete="off"
+          />
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">{gettext("Send these events")}</legend>
+            <label :for={event <- Subscription.events()} class="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id={"webhook-event-#{event}"}
+                name="webhook[events][]"
+                value={event}
+                checked={event in @webhook_events}
+                class="checkbox checkbox-sm"
+              />
+              <span class="font-mono text-sm">{event}</span>
+            </label>
+          </fieldset>
+
+          <.input
+            field={@webhook_form[:is_active]}
+            type="checkbox"
+            label={gettext("Send deliveries")}
+          />
+
+          <div class="flex gap-2">
+            <.button id="save-webhook" variant="primary" phx-disable-with={gettext("Saving...")}>
+              {gettext("Save webhook")}
+            </.button>
+            <.button
+              :if={@webhook}
+              id="delete-webhook"
+              phx-click="delete_webhook"
+              data-confirm={gettext("Remove this webhook?")}
+              class="btn btn-ghost"
+            >
+              {gettext("Remove")}
+            </.button>
+          </div>
+        </.form>
+
+        <h3 class="mt-4 text-sm font-semibold uppercase opacity-70">
+          {gettext("Recent deliveries")}
+        </h3>
+
+        <p :if={@deliveries == []} id="deliveries-empty" class="text-sm opacity-60">
+          {gettext("Nothing has been sent yet.")}
+        </p>
+
+        <ul :if={@deliveries != []} id="deliveries" class="mt-2 space-y-1">
+          <li
+            :for={delivery <- @deliveries}
+            id={"delivery-#{delivery.id}"}
+            class="flex flex-wrap items-center gap-2 rounded-box border border-base-200 p-2 text-sm"
+          >
+            <span class={[
+              "badge badge-sm",
+              if(Delivery.status(delivery) == :delivered, do: "badge-success", else: "badge-error")
+            ]}>
+              {delivery.status}
+            </span>
+            <span class="font-mono">{delivery.event}</span>
+            <span class="opacity-70">
+              {gettext("attempt %{n}", n: delivery.attempt)}
+            </span>
+            <span :if={delivery.error} class="opacity-70">{delivery.error}</span>
+            <span class="ml-auto opacity-60">
+              {SprintLensWeb.Locale.format_datetime(delivery.inserted_at)}
+            </span>
+          </li>
+        </ul>
+      </section>
     </Layouts.app>
     """
+  end
+
+  # A blank secret box means "keep the one already saved", because the form
+  # never renders the stored secret back (see the section above).
+  defp webhook_attrs(params, subscription) do
+    secret =
+      case String.trim(params["secret"] || "") do
+        "" -> subscription && subscription.secret
+        typed -> typed
+      end
+
+    %{
+      "url" => params["url"],
+      "secret" => secret,
+      "events" => params["events"] || [],
+      "is_active" => params["is_active"] || "false"
+    }
+  end
+
+  defp assign_webhook(socket, team) do
+    subscription = Webhooks.get_subscription(team)
+
+    socket
+    |> assign(:webhook, subscription)
+    |> assign(:webhook_events, subscription_events(subscription))
+    |> assign(
+      :webhook_form,
+      to_form(Webhooks.change_subscription(subscription || %Subscription{}), as: "webhook")
+    )
+    |> assign(:deliveries, (subscription && Webhooks.list_deliveries(subscription)) || [])
+  end
+
+  defp subscription_events(nil), do: Enum.map(Subscription.events(), &Atom.to_string/1)
+
+  defp subscription_events(subscription) do
+    Enum.map(Subscription.subscribed(subscription), &Atom.to_string/1)
   end
 
   @impl Phoenix.LiveView
@@ -210,6 +355,41 @@ defmodule SprintLensWeb.TeamLive.Show do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply,
          assign(socket, :settings_form, to_form(Map.put(changeset, :action, :insert), as: "team"))}
+
+      {:error, :unauthorized} ->
+        {:noreply, refuse(socket)}
+    end
+  end
+
+  def handle_event("save_webhook", %{"webhook" => params}, socket) do
+    attrs = webhook_attrs(params, socket.assigns.webhook)
+
+    case Webhooks.configure(socket.assigns.current_scope, socket.assigns.team, attrs) do
+      {:ok, _subscription} ->
+        {:noreply,
+         socket |> load(socket.assigns.team) |> put_flash(:info, gettext("Webhook saved."))}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply,
+         assign(
+           socket,
+           :webhook_form,
+           to_form(Map.put(changeset, :action, :insert), as: "webhook")
+         )}
+
+      {:error, :unauthorized} ->
+        {:noreply, refuse(socket)}
+    end
+  end
+
+  def handle_event("delete_webhook", _params, socket) do
+    case Webhooks.delete_subscription(socket.assigns.current_scope, socket.assigns.team) do
+      :ok ->
+        {:noreply,
+         socket |> load(socket.assigns.team) |> put_flash(:info, gettext("Webhook removed."))}
+
+      {:error, :not_found} ->
+        {:noreply, load(socket, socket.assigns.team)}
 
       {:error, :unauthorized} ->
         {:noreply, refuse(socket)}
@@ -310,6 +490,11 @@ defmodule SprintLensWeb.TeamLive.Show do
       Policy.manage?(scope, :edit_team_settings, role, team.is_archived)
     )
     |> assign(:can_toggle_archive, Policy.can?(scope, :edit_team_settings, role))
+    |> assign(
+      :can_manage_webhooks,
+      Policy.manage?(scope, :manage_webhooks, role, team.is_archived)
+    )
+    |> assign_webhook(team)
     |> assign(:settings_form, to_form(Teams.change_team_settings(team), as: "team"))
     |> assign(:member_form, to_form(Teams.change_membership(), as: "membership"))
   end

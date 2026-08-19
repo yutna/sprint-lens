@@ -53,6 +53,11 @@ defmodule SprintLens.Actions.ActionItem do
     field :due_date, :utc_datetime
     field :client_request_id, :string
 
+    # Set when `action.due` has been announced, so it is announced once
+    # (FR-704). Not a field section 6.3 lists; it is bookkeeping for a
+    # notification rather than a fact about the commitment.
+    field :due_notified_at, :utc_datetime
+
     belongs_to :team, Team
     belongs_to :session, Session
     belongs_to :card, Card

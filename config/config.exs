@@ -53,11 +53,16 @@ config :sprint_lens, SprintLens.Repo,
 #   * AI suggestion jobs (AI-005, AI-006)
 config :sprint_lens, Oban,
   engine: Oban.Engines.Lite,
+  # SQLite has no `LISTEN`/`NOTIFY`, so job notifications travel over the
+  # cluster's process groups instead of the database.
+  notifier: Oban.Notifiers.PG,
   repo: SprintLens.Repo,
   queues: [default: 5, webhooks: 5, retention: 1, ai: 2],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7},
-    {Oban.Plugins.Cron, crontab: []}
+    # Once a day, a little after midnight UTC: the sweep asks which action
+    # items have come due and announces each one once (FR-704).
+    {Oban.Plugins.Cron, crontab: [{"5 0 * * *", SprintLens.Workers.ActionDueSweep}]}
   ]
 
 # Rate limiting per user and per IP (NFR-202). `{limit, scale_ms}` per bucket.

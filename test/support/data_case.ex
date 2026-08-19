@@ -40,6 +40,14 @@ defmodule SprintLens.DataCase do
     end
 
     quote do
+      # `Oban.Testing` needs the engine and the notifier as well as the repo:
+      # its defaults are the Postgres ones, and this application runs on
+      # SQLite, whose notifier is the process-group one.
+      use Oban.Testing,
+        repo: SprintLens.Repo,
+        engine: Oban.Engines.Lite,
+        notifier: Oban.Notifiers.PG
+
       alias SprintLens.Repo
 
       import Ecto

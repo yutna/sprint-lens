@@ -33,6 +33,38 @@ defmodule SprintLensWeb.SessionLive.Recap do
           </span>
         </:subtitle>
         <:actions>
+          <%!--
+            Plain links rather than LiveView navigation: these are downloads,
+            and a socket cannot hand the browser a file (FR-701 to FR-703).
+          --%>
+          <a
+            href={~p"/sessions/#{@session}/export?format=markdown"}
+            id="export-markdown"
+            class="btn btn-ghost btn-sm"
+          >
+            {gettext("Markdown")}
+          </a>
+          <a
+            href={~p"/sessions/#{@session}/export?format=csv&of=cards"}
+            id="export-csv-cards"
+            class="btn btn-ghost btn-sm"
+          >
+            {gettext("Cards CSV")}
+          </a>
+          <a
+            href={~p"/sessions/#{@session}/export?format=csv&of=actions"}
+            id="export-csv-actions"
+            class="btn btn-ghost btn-sm"
+          >
+            {gettext("Actions CSV")}
+          </a>
+          <a
+            href={~p"/sessions/#{@session}/export?format=json"}
+            id="export-json"
+            class="btn btn-ghost btn-sm"
+          >
+            {gettext("JSON")}
+          </a>
           <.link navigate={~p"/teams/#{@session.team_id}/sessions"} class="btn btn-ghost btn-sm">
             {gettext("Back to retrospectives")}
           </.link>

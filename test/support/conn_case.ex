@@ -23,6 +23,13 @@ defmodule SprintLensWeb.ConnCase do
 
       use SprintLensWeb, :verified_routes
 
+      # Same options as `SprintLens.DataCase`: a page that shows what a
+      # background job did has to be able to run one (FR-706).
+      use Oban.Testing,
+        repo: SprintLens.Repo,
+        engine: Oban.Engines.Lite,
+        notifier: Oban.Notifiers.PG
+
       import Phoenix.ConnTest
       import Phoenix.LiveViewTest
       import Plug.Conn

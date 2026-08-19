@@ -93,6 +93,7 @@ defmodule SprintLensWeb.Router do
     get "/teams/:id/archive", InsightsController, :archive
     get "/teams/:id/search", InsightsController, :search
     get "/sessions/:id/recap", InsightsController, :recap
+    get "/sessions/:id/export", ExportController, :show
     get "/insights/org", InsightsController, :org
 
     get "/teams/:id/templates", TeamController, :templates
@@ -154,6 +155,11 @@ defmodule SprintLensWeb.Router do
     end
 
     post "/users/update-password", UserSessionController, :update_password
+
+    # Downloading a recap is a file, not a page, so it is a plain controller
+    # reached from the browser session rather than with a bearer token
+    # (FR-701 to FR-703).
+    get "/sessions/:id/export", Api.V1.ExportController, :show
   end
 
   scope "/", SprintLensWeb do

@@ -24,6 +24,7 @@ defmodule SprintLens.Retro do
   alias SprintLens.Teams
   alias SprintLens.Teams.Team
   alias SprintLens.Teams.Template
+  alias SprintLens.Webhooks
 
   @preloads [:team, :facilitator, :columns]
 
@@ -222,6 +223,7 @@ defmodule SprintLens.Retro do
       |> Session.state_changeset("active")
       |> Repo.update()
       |> broadcast_result("phase.changed", &phase_payload/1)
+      |> announce(&Webhooks.session_started/1)
     end
   end
 
@@ -264,11 +266,25 @@ defmodule SprintLens.Retro do
       # would mean an invariant broke, and should be loud rather than turned
       # into a changeset nobody expects.
       |> then(fn {:ok, %{participants: closed}} ->
-        broadcast_result({:ok, closed}, "session.closed", fn c ->
+        {:ok, closed}
+        |> broadcast_result("session.closed", fn c ->
           %{session_id: c.id, closed_at: c.closed_at}
         end)
+        |> announce(&Webhooks.session_closed/1)
       end)
     end
+  end
+
+  # Telling the outside world is a side effect of the change, not a condition
+  # of it: a team whose webhook is misconfigured still gets to run its
+  # retrospective (FR-704).
+  #
+  # Only matches success on purpose. Both callers reach here past a bare
+  # `change/2` that cannot fail, so a failure would mean an invariant broke
+  # and should be loud rather than quietly unannounced.
+  defp announce({:ok, session} = result, fun) do
+    fun.(session)
+    result
   end
 
   ## Phases (FR-206)

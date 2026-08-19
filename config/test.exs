@@ -20,6 +20,11 @@ config :sprint_lens, SprintLens.Repo,
 # make deterministic assertions with `Oban.Testing`.
 config :sprint_lens, Oban, testing: :manual
 
+# Webhook deliveries go through `Req.Test` rather than the network, so a test
+# can inspect exactly what would have been sent — including the signature over
+# the exact bytes (FR-705).
+config :sprint_lens, :webhook_req_options, plug: {Req.Test, SprintLens.Webhooks}
+
 # Keep the facilitator hand-off deterministic without sleeping for a minute
 # (FR-207).
 config :sprint_lens, :facilitator_grace_ms, 50
