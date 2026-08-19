@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { registerAndSignIn, waitForLiveView } from './support/auth'
+import { fillSettled, registerAndSignIn, waitForLiveView } from './support/auth'
 
 /**
  * Teams, membership and templates driven through a real browser.
@@ -107,11 +107,15 @@ test.describe('teams', () => {
     await page.goto(`${page.url()}/templates`)
     await waitForLiveView(page)
 
+    // The form validates on change, so each box waits for its own round trip
+    // before the next one is typed into (see `fillSettled`).
     const form = page.locator('#template_form')
-    await form.locator('input[name="template[name]"]').fill('Our own')
-    await form.locator('input[name="template[columns][0][name]"]').fill('Kept')
-    await form.locator('input[name="template[columns][0][hint]"]').fill('Worth keeping?')
-    await form.locator('input[name="template[columns][1][name]"]').fill('Dropped')
+    const box = (name: string) => form.locator(`input[name="template${name}"]`)
+
+    await fillSettled(page, box('[name]'), 'Our own')
+    await fillSettled(page, box('[columns][0][name]'), 'Kept')
+    await fillSettled(page, box('[columns][0][hint]'), 'Worth keeping?')
+    await fillSettled(page, box('[columns][1][name]'), 'Dropped')
     await form.locator('button').click()
 
     const list = page.locator('#templates')
@@ -127,8 +131,9 @@ test.describe('teams', () => {
     await waitForLiveView(page)
 
     const form = page.locator('#template_form')
-    await form.locator('input[name="template[name]"]').fill('Too few')
-    await form.locator('input[name="template[columns][0][name]"]').fill('Only')
+
+    await fillSettled(page, form.locator('input[name="template[name]"]'), 'Too few')
+    await fillSettled(page, form.locator('input[name="template[columns][0][name]"]'), 'Only')
     await form.locator('button').click()
 
     await expect(form.locator('.text-error')).toBeVisible()

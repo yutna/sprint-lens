@@ -553,9 +553,22 @@ defmodule SprintLensWeb.SessionLive.Show do
   end
 
   def handle_event("create_card", %{"card" => params}, socket) do
-    socket.assigns.current_scope
-    |> Board.create_card(socket.assigns.session, params)
-    |> board_result(socket)
+    case Board.create_card(socket.assigns.current_scope, socket.assigns.session, params) do
+      {:ok, _card} ->
+        {:noreply, refresh(socket)}
+
+      error ->
+        # The box emptied itself when the form was submitted (FR-920). The
+        # server said no, so the words go back where they were, beside the
+        # notice that says why.
+        {_noreply, socket} = board_result(error, socket)
+
+        {:noreply,
+         push_event(socket, "card:rejected", %{
+           column_id: params["column_id"],
+           text: params["text"]
+         })}
+    end
   end
 
   def handle_event("edit_card", %{"id" => id}, socket) do

@@ -138,9 +138,9 @@ defmodule SprintLens.MixProject do
       # Requirement traceability report (see Mix.Tasks.SprintLens.Trace)
       trace: ["sprint_lens.trace"],
       # Per-milestone gate. Every milestone must leave this green.
-      # Traceability runs in report mode here: milestones land in order, so
-      # requirements later milestones own are legitimately uncovered until
-      # then. `mix verify` enforces the strict form.
+      # Traceability ran in report mode while the milestones were landing —
+      # requirements a later milestone owned were legitimately uncovered until
+      # it arrived. The last one has landed, so this is the strict form now.
       ci: [
         "compile --warnings-as-errors",
         "format --check-formatted",
@@ -150,10 +150,10 @@ defmodule SprintLens.MixProject do
         "ecto.migrate --quiet",
         "coveralls",
         "dialyzer",
-        "sprint_lens.trace --report --write"
+        "sprint_lens.trace --write"
       ],
       # Acceptance gate. The finished app must pass this.
-      verify: ["ci", "sprint_lens.trace --write", "e2e"],
+      verify: ["ci", "e2e"],
       # Playwright end-to-end suite (see e2e/)
       e2e: ["sprint_lens.e2e"]
     ]

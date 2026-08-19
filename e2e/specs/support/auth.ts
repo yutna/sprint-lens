@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 /**
  * Helpers for driving the app as a signed-in person.
@@ -24,6 +24,30 @@ export async function waitForLiveView(page: Page): Promise<void> {
   })
 }
 
+/**
+ * Waits until no LiveView event is in flight.
+ *
+ * A form with `phx-change` sends the whole form on every keystroke and patches
+ * itself from the reply. Filling the next box while that patch is on its way is
+ * a race, and WebKit lost it once in a full-suite run: both values ended up
+ * inside the first box and the account was never created. LiveView marks the
+ * element for the duration of the event, so the marker is what to wait for.
+ */
+export async function settled(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () =>
+      document.querySelector('.phx-change-loading, .phx-submit-loading, .phx-click-loading') ===
+      null,
+  )
+}
+
+/** Fills one box, lets its round trip finish, and checks the value stuck. */
+export async function fillSettled(page: Page, field: Locator, value: string): Promise<void> {
+  await field.fill(value)
+  await settled(page)
+  await expect(field).toHaveValue(value)
+}
+
 let counter = 0
 
 function unique(prefix: string): string {
@@ -44,8 +68,17 @@ export async function registerAndSignIn(page: Page): Promise<Account> {
 
   await page.goto('/users/register')
   await waitForLiveView(page)
-  await page.locator('#registration_form input[name="user[display_name]"]').fill(displayName)
-  await page.locator('#registration_form input[name="user[email]"]').fill(email)
+
+  const nameField = page.locator('#registration_form input[name="user[display_name]"]')
+  const emailField = page.locator('#registration_form input[name="user[email]"]')
+
+  await fillSettled(page, nameField, displayName)
+  await fillSettled(page, emailField, email)
+
+  // The form is what gets submitted, so a patch that moved a value belongs
+  // here rather than three assertions later in whichever test called this.
+  await expect(nameField).toHaveValue(displayName)
+
   await page.locator('#registration_form button').click()
 
   await expect(page).toHaveURL(/\/users\/log-in$/)

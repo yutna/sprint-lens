@@ -24,10 +24,10 @@ defmodule Mix.Tasks.SprintLens.Trace do
       mix sprint_lens.trace --report  # print the gap, do not fail
       mix sprint_lens.trace --write   # also refresh docs/traceability.md
 
-  `--report` is what `mix ci` runs while the app is still being built: the
-  milestones land in order, so most requirements are legitimately uncovered
-  until the one that implements them. `mix verify` runs the strict form, and
-  that is the gate the finished app has to pass.
+  `--report` is for a half-built app: milestones land in order, so most
+  requirements are legitimately uncovered until the one that implements them.
+  Every milestone has now landed, so `mix ci` runs the strict form, and that is
+  the gate the app has to keep passing.
   """
 
   @shortdoc "Verifies every spec requirement is covered by a test"
@@ -228,7 +228,14 @@ defmodule Mix.Tasks.SprintLens.Trace do
 
   defp warn(message), do: Mix.shell().info([:yellow, "  warning: ", :reset, message])
 
-  defp write_report(analysis) do
+  @doc """
+  Writes the analysis out as a table, one row per requirement.
+
+  Takes the path so the "uncovered" row can be exercised without the finished
+  app's report — which, the app being finished, no longer has one.
+  """
+  @spec write_report(map(), Path.t()) :: :ok
+  def write_report(analysis, path \\ @report_file) do
     %{required: required, covered: covered, exceptions: exceptions} = analysis
 
     rows =
@@ -256,9 +263,9 @@ defmodule Mix.Tasks.SprintLens.Trace do
     #{Enum.join(rows, "\n")}
     """
 
-    File.mkdir_p!(Path.dirname(@report_file))
-    File.write!(@report_file, body)
-    Mix.shell().info("  wrote #{@report_file}")
+    File.mkdir_p!(Path.dirname(path))
+    File.write!(path, body)
+    Mix.shell().info("  wrote #{path}")
   end
 
   # Sorts FR-002 before FR-010 before NFR-101, rather than lexically.

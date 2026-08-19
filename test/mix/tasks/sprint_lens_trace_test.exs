@@ -161,34 +161,38 @@ defmodule Mix.Tasks.SprintLens.TraceTest do
 
   describe "run/1" do
     @tag req: ["NFR-501"]
-    test "report mode prints the gap without failing the build" do
+    test "counts what the spec asks for against what the tests claim" do
       output = run_task(["--report"])
 
       assert output =~ "Requirement traceability"
       assert output =~ "spec requirements"
-      assert output =~ "still to build"
     end
 
     @tag req: ["NFR-501"]
-    test "strict mode fails while requirements remain uncovered" do
-      assert_raise Mix.Error, ~r/have no test/, fn -> run_task([]) end
+    test "strict mode passes: every requirement in the spec has a test" do
+      # The acceptance criterion itself, run as a test. It fails the moment a
+      # requirement loses its last test, or the spec gains one nothing covers.
+      output = run_task([])
+
+      assert output =~ "every requirement is covered"
+      assert output =~ "uncovered         : 0"
     end
 
     @tag req: ["NFR-501"]
     test "--write refreshes the report file with a row per requirement" do
-      run_task(["--report", "--write"])
+      run_task(["--write"])
 
       report = File.read!("docs/traceability.md")
 
       assert report =~ "# Requirement traceability"
-      assert report =~ "| FR-001 |"
+      assert report =~ "| FR-001 | covered |"
       assert report =~ "| NFR-204 | documented gap |"
-      assert report =~ "**uncovered**"
+      refute report =~ "**uncovered**"
     end
 
     @tag req: ["NFR-501"]
     test "groups the report by prefix and orders each group by number" do
-      run_task(["--report", "--write"])
+      run_task(["--write"])
 
       report = File.read!("docs/traceability.md")
 
@@ -262,6 +266,59 @@ defmodule Mix.Tasks.SprintLens.TraceTest do
         Trace.analyse(MapSet.new(["NFR-204"]), MapSet.new(["NFR-204"]), %{"NFR-204" => "reason"})
 
       assert capture(fn -> Trace.report(analysis, false) end) =~ "now has a test"
+    end
+
+    # The half-built case. The app has passed it, but the task has to keep
+    # working for a spec that grows a requirement tomorrow.
+    @tag req: ["NFR-501"]
+    test "lists what is still to build without failing the build" do
+      analysis = Trace.analyse(MapSet.new(["FR-001", "FR-002"]), MapSet.new(["FR-001"]), %{})
+
+      output = capture(fn -> Trace.report(analysis, true) end)
+
+      assert output =~ "still to build: FR-002"
+      assert output =~ "uncovered         : 1"
+    end
+
+    @tag req: ["NFR-501"]
+    test "and fails it in strict mode, naming each requirement with no test" do
+      analysis = Trace.analyse(MapSet.new(["FR-001", "FR-002"]), MapSet.new([]), %{})
+
+      # Each uncovered id goes to stderr, where a CI log highlights it.
+      errors =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          capture(fn ->
+            assert_raise Mix.Error, ~r/2 requirement\(s\) have no test/, fn ->
+              Trace.report(analysis, false)
+            end
+          end)
+        end)
+
+      assert errors =~ "uncovered: FR-001"
+      assert errors =~ "uncovered: FR-002"
+    end
+  end
+
+  describe "write_report/2" do
+    @tag req: ["NFR-501"]
+    @tag :tmp_dir
+    test "gives each requirement a row saying which of the three it is", ctx do
+      path = Path.join(ctx.tmp_dir, "traceability.md")
+
+      analysis =
+        Trace.analyse(
+          MapSet.new(["FR-001", "FR-002", "NFR-204"]),
+          MapSet.new(["FR-001"]),
+          %{"NFR-204" => "deployment concern"}
+        )
+
+      capture(fn -> Trace.write_report(analysis, path) end)
+
+      report = File.read!(path)
+
+      assert report =~ "| FR-001 | covered | |"
+      assert report =~ "| FR-002 | **uncovered** | |"
+      assert report =~ "| NFR-204 | documented gap | deployment concern |"
     end
   end
 

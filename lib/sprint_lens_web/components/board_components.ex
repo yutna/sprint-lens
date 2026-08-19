@@ -90,11 +90,18 @@ defmodule SprintLensWeb.BoardComponents do
       <h3 class="font-semibold">{@column.name}</h3>
       <p :if={@column.hint} class="mb-2 text-sm opacity-70">{@column.hint}</p>
 
+      <%!--
+        FR-920: the box empties the moment you submit, and fills itself back
+        in if the server says no. The clearing is optimistic — the card is
+        not saved yet — and the restoring is the rollback, which arrives with
+        the notice the requirement asks for.
+      --%>
       <.form
         :if={@can_write}
         for={to_form(%{}, as: :card)}
         id={"card-form-#{@column.id}"}
         phx-submit="create_card"
+        phx-hook=".OptimisticCard"
       >
         <input type="hidden" name="card[column_id]" value={@column.id} />
         <textarea
@@ -140,6 +147,40 @@ defmodule SprintLensWeb.BoardComponents do
         {gettext("Nothing here yet.")}
       </p>
     </section>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".OptimisticCard">
+      export default {
+        mounted() {
+          this.el.addEventListener("submit", () => {
+            // Optimistic: the words leave the box as soon as you commit to
+            // them, so the next card can be typed while the first is saving.
+            //
+            // Deferred by one task on purpose. LiveView serialises the form
+            // in its own submit handler, synchronously; clearing the box
+            // before that runs would send an empty card, which is a much
+            // worse bug than the one this is here to avoid.
+            this.pending = this.textarea().value
+
+            setTimeout(() => {
+              this.textarea().value = ""
+              this.textarea().dispatchEvent(new Event("input", {bubbles: true}))
+            }, 0)
+          })
+
+          // Rollback: the server refused, so the words come back exactly as
+          // they were, next to the flash that says why (FR-920).
+          this.handleEvent("card:rejected", ({column_id, text}) => {
+            if (String(column_id) !== this.columnId()) return
+
+            this.textarea().value = text || this.pending || ""
+            this.textarea().dispatchEvent(new Event("input", {bubbles: true}))
+            this.textarea().focus()
+          })
+        },
+        columnId() { return this.el.id.replace("card-form-", "") },
+        textarea() { return this.el.querySelector("textarea") }
+      }
+    </script>
 
     <script :type={Phoenix.LiveView.ColocatedHook} name=".CardCounter">
       export default {

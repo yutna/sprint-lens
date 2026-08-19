@@ -113,6 +113,98 @@ defmodule SprintLensWeb.BoardLiveTest do
     end
   end
 
+  describe "optimistic writes and their rollback (FR-920)" do
+    setup ctx, do: Map.put(ctx, :session, brainstorming(ctx))
+
+    @tag req: ["FR-920"]
+    test "a card the server refuses comes back to the box it was typed in", ctx do
+      column = hd(ctx.session.columns)
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{ctx.session}")
+
+      # The board emptied the box when the form was submitted; the server
+      # says no, so the words go back with a notice (FR-920, FR-919).
+      html = write(lv, column, String.duplicate("x", 501))
+
+      assert html =~ "500"
+      assert_push_event(lv, "card:rejected", %{text: text, column_id: id})
+      assert text == String.duplicate("x", 501)
+      assert to_string(id) == to_string(column.id)
+    end
+
+    @tag req: ["FR-920"]
+    test "and one it accepts is not rolled back", ctx do
+      column = hd(ctx.session.columns)
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{ctx.session}")
+
+      write(lv, column, "Deploys are slow")
+
+      refute_push_event(lv, "card:rejected", %{})
+      assert render(lv) =~ "Deploys are slow"
+    end
+
+    @tag req: ["FR-920", "FR-205"]
+    test "a session closed underneath somebody rolls their card back too", ctx do
+      column = hd(ctx.session.columns)
+      {:ok, lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{ctx.session}")
+
+      {:ok, _closed} = Retro.close_session(ctx.facilitator, ctx.session)
+
+      # The form is gone from the page by now, but a client that submitted a
+      # heartbeat earlier still gets its words back rather than losing them.
+      html =
+        render_submit(lv, "create_card", %{
+          "card" => %{"column_id" => column.id, "text" => "Too late"}
+        })
+
+      assert html =~ "closed"
+      assert_push_event(lv, "card:rejected", %{text: "Too late"})
+    end
+  end
+
+  describe "user content is never translated (FR-909)" do
+    setup ctx, do: Map.put(ctx, :session, brainstorming(ctx))
+
+    @tag req: ["FR-909"]
+    test "a Thai card reads the same on an English screen", ctx do
+      column = hd(ctx.session.columns)
+
+      {:ok, card} =
+        Board.create_card(ctx.participant, ctx.session, %{
+          column_id: column.id,
+          text: "การรีวิวช้ามาก"
+        })
+
+      # The interface is in English and the card is not. FR-909: user content
+      # is never translated automatically; AI-014's translation is a thing
+      # somebody asks for.
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{ctx.session}")
+
+      html = render(lv)
+
+      assert html =~ "การรีวิวช้ามาก"
+      assert html =~ "Nothing here yet." or html =~ "Add"
+      assert Board.list_cards(ctx.session) |> hd() |> Map.get(:text) == card.text
+    end
+
+    @tag req: ["FR-909"]
+    test "and a discussion note is left alone the same way", ctx do
+      column = hd(ctx.session.columns)
+
+      {:ok, card} =
+        Board.create_card(ctx.participant, ctx.session, %{column_id: column.id, text: "Slow"})
+
+      {:ok, discussing} = Retro.set_phase(ctx.facilitator, ctx.session, :discuss)
+
+      {:ok, note} =
+        Board.write_note(ctx.facilitator, discussing, {:card, card.id}, "แก้ CI ก่อน")
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{discussing}")
+
+      assert render(lv) =~ "แก้ CI ก่อน"
+      assert note.body == "แก้ CI ก่อน"
+    end
+  end
+
   describe "editing and deleting (FR-301, FR-302)" do
     setup ctx do
       session = brainstorming(ctx)

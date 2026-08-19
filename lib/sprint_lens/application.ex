@@ -7,6 +7,10 @@ defmodule SprintLens.Application do
 
   @impl Application
   def start(_type, _args) do
+    # Crashes go wherever this deployment configured (NFR-504). Attached
+    # before anything can raise.
+    SprintLens.ErrorReporter.attach()
+
     children = [
       SprintLensWeb.Telemetry,
       SprintLens.Repo,

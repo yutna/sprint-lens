@@ -53,18 +53,30 @@ export default defineConfig({
     // have to leave them alone rather than run them and fail.
     {
       name: 'chromium',
-      testIgnore: /.*\.mobile\.spec\.ts/,
+      testIgnore: /.*\.(mobile|narrow)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'firefox',
-      testIgnore: /.*\.mobile\.spec\.ts/,
+      testIgnore: /.*\.(mobile|narrow)\.spec\.ts/,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
-      testIgnore: /.*\.mobile\.spec\.ts/,
+      testIgnore: /.*\.(mobile|narrow)\.spec\.ts/,
       use: { ...devices['Desktop Safari'] },
+    },
+    {
+      // NFR-602's floor and FR-901's "360 px wide up, portrait and
+      // landscape". Narrower than scenario 10.7's phone, and turned on its
+      // side as well — the two orientations FR-901 names are two viewports.
+      name: 'narrow',
+      testMatch: /.*\.narrow\.spec\.ts/,
+      use: {
+        ...devices['iPhone SE'],
+        viewport: { width: 360, height: 640 },
+        colorScheme: 'dark',
+      },
     },
     {
       // Scenario 10.7: a member on a 375px wide mobile browser, Thai, dark

@@ -81,7 +81,7 @@ test.describe('the live board', () => {
     await expect(page.locator('#join-code')).toBeVisible()
   })
 
-  test('[FR-206] the participant follows the phase the facilitator sets', async ({
+  test('[FR-206] @spec-10.1 the participant follows the phase the facilitator sets', async ({
     page,
     context,
   }) => {
@@ -99,7 +99,7 @@ test.describe('the live board', () => {
     await participant.close()
   })
 
-  test('[FR-208] the participant sees the timer the facilitator started', async ({
+  test('[FR-208] @spec-10.1 the participant sees the timer the facilitator started', async ({
     page,
     context,
   }) => {
