@@ -3,13 +3,17 @@ defmodule SprintLensWeb.HomeLive do
   SCR-02 Home: the teams you belong to, the sessions coming up, and the
   actions still assigned to you.
 
-  Sessions and actions arrive with the milestones that own them; until then
-  their sections show the empty state FR-917 asks for rather than being
-  absent, so the shape of the page is stable.
+  "My open actions" is the same question the check-in asks (FR-505): what does
+  this person still owe, across every team they are in. An item that was
+  carried forward appears once, as the newer commitment, rather than twice.
   """
 
   use SprintLensWeb, :live_view
 
+  import SprintLensWeb.ActionComponents
+
+  alias SprintLens.Actions
+  alias SprintLens.Retro
   alias SprintLens.Teams
 
   @impl Phoenix.LiveView
@@ -63,7 +67,30 @@ defmodule SprintLensWeb.HomeLive do
         <h2 id="upcoming-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
           {gettext("Upcoming sessions")}
         </h2>
-        <p id="home-upcoming-empty" class="rounded-box border border-base-300 p-6 text-center">
+        <ul :if={@sessions != []} id="home-sessions" class="space-y-2">
+          <li :for={session <- @sessions}>
+            <.link
+              navigate={~p"/sessions/#{session}"}
+              id={"home-session-#{session.id}"}
+              class="flex flex-wrap items-center gap-2 rounded-box border border-base-300 p-3 hover:border-primary"
+            >
+              <span class="grow font-medium">{session.title}</span>
+              <span class="text-sm opacity-70">{session.team.name}</span>
+              <span :if={session.scheduled_at} class="badge badge-ghost badge-sm">
+                {SprintLensWeb.Locale.format_datetime(session.scheduled_at)}
+              </span>
+              <span :if={is_nil(session.scheduled_at)} class="badge badge-primary badge-sm">
+                {gettext("Running now")}
+              </span>
+            </.link>
+          </li>
+        </ul>
+
+        <p
+          :if={@sessions == []}
+          id="home-upcoming-empty"
+          class="rounded-box border border-base-300 p-6 text-center"
+        >
           {gettext("No sessions scheduled.")}
         </p>
       </section>
@@ -72,7 +99,26 @@ defmodule SprintLensWeb.HomeLive do
         <h2 id="my-actions-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
           {gettext("My open actions")}
         </h2>
-        <p id="home-actions-empty" class="rounded-box border border-base-300 p-6 text-center">
+        <ul :if={@actions != []} id="home-actions" class="space-y-2">
+          <.action_row :for={action <- @actions} action={action} now={@now}>
+            <:controls :let={action}>
+              <.link
+                :if={action.session}
+                navigate={~p"/teams/#{action.team_id}/actions"}
+                id={"home-action-team-#{action.id}"}
+                class="badge badge-ghost badge-sm"
+              >
+                {action.session.title}
+              </.link>
+            </:controls>
+          </.action_row>
+        </ul>
+
+        <p
+          :if={@actions == []}
+          id="home-actions-empty"
+          class="rounded-box border border-base-300 p-6 text-center"
+        >
           {gettext("Nothing assigned to you.")}
         </p>
       </section>
@@ -82,9 +128,14 @@ defmodule SprintLensWeb.HomeLive do
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
+    teams = Teams.list_teams(socket.assigns.current_scope)
+
     {:ok,
      socket
      |> assign(:page_title, gettext("Home"))
-     |> assign(:teams, Teams.list_teams(socket.assigns.current_scope))}
+     |> assign(:now, DateTime.utc_now())
+     |> assign(:teams, teams)
+     |> assign(:sessions, Enum.flat_map(teams, &Retro.list_open_sessions/1))
+     |> assign(:actions, Actions.list_my_actions(socket.assigns.current_scope))}
   end
 end

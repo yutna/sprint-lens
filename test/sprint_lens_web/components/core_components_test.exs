@@ -290,7 +290,6 @@ defmodule SprintLensWeb.CoreComponentsTest do
   end
 
   describe "table/1" do
-    @tag req: ["FR-504"]
     test "renders column headers and rows" do
       html =
         render_component(&table/1, %{
@@ -306,7 +305,9 @@ defmodule SprintLensWeb.CoreComponentsTest do
       assert html =~ "Write the runbook"
     end
 
-    @tag req: ["FR-504"]
+    # A generic table is not the team action list FR-504 asks for; what it
+    # does carry is the heading a screen reader needs (FR-913).
+    @tag req: ["FR-913"]
     test "renders an action column with a screen-reader heading" do
       html =
         render_component(&table/1, %{

@@ -27,6 +27,13 @@ defmodule SprintLensWeb.TeamLive.Show do
           <.link navigate={~p"/teams/#{@team}/sessions"} class="btn btn-primary btn-sm">
             {gettext("Retrospectives")}
           </.link>
+          <.link
+            navigate={~p"/teams/#{@team}/actions"}
+            id="team-actions-link"
+            class="btn btn-ghost btn-sm"
+          >
+            {gettext("Actions")}
+          </.link>
           <.link navigate={~p"/teams/#{@team}/templates"} class="btn btn-ghost btn-sm">
             {gettext("Templates")}
           </.link>

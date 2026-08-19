@@ -11,6 +11,7 @@ defmodule SprintLens.Teams.Template do
 
   import Ecto.Changeset
 
+  alias SprintLens.Changesets
   alias SprintLens.Teams.Team
 
   @type t :: %__MODULE__{}
@@ -43,7 +44,7 @@ defmodule SprintLens.Teams.Template do
     template
     |> cast(attrs, [:name, :columns])
     |> validate_required([:name])
-    |> update_change(:name, &String.trim/1)
+    |> Changesets.trim(:name)
     |> validate_length(:name, min: 1, max: 80)
     |> normalise_columns()
     |> validate_columns()

@@ -19,6 +19,7 @@ defmodule SprintLens.Retro.Card do
   import Ecto.Changeset
 
   alias SprintLens.Accounts.User
+  alias SprintLens.Changesets
   alias SprintLens.Retro.CardGroup
   alias SprintLens.Retro.Column
   alias SprintLens.Retro.Session
@@ -54,7 +55,7 @@ defmodule SprintLens.Retro.Card do
     |> cast(attrs, [:column_id, :author_id, :text, :position, :client_request_id])
     |> validate_required([:column_id, :text, :position])
     |> validate_text()
-    |> unique_constraint([:column_id, :client_request_id], name: :cards_idempotency)
+    |> unique_constraint([:column_id, :client_request_id])
   end
 
   @doc """
@@ -102,7 +103,7 @@ defmodule SprintLens.Retro.Card do
 
   defp validate_text(changeset) do
     changeset
-    |> update_change(:text, &String.trim/1)
+    |> Changesets.trim(:text)
     |> validate_length(:text, min: 1, max: @max_text)
   end
 end

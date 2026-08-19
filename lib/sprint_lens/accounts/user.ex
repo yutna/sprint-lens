@@ -12,6 +12,8 @@ defmodule SprintLens.Accounts.User do
 
   import Ecto.Changeset
 
+  alias SprintLens.Changesets
+
   @languages ~w(th en)
   @themes ~w(light dark system)
 
@@ -103,7 +105,7 @@ defmodule SprintLens.Accounts.User do
   defp validate_display_name(changeset) do
     changeset
     |> validate_required([:display_name])
-    |> update_change(:display_name, &String.trim/1)
+    |> Changesets.trim(:display_name)
     |> validate_length(:display_name, min: 1, max: 80)
   end
 

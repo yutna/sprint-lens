@@ -51,7 +51,7 @@ defmodule SprintLens.Retro.Vote do
     |> foreign_key_constraint(:session_id)
     |> foreign_key_constraint(:card_id)
     |> foreign_key_constraint(:card_group_id)
-    |> unique_constraint([:session_id, :client_request_id], name: :votes_idempotency)
+    |> unique_constraint([:session_id, :client_request_id])
   end
 
   defp validate_one_target(changeset) do

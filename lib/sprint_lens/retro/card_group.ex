@@ -11,6 +11,7 @@ defmodule SprintLens.Retro.CardGroup do
 
   import Ecto.Changeset
 
+  alias SprintLens.Changesets
   alias SprintLens.Retro.Card
   alias SprintLens.Retro.Session
 
@@ -33,7 +34,7 @@ defmodule SprintLens.Retro.CardGroup do
     group
     |> cast(attrs, [:session_id, :label, :position])
     |> validate_required([:session_id, :label, :position])
-    |> update_change(:label, &String.trim/1)
+    |> Changesets.trim(:label)
     |> validate_length(:label, min: 1, max: 120)
     |> validate_number(:position, greater_than_or_equal_to: 0)
   end

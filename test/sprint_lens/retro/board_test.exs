@@ -193,6 +193,42 @@ defmodule SprintLens.Retro.BoardTest do
     end
   end
 
+  describe "clearing a field that already had a value" do
+    setup ctx, do: Map.merge(ctx, board(ctx))
+
+    @tag req: ["FR-919"]
+    test "a card edited to blank is reported, not a crash", ctx do
+      card = write(ctx.participant, ctx.session, first_column(ctx.session), "original")
+
+      assert {:error, changeset} =
+               Board.update_card(ctx.participant, ctx.session, card, %{text: "   "})
+
+      assert %{text: [_message]} = errors_on(changeset)
+    end
+
+    @tag req: ["FR-407"]
+    test "a note edited to blank is reported too", ctx do
+      card = write(ctx.participant, ctx.session, first_column(ctx.session), "original")
+      {:ok, discussing} = Retro.set_phase(ctx.facilitator, ctx.session, :discuss)
+
+      {:ok, _note} = Board.write_note(ctx.facilitator, discussing, {:card, card.id}, "something")
+
+      assert {:error, changeset} =
+               Board.write_note(ctx.facilitator, discussing, {:card, card.id}, "   ")
+
+      assert %{body: [_message]} = errors_on(changeset)
+    end
+
+    @tag req: ["FR-304"]
+    test "a cluster relabelled to blank is reported too", ctx do
+      {:ok, grouping} = Retro.set_phase(ctx.facilitator, ctx.session, :group)
+      {:ok, group} = Board.create_group(ctx.participant, grouping, "Tooling", [])
+
+      assert {:error, changeset} = Board.update_group(ctx.participant, grouping, group, "  ")
+      assert %{label: [_message]} = errors_on(changeset)
+    end
+  end
+
   describe "fetch_card/2" do
     setup ctx, do: Map.merge(ctx, board(ctx))
 

@@ -19,13 +19,16 @@ defmodule SprintLensWeb.SessionLive.Show do
 
   use SprintLensWeb, :live_view
 
+  import SprintLensWeb.ActionComponents
   import SprintLensWeb.BoardComponents
 
+  alias SprintLens.Actions
   alias SprintLens.Retro
   alias SprintLens.Retro.Board
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.Session
   alias SprintLens.Retro.SessionServer
+  alias SprintLens.Teams
   alias SprintLensWeb.Presence
 
   @impl Phoenix.LiveView
@@ -114,6 +117,17 @@ defmodule SprintLensWeb.SessionLive.Show do
 
       <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
         <div id="board" aria-label={gettext("Board")}>
+          <%!--
+            The check-in opens with what the team still owes from last time
+            (FR-505), before anything new is written.
+          --%>
+          <.carry_over_review
+            :if={@phase == :checkin}
+            actions={@open_actions}
+            can_carry={@can_carry}
+            now={@now}
+          />
+
           <.icebreaker :if={@phase == :checkin} session={@session} />
 
           <.mood_panel
@@ -143,6 +157,35 @@ defmodule SprintLensWeb.SessionLive.Show do
             is_facilitator={@is_facilitator}
             editing_note={@editing_note}
           />
+
+          <section
+            :if={@phase in [:discuss, :wrapup]}
+            id="actions-panel"
+            aria-labelledby="actions-heading"
+            class="rounded-box border border-base-300 p-3"
+          >
+            <h3 id="actions-heading" class="font-semibold">{gettext("Actions")}</h3>
+
+            <.action_form
+              :if={@can_write_action}
+              form={@action_form}
+              members={@members}
+              topic={@focused_topic}
+            />
+
+            <ul id="action-list" class="mt-3 space-y-2">
+              <.action_row
+                :for={action <- @session_actions}
+                action={action}
+                editable={true}
+                now={@now}
+              />
+            </ul>
+
+            <p :if={@session_actions == []} id="actions-empty" class="mt-2 text-sm opacity-60">
+              {gettext("Nothing agreed yet.")}
+            </p>
+          </section>
 
           <.column_tabs columns={@columns} active={@active_column} />
 
@@ -334,6 +377,7 @@ defmodule SprintLensWeb.SessionLive.Show do
     |> assign(:editing, nil)
     |> assign(:editing_note, nil)
     |> assign(:selected, MapSet.new())
+    |> assign(:members, Enum.map(Teams.list_members(session.team), & &1.user))
     |> assign(:active_column, nil)
     |> apply_snapshot(session)
     |> assign_presence()
@@ -368,7 +412,11 @@ defmodule SprintLensWeb.SessionLive.Show do
     |> assign(:can_checkin, Board.authorize(scope, session, :checkin_mood) == :ok)
     |> assign(:can_roti, Board.authorize(scope, session, :roti) == :ok)
     |> assign(:can_vote, Board.authorize(scope, session, :cast_vote) == :ok)
+    |> assign(:can_write_action, Session.phase(session) in [:discuss, :wrapup] and open?(session))
+    |> assign(:can_carry, Session.phase(session) == :checkin and open?(session))
   end
+
+  defp open?(session), do: Session.state(session) == :active
 
   defp assign_board(socket, session) do
     scope = socket.assigns.current_scope
@@ -382,6 +430,19 @@ defmodule SprintLensWeb.SessionLive.Show do
     |> assign(:my_roti, Board.my_mood(scope, session, :roti))
     |> assign(:topics, Board.topics(session, scope))
     |> assign(:vote_summary, Board.vote_summary(session, scope))
+    |> assign_actions(session)
+  end
+
+  # Actions live beside the board rather than on it: the check-in review is
+  # the *team's* open items (FR-505) while the panel below shows what this
+  # session has produced so far (FR-501).
+  defp assign_actions(socket, session) do
+    socket
+    |> assign(:now, DateTime.utc_now())
+    |> assign(:open_actions, Actions.list_open_actions(session.team))
+    |> assign(:session_actions, Actions.list_session_actions(session))
+    |> assign(:focused_topic, Enum.find(socket.assigns.topics, & &1.focused?))
+    |> assign_new(:action_form, fn -> to_form(Actions.change_action(), as: :action) end)
   end
 
   # The narrow-screen board shows one column at a time (FR-902); the first is
@@ -630,6 +691,39 @@ defmodule SprintLensWeb.SessionLive.Show do
   def handle_event("save_note", %{"note" => %{"topic" => topic, "body" => body}}, socket) do
     case Board.write_note(socket.assigns.current_scope, socket.assigns.session, topic, body) do
       {:ok, _note} -> {:noreply, socket |> assign(:editing_note, nil) |> refresh()}
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("create_action", %{"action" => params}, socket) do
+    case Actions.create_action(socket.assigns.current_scope, socket.assigns.session, params) do
+      {:ok, _item} ->
+        {:noreply,
+         socket
+         |> assign(:action_form, to_form(Actions.change_action(), as: :action))
+         |> refresh()}
+
+      error ->
+        board_result(error, socket)
+    end
+  end
+
+  def handle_event("update_action_status", %{"action_id" => id, "status" => status}, socket) do
+    with {:ok, item} <- Actions.fetch_action(socket.assigns.current_scope, id),
+         {:ok, _updated} <-
+           Actions.update_action(socket.assigns.current_scope, item, %{status: status}) do
+      {:noreply, refresh(socket)}
+    else
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("carry_over", %{"id" => id}, socket) do
+    with {:ok, item} <- Actions.fetch_action(socket.assigns.current_scope, id),
+         {:ok, _carried} <-
+           Actions.carry_over(socket.assigns.current_scope, socket.assigns.session, item) do
+      {:noreply, refresh(socket)}
+    else
       error -> board_result(error, socket)
     end
   end

@@ -12,6 +12,7 @@ defmodule SprintLens.Retro.Column do
 
   import Ecto.Changeset
 
+  alias SprintLens.Changesets
   alias SprintLens.Retro.Session
 
   @type t :: %__MODULE__{}
@@ -33,7 +34,7 @@ defmodule SprintLens.Retro.Column do
     column
     |> cast(attrs, [:session_id, :name, :hint, :position])
     |> validate_required([:name, :position])
-    |> update_change(:name, &String.trim/1)
+    |> Changesets.trim(:name)
     |> validate_length(:name, min: 1, max: 80)
     |> validate_length(:hint, max: 200)
     |> validate_number(:position, greater_than_or_equal_to: 0)

@@ -68,7 +68,6 @@ defmodule SprintLens.Retro.MoodEntry do
     # design rather than a free-text box in disguise.
     |> validate_length(:word, max: 40)
     |> unique_constraint([:session_id, :user_id, :kind],
-      name: :mood_entries_one_per_person,
       message: "has already been answered"
     )
   end

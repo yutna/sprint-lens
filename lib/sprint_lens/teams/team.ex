@@ -11,6 +11,7 @@ defmodule SprintLens.Teams.Team do
 
   import Ecto.Changeset
 
+  alias SprintLens.Changesets
   alias SprintLens.Teams.Membership
   alias SprintLens.Teams.Template
 
@@ -83,7 +84,7 @@ defmodule SprintLens.Teams.Team do
   defp validate_name(changeset) do
     changeset
     |> validate_required([:name])
-    |> update_change(:name, &String.trim/1)
+    |> Changesets.trim(:name)
     |> validate_length(:name, min: 1, max: 80)
   end
 end

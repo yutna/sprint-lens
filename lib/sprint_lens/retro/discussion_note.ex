@@ -19,6 +19,7 @@ defmodule SprintLens.Retro.DiscussionNote do
 
   import Ecto.Changeset
 
+  alias SprintLens.Changesets
   alias SprintLens.Retro.Card
   alias SprintLens.Retro.CardGroup
   alias SprintLens.Retro.Session
@@ -55,7 +56,7 @@ defmodule SprintLens.Retro.DiscussionNote do
     note
     |> cast(attrs, [:session_id, :card_id, :card_group_id, :body])
     |> validate_required([:session_id, :body])
-    |> update_change(:body, &String.trim/1)
+    |> Changesets.trim(:body)
     |> validate_length(:body, min: 1, max: @max_body)
     |> validate_one_target()
     |> foreign_key_constraint(:session_id)

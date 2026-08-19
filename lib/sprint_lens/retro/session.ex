@@ -26,6 +26,7 @@ defmodule SprintLens.Retro.Session do
   import Ecto.Changeset
 
   alias SprintLens.Accounts.User
+  alias SprintLens.Changesets
   alias SprintLens.Retro.Card
   alias SprintLens.Retro.CardGroup
   alias SprintLens.Retro.Column
@@ -115,7 +116,7 @@ defmodule SprintLens.Retro.Session do
       :multi_vote
     ])
     |> validate_required([:title, :team_id, :facilitator_id])
-    |> update_change(:title, &String.trim/1)
+    |> Changesets.trim(:title)
     |> validate_length(:title, min: 1, max: 120)
     |> validate_number(:vote_budget, greater_than_or_equal_to: 1, less_than_or_equal_to: 20)
     |> put_join_code()

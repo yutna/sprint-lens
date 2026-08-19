@@ -27,6 +27,7 @@ defmodule SprintLensWeb.ApiError do
     vote_budget_exceeded: 422,
     already_voted: 422,
     wrong_phase: 422,
+    wrong_state: 422,
     session_closed: 422,
     team_archived: 422,
     last_lead: 422,
@@ -76,6 +77,7 @@ defmodule SprintLensWeb.ApiError do
   def message(:vote_budget_exceeded), do: gettext("You have no votes left in this session.")
   def message(:already_voted), do: gettext("You have already voted on this topic.")
   def message(:wrong_phase), do: gettext("That action is not available in this phase.")
+  def message(:wrong_state), do: gettext("That action is not available right now.")
   def message(:session_closed), do: gettext("This session is closed.")
   def message(:team_archived), do: gettext("This team is archived and read-only.")
   def message(:last_lead), do: gettext("A team needs at least one lead.")
