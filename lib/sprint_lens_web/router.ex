@@ -96,6 +96,14 @@ defmodule SprintLensWeb.Router do
     get "/sessions/:id/export", ExportController, :show
     get "/insights/org", InsightsController, :org
 
+    get "/admin/users", AdminController, :users
+    patch "/admin/users/:id", AdminController, :update_user
+    get "/admin/audit", AdminController, :audit
+    get "/admin/settings", AdminController, :settings
+    patch "/admin/settings", AdminController, :update_settings
+    delete "/admin/sessions/:id", AdminController, :purge_session
+    delete "/admin/teams/:id", AdminController, :purge_team
+
     get "/teams/:id/templates", TeamController, :templates
     post "/teams/:id/templates", TeamController, :create_template
     delete "/teams/:id/templates/:template_id", TeamController, :delete_template
@@ -130,6 +138,7 @@ defmodule SprintLensWeb.Router do
       live "/users/preferences", UserLive.Preferences, :edit
 
       live "/home", HomeLive, :index
+      live "/admin", AdminLive.Index, :index
       live "/teams", TeamLive.Index, :index
       live "/teams/:id", TeamLive.Show, :show
       live "/teams/:team_id/templates", TemplateLive.Index, :index

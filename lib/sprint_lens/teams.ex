@@ -307,6 +307,33 @@ defmodule SprintLens.Teams do
     end
   end
 
+  @doc """
+  The teams where this person is the only lead (FR-801).
+
+  Deactivating or erasing them would leave those teams with nobody who can
+  add a member, change a setting or archive them, which is why FR-801 pairs
+  deactivation with reassigning leadership in one sentence.
+  """
+  @spec sole_lead_teams(User.t()) :: [Team.t()]
+  def sole_lead_teams(%User{} = user) do
+    leads =
+      from(m in Membership,
+        where: m.role == "lead",
+        group_by: m.team_id,
+        having: count(m.id) == 1,
+        select: m.team_id
+      )
+
+    Repo.all(
+      from t in Team,
+        join: m in Membership,
+        on: m.team_id == t.id,
+        where: m.user_id == ^user.id and m.role == "lead",
+        where: t.id in subquery(leads),
+        order_by: [asc: t.name]
+    )
+  end
+
   defp lead_count(team) do
     Repo.aggregate(
       from(m in Membership, where: m.team_id == ^team.id and m.role == "lead"),

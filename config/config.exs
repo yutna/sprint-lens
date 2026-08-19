@@ -60,9 +60,15 @@ config :sprint_lens, Oban,
   queues: [default: 5, webhooks: 5, retention: 1, ai: 2],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7},
-    # Once a day, a little after midnight UTC: the sweep asks which action
-    # items have come due and announces each one once (FR-704).
-    {Oban.Plugins.Cron, crontab: [{"5 0 * * *", SprintLens.Workers.ActionDueSweep}]}
+    {Oban.Plugins.Cron,
+     crontab: [
+       # Once a day, a little after midnight UTC: the sweep asks which action
+       # items have come due and announces each one once (FR-704).
+       {"5 0 * * *", SprintLens.Workers.ActionDueSweep},
+       # And an hour later, what has aged past the retention period
+       # (FR-803). Separated so a slow purge cannot delay the reminders.
+       {"5 1 * * *", SprintLens.Workers.RetentionPurge}
+     ]}
   ]
 
 # Rate limiting per user and per IP (NFR-202). `{limit, scale_ms}` per bucket.

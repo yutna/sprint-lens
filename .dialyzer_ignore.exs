@@ -13,5 +13,6 @@
   # Applies to every module that builds a multi.
   {"lib/sprint_lens/teams.ex", :call_without_opaque},
   {"lib/sprint_lens/retro.ex", :call_without_opaque},
-  {"lib/sprint_lens/retro/board.ex", :call_without_opaque}
+  {"lib/sprint_lens/retro/board.ex", :call_without_opaque},
+  {"lib/sprint_lens/admin.ex", :call_without_opaque}
 ]

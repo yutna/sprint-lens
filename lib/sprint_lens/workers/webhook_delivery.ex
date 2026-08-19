@@ -23,6 +23,7 @@ defmodule SprintLens.Workers.WebhookDelivery do
 
   use Oban.Worker, queue: :webhooks, max_attempts: 5
 
+  alias SprintLens.Admin
   alias SprintLens.Webhooks
   alias SprintLens.Webhooks.Subscription
 
@@ -46,12 +47,18 @@ defmodule SprintLens.Workers.WebhookDelivery do
       "payload" => payload
     } = args
 
-    case Webhooks.get_subscription_by_id(subscription_id) do
-      %Subscription{is_active: true} = subscription ->
-        deliver(subscription, event, delivery_id, payload, attempt)
+    # FR-806 says "immediately", which has to include whatever was already
+    # queued when somebody flipped the switch.
+    if Admin.webhooks_enabled?() do
+      case Webhooks.get_subscription_by_id(subscription_id) do
+        %Subscription{is_active: true} = subscription ->
+          deliver(subscription, event, delivery_id, payload, attempt)
 
-      _gone_or_off ->
-        {:cancel, :subscription_unavailable}
+        _gone_or_off ->
+          {:cancel, :subscription_unavailable}
+      end
+    else
+      {:cancel, :webhooks_disabled}
     end
   end
 

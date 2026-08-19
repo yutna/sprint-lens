@@ -159,6 +159,17 @@ defmodule SprintLens.Accounts do
   end
 
   @doc """
+  Deletes every sign-in token a person has, without touching anything else
+  (NFR-206, FR-805).
+  """
+  @spec revoke_all_tokens(User.t()) :: non_neg_integer()
+  def revoke_all_tokens(%User{} = user) do
+    {count, _} = Repo.delete_all(from(t in UserToken, where: t.user_id == ^user.id))
+
+    count
+  end
+
+  @doc """
   Grants or revokes org-admin rights (FR-801).
   """
   def set_org_admin(%User{} = user, is_org_admin) when is_boolean(is_org_admin) do

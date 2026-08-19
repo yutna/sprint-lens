@@ -31,6 +31,7 @@ defmodule SprintLens.Webhooks do
   alias SprintLens.Accounts.Scope
   alias SprintLens.Accounts.User
   alias SprintLens.Actions.ActionItem
+  alias SprintLens.Admin
   alias SprintLens.Policy
   alias SprintLens.Repo
   alias SprintLens.Retro.Board
@@ -122,15 +123,13 @@ defmodule SprintLens.Webhooks do
   def dispatch(%Team{} = team, event, payload), do: dispatch(team.id, event, payload)
 
   def dispatch(team_id, event, payload) do
-    case Repo.get_by(Subscription, team_id: team_id) do
-      %Subscription{} = subscription ->
-        if Subscription.wants?(subscription, event), do: enqueue(subscription, event, payload)
-
-        :ok
-
-      nil ->
-        :ok
+    with true <- Admin.webhooks_enabled?(),
+         %Subscription{} = subscription <- Repo.get_by(Subscription, team_id: team_id),
+         true <- Subscription.wants?(subscription, event) do
+      enqueue(subscription, event, payload)
     end
+
+    :ok
   end
 
   defp enqueue(subscription, event, payload) do

@@ -387,6 +387,52 @@ defmodule SprintLens.WebhooksTest do
     end
   end
 
+  describe "the global webhook switch (FR-806)" do
+    setup ctx do
+      subscribe(ctx)
+      admin = insert(:org_admin)
+      {:ok, _settings} = SprintLens.Admin.update_settings(admin, %{webhooks_enabled: false})
+
+      Map.put(ctx, :admin, admin)
+    end
+
+    @tag req: ["FR-806"]
+    test "nothing new is queued while it is off", ctx do
+      session = insert(:session, team: ctx.team, facilitator: ctx.lead)
+
+      {:ok, _started} = Retro.start_session(ctx.lead, session)
+
+      assert all_jobs() == []
+    end
+
+    @tag req: ["FR-806"]
+    test "and what was already queued does not fire either", ctx do
+      subscription = Webhooks.get_subscription(ctx.team)
+
+      # "Immediately disables" has to include the jobs that were in the queue
+      # when somebody flipped the switch (FR-806).
+      args = %{
+        "subscription_id" => subscription.id,
+        "event" => "session.closed",
+        "delivery_id" => "d-1",
+        "payload" => %{}
+      }
+
+      assert {:cancel, :webhooks_disabled} = perform_job(WebhookDelivery, args)
+      assert Webhooks.list_deliveries(subscription) == []
+    end
+
+    @tag req: ["FR-806"]
+    test "and turning it back on resumes them", ctx do
+      {:ok, _settings} = SprintLens.Admin.update_settings(ctx.admin, %{webhooks_enabled: true})
+
+      session = insert(:session, team: ctx.team, facilitator: ctx.lead)
+      {:ok, _started} = Retro.start_session(ctx.lead, session)
+
+      assert length(all_jobs()) == 1
+    end
+  end
+
   describe "signing (FR-705, §7.4)" do
     @tag req: ["FR-705"]
     test "the signature is an HMAC-SHA256 of the body, in hex", _ctx do

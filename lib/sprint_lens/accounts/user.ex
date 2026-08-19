@@ -19,6 +19,13 @@ defmodule SprintLens.Accounts.User do
 
   @type t :: %__MODULE__{}
 
+  # An erased account keeps its row so the aggregates built from it still have
+  # something to have been built from (section 6.4), and so an administrator's
+  # audit trail keeps its actor. Everything that identified the person is
+  # replaced with these.
+  @erased_name "Erased user"
+  @erased_domain "erased.invalid"
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -101,6 +108,34 @@ defmodule SprintLens.Accounts.User do
   def admin_changeset(user, attrs) do
     cast(user, attrs, [:is_org_admin, :is_active])
   end
+
+  @doc """
+  A changeset that empties a person out of their own account (FR-805).
+
+  The row survives; the person does not. The email becomes a value that is
+  unique but says nothing — it is a `NOT NULL UNIQUE` column, so it cannot
+  simply be cleared — and the password is discarded rather than kept for an
+  account nobody can sign in to.
+
+  Not `cast/3`: erasure is not something a caller gets to shape.
+  """
+  def erase_changeset(%__MODULE__{} = user) do
+    change(user,
+      email: "erased-#{user.id}@#{@erased_domain}",
+      hashed_password: nil,
+      display_name: @erased_name,
+      avatar_url: nil,
+      is_active: false,
+      is_org_admin: false,
+      confirmed_at: nil
+    )
+  end
+
+  @doc """
+  Whether an account has been erased (FR-805).
+  """
+  @spec erased?(t()) :: boolean()
+  def erased?(%__MODULE__{display_name: name}), do: name == @erased_name
 
   defp validate_display_name(changeset) do
     changeset
