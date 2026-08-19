@@ -64,6 +64,11 @@ Written for someone who has been invited to a retrospective and has
 never used the product. It is the part that does not exist in any form
 today.
 
+The manual is written in the voice defined by plan 02, so the tone of
+the documentation and the tone of the product agree. The same two rules
+apply: nothing that mocks or minimises, and plain language wherever
+something has gone wrong.
+
 Pages, in the order a person meets them:
 
 - What a retrospective is and what this tool does with it.
@@ -77,7 +82,8 @@ Pages, in the order a person meets them:
 - Agreeing actions, and how actions carry over into the next session.
 - Reading the recap and exporting it.
 - Insights: what the trends mean and what they do not mean.
-- Preferences: language, theme, display name.
+- Preferences: language, theme, display name, and sound, which ships
+  switched off and is explained here rather than discovered.
 - For facilitators: running the session, the timer, handing over.
 - For organisation administrators: settings, people, retention and
   erasure.

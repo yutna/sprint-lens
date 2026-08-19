@@ -172,6 +172,36 @@ field and announced. Requirement FR-919 asks for human readable errors
 with a retry path, so error text is content, not decoration, and it
 must be translated.
 
+## What the playful direction must survive
+
+Plan 02 commits the interface to a playful, board-game direction:
+tilted cards, a staged reveal, vote tokens, a mascot in the empty
+states, and optional sound. None of it is exempt from this plan, and
+each piece has a specific obligation.
+
+- Every animation sits behind a reduced motion preference, and the
+  reduced variant still communicates the outcome. Turning motion off
+  must not mean turning feedback off: someone who asked for less motion
+  still needs to know their card landed and that the reveal happened.
+- The expressive palette — a colour per board column, avatar colours,
+  the mood scale — is held to the same contrast floor the existing
+  contrast test enforces, and never carries meaning on its own. A
+  column is identified by its heading, not only by its colour.
+- The mascot and any decorative illustration carry empty alternative
+  text wherever adjacent text already says the same thing, so nothing
+  is announced twice.
+- Tilt, offset and paper shadows must not reduce a touch target below
+  forty four pixels, clip text, or introduce horizontal scroll. All
+  three are already asserted in the end to end suite, so a regression
+  will be caught, but designing against them is cheaper than fixing
+  them afterwards.
+- Sound is never the only signal for anything. Every event that makes a
+  noise also has a visible change, and the preference that controls it
+  is reachable and understandable with sound off, which is its default.
+- The staged reveal animates a list that a screen reader is also being
+  told about. Announce the reveal once, as a sentence, rather than
+  letting each arriving card announce itself.
+
 ## Automated checking
 
 Add an accessibility audit to the Playwright suite: run an automated

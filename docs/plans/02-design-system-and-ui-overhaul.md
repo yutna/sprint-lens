@@ -18,6 +18,68 @@ project, so every screen renders in the browser's default stack. The
 retrospective itself, the reason the product exists, is a single very
 dense page.
 
+## Design direction — the room is a table
+
+The interface should feel playful: like a team sitting down to play a
+game together rather than filing a report. That is a product argument,
+not decoration. People withhold the criticism that matters when the
+setting feels like a performance review, and a lighter frame lowers the
+cost of saying the difficult thing.
+
+The useful starting point is that the application **already contains a
+game**. These mechanics are in the code today:
+
+- a room code, in `join_code` and the `/join/:code` route, exactly like
+  a party game;
+- a lobby ready-up, in `toggle-ready` and the counter that reports how
+  many of the people present are ready;
+- rounds, in the six phases;
+- hidden hands and a simultaneous reveal, in the blind mode flag and
+  the cards revealed flag;
+- a fixed pool of tokens to spend, in the vote budget and its exceeded
+  error;
+- a warm-up, in the five icebreaker questions chosen deterministically
+  per session;
+- rating rounds, in the mood and ROTI scales;
+- a sand timer, in the timer and its presets.
+
+Every one of them is currently rendered as a badge, a select or a form.
+
+So the direction is to **reveal the game that is already there**, not
+to paint a game on top of an administrative tool. That framing is what
+keeps this from becoming decoration: each move below makes an existing
+mechanic legible rather than inventing a new one.
+
+### How far it goes
+
+A board-game table. A lobby with a code, rounds, tokens you spend down,
+a real reveal moment. Warm, tactile and alive.
+
+Not full gamification. Points, streaks, badges and leaderboards are
+explicitly out of scope, and the reason should outlive this document:
+ranking teammates on what they said in a retrospective works directly
+against the psychological safety that anonymity and blind reveal exist
+to protect. A retrospective is not a competition and must never score
+one person against another.
+
+### Guardrails on the tone
+
+These are the load-bearing part of the direction. Without them playful
+degrades into childish or, worse, into cheerful about criticism.
+
+1. **Playfulness lives in the frame, never in the content.** The room,
+   the flow and the chrome may be playful. A card that reads "I felt
+   ignored in standup" gets no confetti and nothing bounces. This is
+   the single rule that keeps the tone defensible.
+2. **Never competitive.** No leaderboard, no points, no ranking of
+   people, no streak that shames a team for missing a week.
+3. **Celebrate the team, not the metric.** Finishing a session together
+   is worth a moment. Producing forty cards is not.
+4. **Warm, not cartoon.** This is used in front of colleagues and
+   sometimes managers. Craft and softness, not novelty.
+5. **Nothing playful may be the only carrier of meaning.** Not colour,
+   not motion, not sound.
+
 ## Scope and blast radius
 
 This is a rewrite of the presentation layer, not a restyle. Seventeen
@@ -122,6 +184,12 @@ primary is currently orange while the dark theme's primary is indigo,
 which means the product has no recognisable colour. Pick one hue family
 and derive both themes from it.
 
+The playful direction adds a second, expressive palette that carries no
+meaning: a colour per board column so a card is recognisable at a
+glance, a set of avatar colours, and the mood scale. Hold it to the
+same contrast floor as the semantic tokens, and never let it be the
+only thing communicating state.
+
 ### Typography
 
 There is no font in the project today. This is the single change with
@@ -138,12 +206,27 @@ Define a type scale as tokens and use it everywhere. Thai script needs
 more line height than Latin at the same size; set that deliberately
 rather than accepting the Tailwind default.
 
+The playful direction wants a friendly display face for headings, round
+titles and the room code, alongside the highly legible text face.
+
+One constraint to check before committing rather than after: Thai
+typefaces that are both warm in form and carry a full weight range are
+scarce, and licensing varies. Verify availability early. If no suitable
+Thai display face exists, the fallback is that personality comes from
+the Latin display face and from shape, colour and copy while the Thai
+face stays neutral and excellent — a better outcome than a Thai face
+chosen for character at the cost of legibility.
+
 ### Space, radius and elevation
 
 The current radius tokens are close to square, at a quarter of a rem
 for controls. Choose deliberately and apply consistently. Define a
 spacing scale and a small elevation scale as tokens, and forbid
 one off values in templates.
+
+The playful direction pushes this towards softer, larger radii and a
+paper-like elevation on cards, so the board reads as a surface with
+things resting on it rather than as a grid of boxes.
 
 ### Motion
 
@@ -152,6 +235,90 @@ Define a small set of duration and easing tokens and use only those.
 Every animation must be wrapped so that it is disabled under a reduced
 motion preference; plan 03 covers the requirement, but the tokens
 belong here.
+
+Set a motion budget and hold to it: nothing beyond roughly three
+hundred milliseconds on a routine interaction. Under a reduced motion
+preference the variant is an instant state change, not the absence of
+feedback — someone who has asked for less motion must still be able to
+tell that their card landed.
+
+One technical trap, specific to LiveView. If cards are tilted slightly
+to read as sticky notes, the angle must be derived deterministically
+from the card identifier and never chosen at random. LiveView patches
+the DOM on every update, so a random angle would reshuffle the entire
+board on each patch. The same applies to any per item decoration. Check
+too that a tilt never clips text and never shrinks a touch target below
+the forty four pixels the end to end suite asserts.
+
+### Copy and voice
+
+Microcopy is the cheapest place for personality and the hardest to
+retrofit, so it is designed here rather than written at the end.
+
+There is already a voice to build from. The reconnect banner does not
+report that the connection failed; it says the internet cannot be
+found. That register — light, human, never coy about what is actually
+happening — is the seed.
+
+Write a short voice guide covering headings, buttons, empty states,
+loading states, errors and the goal sentence for each phase. Two rules
+constrain it. Errors stay plain, because requirement FR-919 asks for
+human readable errors with a way forward and a joke in front of a
+failure is not playful but obstructive. And nothing in the voice may
+mock, minimise or comment on what a participant wrote.
+
+The Thai copy is written as an original rather than translated. Thai
+workplace register — how formal to be, which particles to use, how a
+tool should address a colleague — is its own design problem, and a
+playful Thai interface is not a sentence by sentence rendering of a
+playful English one. The interface is Thai first, so if only one voice
+can be got right, it is the Thai one.
+
+### Illustration and the mascot
+
+One character, not a cast. It is drawn as part of the same family as
+the mark in plan 07, so the two are designed together rather than as
+separate exercises, and it gets a small fixed set of poses.
+
+Where it appears: empty states, the lobby while the room fills, loading
+states and error states. Where it does not: anywhere on the board
+during a live session. The board belongs to what the team wrote.
+
+Requirement FR-917 already asks for designed empty states, which is
+where illustration is both cheapest and safest, because an empty state
+is a moment with nothing else competing in it.
+
+The mascot is decorative. Where adjacent text already says the same
+thing, its alternative text is empty, so a screen reader does not
+announce the same message twice.
+
+### Sound
+
+Sound ships, and it is off by default. It is turned on from
+preferences.
+
+Worth a sound: the reveal, the timer running out, a vote landing, the
+session closing. Short and soft, never music, never two at once.
+Nothing else makes a noise.
+
+Three consequences that are easy to miss.
+
+- It needs a new user preference stored beside the existing language
+  and theme fields on the user record, which means a column, changeset
+  validation, the preferences screen, and the same treatment end to end
+  that those two already get.
+- The audio files are vendored into the repository and added to the
+  static path allowlist in `lib/sprint_lens_web.ex`, because
+  `AGENTS.md` forbids referencing anything external from the layouts.
+- It is new user visible behaviour, so it needs a new requirement
+  identifier appended to section 8 of the specification. Identifiers
+  are never renumbered, and the traceability task warns about an
+  identifier that a test claims but the specification does not declare.
+  Coordinate with plan 05, which moves the specification file.
+
+Off by default is the right default because a retrospective is often
+held on a video call, where a sound the tool makes is a sound the whole
+room hears.
 
 ## Information architecture
 
@@ -176,6 +343,30 @@ move between its retrospectives, actions, insights and history.
 - Designed empty states everywhere, which requirement FR-917 already
   asks for.
 
+## The lobby, where the feeling is set
+
+`SessionLive.Join` is seventy five lines and a single monospace field.
+It is also the first thing a participant sees, and it is where the room
+either becomes a shared table or stays a form.
+
+Everything a lobby needs is already there: a join code, presence, and a
+ready toggle with a count of who is ready. The redesign puts them to
+work.
+
+- The code large, spaced and easy to read aloud on a call, with one tap
+  to copy the link.
+- Participants appearing in real time as they arrive, so the room
+  visibly fills.
+- Ready-up as the primary action, and the ready count as a shared
+  signal rather than a small line of text.
+- For the facilitator, a room filling up is the cue to begin, so the
+  start control belongs here and becomes prominent once the room is
+  ready.
+
+This is the highest leverage screen in the whole direction. If joining
+feels like sitting down at a table with people, everything after it
+inherits that.
+
 ## The retrospective flow as a real stepper
 
 The step by step flow the review notes ask for already exists in the
@@ -197,6 +388,23 @@ The redesign:
 - panels laid out for the phase they belong to rather than stacked;
 - the timer and the participant readiness list kept persistently
   visible, because they are what the room is watching.
+
+Three of those phases already contain a beat worth staging rather than
+merely reporting.
+
+- **The reveal.** Blind mode already hides every card until the
+  facilitator reveals them. Today that is a badge and a line of
+  explanatory text. It is the most dramatic moment the product has:
+  let the cards arrive together, staggered, and let the room watch
+  them land.
+- **The tokens.** The vote budget is a fixed pool spent down over the
+  round, and the remaining count already has its own element. Render it
+  as tokens rather than as a number, so a participant can see what they
+  have left without reading.
+- **The warm-up.** The five icebreaker questions already exist and are
+  already chosen deterministically per session. Present the chosen one
+  as the opening move of the round rather than as a paragraph sitting
+  above the board.
 
 Splitting `session_live/show.ex` into per phase function components is
 strongly recommended while the markup is being rewritten anyway. Keep
@@ -224,6 +432,10 @@ Rebuild the board card, the board column, the column tab strip, the
 group affordance, the topic and vote row, the mood scale, the action
 row and form, the phase stepper, the timer, the presence list and the
 AI suggestion slot on top of the foundation.
+
+The playful direction adds four more: the room code display, the vote
+token counter, the reveal choreography, and the mascot slot that the
+empty, loading and error states use.
 
 Keep two behaviours exactly as they are, because they are correct and
 hard won: the optimistic card write with rollback, implemented as
@@ -302,6 +514,12 @@ literal class string, as part of this plan rather than after it.
 Each step ends with `mix ci` green. The board step also has to end with
 `mix verify` green before moving on.
 
+Two things do not belong in that list and must run alongside it rather
+than after it: the voice guide together with its copy, and the
+illustration set together with the mascot. They are what actually
+carries the tone, and anything left to the end of a long migration is
+what gets cut when the migration runs late.
+
 ## Verification of plan 02
 
 - `mix ci` and `mix verify` green at every step, not only at the end.
@@ -313,6 +531,23 @@ Each step ends with `mix ci` green. The board step also has to end with
   reading the recap, done by someone who has not seen the app, without
   guidance.
 
+The direction itself needs checking too, and it cannot be checked by a
+test. Three questions, asked of a real session rather than of a
+screenshot.
+
+- Did the room feel like people arriving somewhere together, or like a
+  form being filled in? The lobby is where that is decided.
+- Was anything playful attached to a participant's own words? If so, a
+  guardrail was broken and it has to come out, regardless of how well
+  it works.
+- Would a facilitator be comfortable sharing this screen with their
+  manager in the room? If not, the tone has gone past warm.
+
+Also check the mechanical consequences: nothing moves under a reduced
+motion preference beyond an instant state change, no card changes its
+tilt when an unrelated card is edited, and the interface is complete
+and pleasant with sound off, which is how nearly everyone will see it.
+
 ## Requirement traceability for plan 02
 
 Section 8 of the specification is the governing set, in particular
@@ -320,3 +555,8 @@ FR-901 through FR-905 for layout, FR-917 for empty states, FR-918 for
 loading states, FR-919 for human readable errors and FR-920 for
 optimistic rendering with rollback. No requirement identifier may lose
 its test during the rewrite.
+
+The optional sound is new behaviour that section 8 does not yet
+describe, so it needs its own identifier appended there. Nothing else
+in the playful direction adds behaviour; it changes how existing
+requirements are presented, and their identifiers stand.

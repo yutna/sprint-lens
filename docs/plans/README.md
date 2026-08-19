@@ -64,6 +64,17 @@ Lines 20 to 24 are instructions about this planning task itself
 (English only, markdownlint clean, plan before acting, audit, commit)
 rather than product work, so they have no owning plan.
 
+### Added after the first pass
+
+One direction arrived in conversation rather than in the review notes,
+and is recorded here so its provenance is not lost.
+
+- The interface should feel playful, as though the team were sitting
+  down to play a game together, so that a retrospective feels less
+  tense. Owned by plan 02, which defines the direction and its
+  guardrails, with consequences in plan 03 for accessibility, plan 07
+  for the mascot, and plan 08 for the documentation voice.
+
 ## Recommended order
 
 The order below is driven by dependencies, not by importance.
@@ -112,6 +123,12 @@ No plan may quietly relax them.
   logged goes through `SprintLens.Redact.payload/1`.
 - The specification `team-retro-spec-en.md` is normative. Requirement
   identifiers are stable and are never renumbered.
+- New user visible behaviour needs a new requirement identifier
+  appended to the specification. The traceability task warns about an
+  identifier a test claims but the specification does not declare, so
+  a new feature either gains an identifier or goes untracked. The
+  optional sound in plan 02 is the concrete instance, and it has to be
+  coordinated with plan 05, which moves the specification file.
 
 ## Definition of done for a workstream
 

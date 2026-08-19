@@ -60,6 +60,23 @@ The mark is authored by hand as SVG in the repository. No external
 tooling and no generated binary asset that cannot be regenerated from
 source.
 
+### The mascot, and why it belongs here
+
+Plan 02 commits the interface to a playful direction and to a single
+mascot used in empty states, the waiting lobby, and loading and error
+states. The mascot is designed here, in the same pass as the mark, not
+later and not by someone else.
+
+The reason is simple: a mark and a character drawn separately never
+look related. Same construction, same stroke weight, same corner
+treatment, same palette. Ideally the mascot is the mark given a face
+and a posture rather than a second invention, which also keeps it
+cheap to draw and impossible to get off-brand.
+
+Keep it restrained. One character, a small fixed set of poses, no
+expressions that comment on what a person wrote. It appears where
+there is nothing else on the screen, and nowhere else.
+
 ## Deliverables
 
 - A source SVG of the mark alone, on a square canvas, with a documented
@@ -67,6 +84,8 @@ source.
 - A source SVG of the mark plus wordmark, for the navigation bar and
   the README.
 - A monochrome variant.
+- The mascot: a source SVG per pose, in a small fixed set — waiting,
+  empty-handed, something-went-wrong, and one for a finished session.
 - A favicon SVG, which modern browsers prefer, plus a genuine multi
   resolution ICO for older ones, at sixteen, thirty two and forty eight
   pixels.
