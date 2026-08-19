@@ -53,8 +53,13 @@ config :sprint_lens, SprintLensWeb.Endpoint,
 config :sprint_lens, dev_routes: true
 
 # JSON is for machines. In development a person is reading the terminal.
+#
+# `Logger.Formatter.new/1` rather than the `{Logger.Formatter, keyword}` pair:
+# the pair is the shape the handler wants at run time, but building it by hand
+# skips the struct `new/1` makes, and every line then fails to format with
+# "invalid configuration for Logger.Formatter".
 config :logger, :default_handler,
-  formatter: {Logger.Formatter, format: "[$level] $message\n", colors: [enabled: true]}
+  formatter: Logger.Formatter.new(format: "[$level] $message\n", colors: [enabled: true])
 
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
