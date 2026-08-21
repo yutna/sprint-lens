@@ -14,6 +14,7 @@ defmodule SprintLensWeb.SessionLive.Index do
   alias SprintLens.Retro.Session
   alias SprintLens.Teams
   alias SprintLensWeb.Locale
+  alias SprintLensWeb.TemplateText
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -145,7 +146,7 @@ defmodule SprintLensWeb.SessionLive.Index do
               <div class="flex flex-wrap items-center gap-2">
                 <span class="font-semibold">{entry.session.title}</span>
                 <span :if={entry.template} class="badge badge-ghost badge-sm">
-                  {entry.template}
+                  {TemplateText.translate_if_builtin(entry.template, entry.template_builtin?)}
                 </span>
                 <span :if={entry.session.is_anonymous} class="badge badge-ghost badge-sm">
                   {gettext("Anonymous")}
@@ -243,7 +244,12 @@ defmodule SprintLensWeb.SessionLive.Index do
     assign(socket, :form, to_form(changeset, as: "session"))
   end
 
-  defp template_options(templates), do: Enum.map(templates, &{&1.name, &1.id})
+  # The label a person picks by, which for a built-in is the product's own
+  # wording and therefore translated (FR-906). A team's template keeps the
+  # name the team typed (FR-909).
+  defp template_options(templates) do
+    Enum.map(templates, &{TemplateText.template_name(&1), &1.id})
+  end
 
   defp state_label(:created), do: gettext("Not started")
   defp state_label(:active), do: gettext("Running")

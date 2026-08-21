@@ -74,6 +74,12 @@ defmodule SprintLens.Insights do
         session: session,
         closed_at: session.closed_at,
         template: session.template && session.template.name,
+        # Beside the name rather than instead of it: `template` is also a
+        # field of the archive's JSON representation, and an external caller
+        # should keep getting the stored value. The flag is what lets the
+        # interface translate the product's own wording without touching a
+        # team's (FR-906, FR-909).
+        template_builtin?: !!(session.template && session.template.is_builtin),
         participant_count: session.participant_count || 0,
         card_count: Map.get(cards, session.id, 0),
         mood: Map.get(moods, {session.id, :checkin_mood}),

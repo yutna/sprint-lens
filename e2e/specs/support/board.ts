@@ -54,7 +54,7 @@ export async function brainstormWithTwoPeople(
 
   await page.locator('#session_form input[name="session[title]"]').fill('Sprint 12')
   await page.locator('#session_form select[name="session[template_id]"]').selectOption({
-    label: options.template ?? 'Start-Stop-Continue',
+    label: options.template ?? 'เริ่ม-หยุด-ทำต่อ',
   })
 
   // A checkbox `.input` renders a hidden field of the same name alongside it,
@@ -99,7 +99,7 @@ export async function soloBrainstorm(page: Page, options: BoardOptions = {}) {
 
   await page.locator('#session_form input[name="session[title]"]').fill('Sprint 12')
   await page.locator('#session_form select[name="session[template_id]"]').selectOption({
-    label: options.template ?? 'Start-Stop-Continue',
+    label: options.template ?? 'เริ่ม-หยุด-ทำต่อ',
   })
   await page.locator('#session_form button').click()
   await expect(page.getByRole('heading', { name: 'Sprint 12' })).toBeVisible()

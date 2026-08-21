@@ -63,8 +63,18 @@ defmodule SprintLensWeb.TemplateText do
     maybe_translate(hint, builtin?)
   end
 
-  defp maybe_translate(text, true), do: translate(text)
-  defp maybe_translate(text, _not_builtin), do: text
+  @doc """
+  Translates `text` only when it is the product's wording.
+
+  For callers that hold the fact and the string separately rather than a whole
+  record — the session archive carries a template's name beside a flag,
+  because its shape is also a JSON contract for external callers.
+  """
+  @spec translate_if_builtin(String.t() | nil, boolean()) :: String.t() | nil
+  def translate_if_builtin(text, true), do: translate(text)
+  def translate_if_builtin(text, _not_builtin), do: text
+
+  defp maybe_translate(text, builtin?), do: translate_if_builtin(text, builtin?)
 
   @doc """
   Translates one of the product's own strings, leaving anything else alone.

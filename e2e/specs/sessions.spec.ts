@@ -32,7 +32,9 @@ async function inviteTeammate(page: Page, email: string): Promise<void> {
   await expect(page.locator('#members li')).toHaveCount(before + 1)
 }
 
-async function createSession(page: Page, title: string, template = 'Start-Stop-Continue') {
+// The built-in templates read in Thai, because this suite runs in Thai and
+// their wording is the product's own rather than a team's (FR-906).
+async function createSession(page: Page, title: string, template = 'เริ่ม-หยุด-ทำต่อ') {
   await page.locator('#session_form input[name="session[title]"]').fill(title)
   // The select has no empty option, so it always submits something; choosing
   // explicitly is what scenario 10.1 describes anyway.
@@ -75,7 +77,7 @@ test.describe('the live board', () => {
     await waitForLiveView(page)
     await createSession(page, 'Sprint 1')
 
-    // Start-Stop-Continue's three columns, and the six phases of section 4.3.
+    // เริ่ม-หยุด-ทำต่อ's three columns, and the six phases of section 4.3.
     await expect(page.locator('#board section[role="tabpanel"]')).toHaveCount(3)
     await expect(page.locator('#phase-bar li')).toHaveCount(6)
     await expect(page.locator('#join-code')).toBeVisible()

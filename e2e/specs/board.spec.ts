@@ -22,6 +22,13 @@ test.describe('brainstorm with blind and anonymous modes', () => {
 
     const [first] = await columnIds(page)
 
+    // The board reads in Thai, headings included. They were seeded in English
+    // and rendered straight out of the database, so a Thai team met three
+    // English column headings on the screen the product exists for
+    // (FR-906). The cards a person writes are never touched (FR-909).
+    await expect(page.locator(`#column-${first}`)).toContainText('เริ่มทำ')
+    await expect(page.locator(`#column-${first}`)).toContainText('มีอะไรที่เราควรเริ่มทำบ้าง')
+
     await writeCard(page, first, 'We shipped on Tuesday')
     await writeCard(participant, first, 'Standups ran long')
 

@@ -76,6 +76,24 @@ defmodule SprintLensWeb.TemplateTextTest do
     end
   end
 
+  describe "translate_if_builtin/2" do
+    # For the archive, which carries a template's name beside a flag rather
+    # than the record: its shape is also a JSON contract.
+    @tag req: ["FR-906"]
+    test "translates the product's wording" do
+      Locale.put("th")
+
+      refute TemplateText.translate_if_builtin("Sailboat", true) == "Sailboat"
+    end
+
+    @tag req: ["FR-909"]
+    test "and leaves a team's alone even when it reads the same" do
+      Locale.put("th")
+
+      assert TemplateText.translate_if_builtin("Sailboat", false) == "Sailboat"
+    end
+  end
+
   describe "template_column_names/1" do
     @tag req: ["FR-906"]
     test "a built-in's columns are translated" do

@@ -86,7 +86,17 @@ defmodule SprintLens.InsightsTest do
       template = insert(:template, team: ctx.team, name: "Sailboat")
       played(ctx, %{template_id: template.id})
 
-      assert [%{template: "Sailboat"}] = Insights.archive(ctx.team)
+      assert [%{template: "Sailboat", template_builtin?: false}] = Insights.archive(ctx.team)
+    end
+
+    # The name alone is not enough for the screen: it has to know whether the
+    # wording is the product's before it may translate it (FR-906, FR-909).
+    @tag req: ["FR-906"]
+    test "and says whether that name is the product's wording or the team's", ctx do
+      builtin = SprintLens.Repo.get_by!(SprintLens.Teams.Template, name: "Sailboat")
+      played(ctx, %{template_id: builtin.id})
+
+      assert [%{template: "Sailboat", template_builtin?: true}] = Insights.archive(ctx.team)
     end
 
     @tag req: ["FR-601"]
