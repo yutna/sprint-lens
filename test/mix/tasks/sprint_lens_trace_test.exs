@@ -83,19 +83,37 @@ defmodule Mix.Tasks.SprintLens.TraceTest do
     end
   end
 
-  describe "spec_ids/0" do
+  describe "spec_ids/1" do
     @tag req: ["NFR-501"]
-    test "reads the requirements out of the spec file" do
-      ids = Trace.spec_ids()
+    @tag :tmp_dir
+    test "reads the declarations out of a specification", ctx do
+      path = Path.join(ctx.tmp_dir, "spec.md")
 
-      assert MapSet.member?(ids, "FR-001")
-      assert MapSet.member?(ids, "FR-920")
-      assert MapSet.member?(ids, "NFR-102")
-      assert MapSet.member?(ids, "AI-018")
+      File.write!(path, """
+      # A specification
+
+      ## 2.2 Numbering
+
+      FR-001 to FR-099: users and authentication. These are ranges, not
+      requirements, and must not be counted.
+
+      ## 4. Requirements
+
+      - **FR-001**: The system MUST let a person sign in.
+      - **NFR-102**: A board change MUST reach every participant in 2s.
+      - **AI-018**: A suggestion MUST be attributable to its model.
+      """)
+
+      ids = Trace.spec_ids(path)
+
+      assert MapSet.equal?(ids, MapSet.new(["FR-001", "NFR-102", "AI-018"]))
     end
 
+    # The one assertion that still reads the real file. It is here so that
+    # moving the specification again fails immediately and obviously, rather
+    # than surviving until `mix ci` reaches the traceability step.
     @tag req: ["NFR-501"]
-    test "the spec really does define around 150 requirements" do
+    test "the real specification is where the task expects it, and defines over a hundred" do
       assert MapSet.size(Trace.spec_ids()) > 100
     end
   end

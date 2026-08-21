@@ -3,13 +3,14 @@
 - Status: draft for implementation
 - Last updated: 2026-08-18
 - Language: English
-- Thai version: [team-retro-spec-th.md](team-retro-spec-th.md)
 
 This document specifies an internal web application for running team
-retrospectives and tracking their outcomes over time. Both language
-versions carry the same normative content: every requirement ID exists
-in both files with the same meaning. If the files ever disagree, fix
-both; neither file overrides the other.
+retrospectives and tracking their outcomes over time. It is the single
+normative document: there is no second language version of it, and there
+is deliberately no plan for one. Two normative documents can disagree,
+and a specification that disagrees with itself is worse than one written
+in a language some readers have to work at. The interface is Thai first;
+the specification is not.
 
 ## Table of Contents
 

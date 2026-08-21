@@ -34,7 +34,11 @@ defmodule Mix.Tasks.SprintLens.Trace do
 
   use Mix.Task
 
-  @spec_file "team-retro-spec-en.md"
+  # The specification's home. Taken as a default rather than read from
+  # application configuration: the only reader is this task, and a path that
+  # lives in config is a path nobody finds when it needs to change. The
+  # argument below is what makes the task testable without the real file.
+  @spec_file "docs/specs/team-retro-spec-en.md"
   @exceptions_file "priv/traceability_exceptions.exs"
   @report_file "docs/traceability.md"
   @test_paths ["test", "e2e"]
@@ -88,10 +92,15 @@ defmodule Mix.Tasks.SprintLens.Trace do
 
   @doc """
   Every requirement id declared in the spec.
+
+  Takes the path so the behaviour can be exercised against a fixture. The
+  default is the real specification, which is what the task itself reads and
+  what keeps a move like this one loud rather than quiet: a stale path fails
+  the first step of `mix ci` that touches it.
   """
-  @spec spec_ids() :: MapSet.t(String.t())
-  def spec_ids do
-    @spec_file
+  @spec spec_ids(Path.t()) :: MapSet.t(String.t())
+  def spec_ids(path \\ @spec_file) do
+    path
     |> File.read!()
     |> scan_declarations()
   end

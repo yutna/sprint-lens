@@ -1,7 +1,7 @@
 # SprintLens
 
 A team retrospective web application. The specification is
-`team-retro-spec-en.md` and it is normative: every requirement in it carries a
+`docs/specs/team-retro-spec-en.md` and it is normative: every requirement in it carries a
 stable id (`FR-nnn`, `NFR-nnn`, `AI-nnn`) that the code and the tests refer to.
 
 ## Project guidelines
