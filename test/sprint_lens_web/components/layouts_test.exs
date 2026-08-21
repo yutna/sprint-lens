@@ -1,6 +1,10 @@
 defmodule SprintLensWeb.LayoutsTest do
   use SprintLens.UnitCase, async: true
 
+  # Asserts on English copy, so it says so rather than reading the Thai
+  # translation table back to itself.
+  @moduletag locale: "en"
+
   import Phoenix.LiveViewTest
 
   alias SprintLensWeb.Layouts

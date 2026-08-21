@@ -11,212 +11,212 @@ msgstr ""
 "Language: th\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "4Ls"
 msgstr "4Ls"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "สิ่งที่จะทำ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Anchor"
 msgstr "สมอ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Continue"
 msgstr "ทำต่อ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Glad"
 msgstr "ดีใจ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Island"
 msgstr "เกาะ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "KPT"
 msgstr "KPT"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Keep"
 msgstr "คงไว้"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Lacked"
 msgstr "ยังขาด"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Learned"
 msgstr "ได้เรียนรู้"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Liked"
 msgstr "ชอบ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Longed for"
 msgstr "อยากให้มี"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Mad"
 msgstr "โกรธ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Mad-Sad-Glad"
 msgstr "โกรธ-เศร้า-ดีใจ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Problem"
 msgstr "ปัญหา"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Rocks"
 msgstr "โขดหิน"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Sad"
 msgstr "เศร้า"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Sailboat"
 msgstr "เรือใบ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Start"
 msgstr "เริ่มทำ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Start-Stop-Continue"
 msgstr "เริ่ม-หยุด-ทำต่อ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Stop"
 msgstr "หยุดทำ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "To improve"
 msgstr "ควรปรับปรุง"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Try"
 msgstr "ลองทำ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Went well"
 msgstr "ทำได้ดี"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What are we aiming for?"
 msgstr "เป้าหมายของเราคืออะไร"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What did you enjoy?"
 msgstr "คุณสนุกกับอะไรบ้าง"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What did you find out?"
 msgstr "คุณได้รู้อะไรใหม่บ้าง"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What did you wish you had?"
 msgstr "คุณอยากให้มีอะไรเพิ่ม"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What disappointed you?"
 msgstr "อะไรที่ทำให้คุณผิดหวัง"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What frustrated you?"
 msgstr "อะไรที่ทำให้คุณหงุดหงิด"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What got in the way?"
 msgstr "อะไรที่เป็นอุปสรรค"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What is holding us back?"
 msgstr "อะไรที่ฉุดรั้งเราไว้"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What is pushing us forward?"
 msgstr "อะไรที่ผลักดันเราไปข้างหน้า"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What is working and should carry on?"
 msgstr "อะไรที่ได้ผลดีและควรทำต่อไป"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What is worth keeping?"
 msgstr "อะไรที่ควรคงไว้ทำต่อ"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What made you happy?"
 msgstr "อะไรที่ทำให้คุณมีความสุข"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What risks are ahead?"
 msgstr "มีความเสี่ยงอะไรรออยู่ข้างหน้า"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What should we begin doing?"
 msgstr "มีอะไรที่เราควรเริ่มทำบ้าง"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What should we stop doing?"
 msgstr "มีอะไรที่เราควรเลิกทำบ้าง"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What should we try next?"
 msgstr "รอบหน้าเราควรลองอะไร"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "What was missing?"
 msgstr "มีอะไรที่ยังขาดไป"
 
-#: lib/sprint_lens_web/template_text.ex:75
+#: lib/sprint_lens_web/template_text.ex:79
 #, elixir-autogen, elixir-format
 msgid "Wind"
 msgstr "ลม"

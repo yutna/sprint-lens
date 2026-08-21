@@ -91,6 +91,14 @@ config :sprint_lens, :session_inactivity_days, 14
 config :sprint_lens, :facilitator_grace_ms, 60_000
 
 # Configure the endpoint
+# The interface is Thai first (FR-906), and `SprintLens.Cldr` already says so.
+# Gettext did not, so it fell back to its own global default of English and the
+# two subsystems disagreed: any process that never resolved a locale for itself
+# rendered Thai dates next to English words. That is every path outside a
+# browser request — the account emails, the Oban workers, and the JSON error
+# view that runs after a raise has escaped the pipeline.
+config :sprint_lens, SprintLensWeb.Gettext, default_locale: "th"
+
 config :sprint_lens, SprintLensWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,

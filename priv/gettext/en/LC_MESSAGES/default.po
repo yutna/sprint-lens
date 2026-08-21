@@ -285,6 +285,7 @@ msgstr "Preferences saved."
 msgid "Register"
 msgstr "Register"
 
+#: lib/sprint_lens/accounts/user_notifier.ex:127
 #: lib/sprint_lens_web/live/user_live/forgot_password.ex:31
 #, elixir-autogen, elixir-format
 msgid "Reset your password"
@@ -2015,3 +2016,73 @@ msgstr "Try again"
 #, elixir-autogen, elixir-format
 msgid "current"
 msgstr "current"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:128
+#, elixir-autogen, elixir-format
+msgid "\n==============================\n\nHi %{email},\n\nSomeone asked to reset the password for your SprintLens account.\n\nVisit the URL below to sign in, then choose a new password in your\nsettings:\n\n%{url}\n\nThis link is valid for a short time. If you didn't ask for it, you can\nignore this email — your password has not changed.\n\n==============================\n"
+msgstr "\n==============================\n\nHi %{email},\n\nSomeone asked to reset the password for your SprintLens account.\n\nVisit the URL below to sign in, then choose a new password in your\nsettings:\n\n%{url}\n\nThis link is valid for a short time. If you didn't ask for it, you can\nignore this email — your password has not changed.\n\n==============================\n"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:56
+#, elixir-autogen, elixir-format
+msgid "\n==============================\n\nHi %{email},\n\nYou can change your email by visiting the URL below:\n\n%{url}\n\nIf you didn't request this change, please ignore this.\n\n==============================\n"
+msgstr "\n==============================\n\nHi %{email},\n\nYou can change your email by visiting the URL below:\n\n%{url}\n\nIf you didn't request this change, please ignore this.\n\n==============================\n"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:158
+#, elixir-autogen, elixir-format
+msgid "\n==============================\n\nHi %{email},\n\nYou can confirm your account by visiting the URL below:\n\n%{url}\n\nIf you didn't create an account with us, please ignore this.\n\n==============================\n"
+msgstr "\n==============================\n\nHi %{email},\n\nYou can confirm your account by visiting the URL below:\n\n%{url}\n\nIf you didn't create an account with us, please ignore this.\n\n==============================\n"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:94
+#, elixir-autogen, elixir-format
+msgid "\n==============================\n\nHi %{email},\n\nYou can log into your account by visiting the URL below:\n\n%{url}\n\nIf you didn't request this email, please ignore this.\n\n==============================\n"
+msgstr "\n==============================\n\nHi %{email},\n\nYou can log into your account by visiting the URL below:\n\n%{url}\n\nIf you didn't request this email, please ignore this.\n\n==============================\n"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:26
+#, elixir-autogen, elixir-format
+msgid "Bad Request"
+msgstr "Bad Request"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:157
+#, elixir-autogen, elixir-format
+msgid "Confirmation instructions"
+msgstr "Confirmation instructions"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:28
+#, elixir-autogen, elixir-format
+msgid "Forbidden"
+msgstr "Forbidden"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:32
+#, elixir-autogen, elixir-format
+msgid "Internal Server Error"
+msgstr "Internal Server Error"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:93
+#, elixir-autogen, elixir-format
+msgid "Log in instructions"
+msgstr "Log in instructions"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:29
+#, elixir-autogen, elixir-format
+msgid "Not Found"
+msgstr "Not Found"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:31
+#, elixir-autogen, elixir-format
+msgid "Too Many Requests"
+msgstr "Too Many Requests"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:27
+#, elixir-autogen, elixir-format
+msgid "Unauthorized"
+msgstr "Unauthorized"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:30
+#, elixir-autogen, elixir-format
+msgid "Unprocessable Entity"
+msgstr "Unprocessable Entity"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:55
+#, elixir-autogen, elixir-format
+msgid "Update email instructions"
+msgstr "Update email instructions"

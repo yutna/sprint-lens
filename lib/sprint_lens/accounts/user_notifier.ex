@@ -1,10 +1,25 @@
 defmodule SprintLens.Accounts.UserNotifier do
   @moduledoc """
   Transactional email for the baseline authentication method (FR-001, FR-004).
+
+  ## Why the locale is set here
+
+  A notification is generated for one specific person, and it is generated
+  outside a browser request — from a LiveView process, or from a background
+  job. Neither carries the recipient's language. Left alone, Gettext would use
+  whatever locale the sending process happened to hold, which is the
+  organisation default at best and a previous request's language at worst.
+
+  So every message is rendered inside `Gettext.with_locale/3` at the
+  recipient's stored language, and the locale is restored afterwards: the
+  process that asked for the email is not the process the email is for.
   """
+
+  use Gettext, backend: SprintLensWeb.Gettext
 
   import Swoosh.Email
 
+  alias SprintLens.Accounts
   alias SprintLens.Accounts.User
   alias SprintLens.Mailer
 
@@ -22,51 +37,79 @@ defmodule SprintLens.Accounts.UserNotifier do
     end
   end
 
+  # A user record built in a test may carry no language at all; the
+  # organisation default is the honest answer rather than a crash.
+  defp for_recipient(%User{language: language}, fun) do
+    language = if is_binary(language), do: language, else: Accounts.default_language()
+
+    Gettext.with_locale(SprintLensWeb.Gettext, language, fun)
+  end
+
   @doc """
   Deliver instructions to update a user email.
   """
   def deliver_update_email_instructions(user, url) do
-    deliver(user.email, "Update email instructions", """
+    for_recipient(user, fn ->
+      deliver(
+        user.email,
+        gettext("Update email instructions"),
+        gettext(
+          """
 
-    ==============================
+          ==============================
 
-    Hi #{user.email},
+          Hi %{email},
 
-    You can change your email by visiting the URL below:
+          You can change your email by visiting the URL below:
 
-    #{url}
+          %{url}
 
-    If you didn't request this change, please ignore this.
+          If you didn't request this change, please ignore this.
 
-    ==============================
-    """)
+          ==============================
+          """,
+          email: user.email,
+          url: url
+        )
+      )
+    end)
   end
 
   @doc """
   Deliver instructions to log in with a magic link.
   """
   def deliver_login_instructions(user, url) do
-    case user do
-      %User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
-      _ -> deliver_magic_link_instructions(user, url)
-    end
+    for_recipient(user, fn ->
+      case user do
+        %User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
+        _confirmed -> deliver_magic_link_instructions(user, url)
+      end
+    end)
   end
 
   defp deliver_magic_link_instructions(user, url) do
-    deliver(user.email, "Log in instructions", """
+    deliver(
+      user.email,
+      gettext("Log in instructions"),
+      gettext(
+        """
 
-    ==============================
+        ==============================
 
-    Hi #{user.email},
+        Hi %{email},
 
-    You can log into your account by visiting the URL below:
+        You can log into your account by visiting the URL below:
 
-    #{url}
+        %{url}
 
-    If you didn't request this email, please ignore this.
+        If you didn't request this email, please ignore this.
 
-    ==============================
-    """)
+        ==============================
+        """,
+        email: user.email,
+        url: url
+      )
+    )
   end
 
   @doc """
@@ -78,40 +121,58 @@ defmodule SprintLens.Accounts.UserNotifier do
   signing in first means the new password is chosen from inside the session.
   """
   def deliver_password_reset_instructions(user, url) do
-    deliver(user.email, "Reset your password", """
+    for_recipient(user, fn ->
+      deliver(
+        user.email,
+        gettext("Reset your password"),
+        gettext(
+          """
 
-    ==============================
+          ==============================
 
-    Hi #{user.email},
+          Hi %{email},
 
-    Someone asked to reset the password for your SprintLens account.
+          Someone asked to reset the password for your SprintLens account.
 
-    Visit the URL below to sign in, then choose a new password in your
-    settings:
+          Visit the URL below to sign in, then choose a new password in your
+          settings:
 
-    #{url}
+          %{url}
 
-    This link is valid for a short time. If you didn't ask for it, you can
-    ignore this email — your password has not changed.
+          This link is valid for a short time. If you didn't ask for it, you can
+          ignore this email — your password has not changed.
 
-    ==============================
-    """)
+          ==============================
+          """,
+          email: user.email,
+          url: url
+        )
+      )
+    end)
   end
 
   defp deliver_confirmation_instructions(user, url) do
-    deliver(user.email, "Confirmation instructions", """
+    deliver(
+      user.email,
+      gettext("Confirmation instructions"),
+      gettext(
+        """
 
-    ==============================
+        ==============================
 
-    Hi #{user.email},
+        Hi %{email},
 
-    You can confirm your account by visiting the URL below:
+        You can confirm your account by visiting the URL below:
 
-    #{url}
+        %{url}
 
-    If you didn't create an account with us, please ignore this.
+        If you didn't create an account with us, please ignore this.
 
-    ==============================
-    """)
+        ==============================
+        """,
+        email: user.email,
+        url: url
+      )
+    )
   end
 end

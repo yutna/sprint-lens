@@ -285,6 +285,7 @@ msgstr "บันทึกการตั้งค่าแล้ว"
 msgid "Register"
 msgstr "สมัครสมาชิก"
 
+#: lib/sprint_lens/accounts/user_notifier.ex:127
 #: lib/sprint_lens_web/live/user_live/forgot_password.ex:31
 #, elixir-autogen, elixir-format
 msgid "Reset your password"
@@ -2008,3 +2009,73 @@ msgstr "ลองอีกครั้ง"
 #, elixir-autogen, elixir-format
 msgid "current"
 msgstr "กำลังใช้อยู่"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:128
+#, elixir-autogen, elixir-format
+msgid "\n==============================\n\nHi %{email},\n\nSomeone asked to reset the password for your SprintLens account.\n\nVisit the URL below to sign in, then choose a new password in your\nsettings:\n\n%{url}\n\nThis link is valid for a short time. If you didn't ask for it, you can\nignore this email — your password has not changed.\n\n==============================\n"
+msgstr "\n==============================\n\nสวัสดีคุณ %{email}\n\nมีผู้ขอตั้งรหัสผ่านใหม่สำหรับบัญชี SprintLens ของคุณ\n\nเปิดลิงก์ด้านล่างเพื่อเข้าสู่ระบบ แล้วตั้งรหัสผ่านใหม่ในหน้าตั้งค่า\n\n%{url}\n\nลิงก์นี้ใช้ได้ในระยะเวลาสั้น ๆ หากคุณไม่ได้เป็นคนขอ สามารถละเว้นอีเมลฉบับนี้ได้ — รหัสผ่านของคุณยังไม่ถูกเปลี่ยน\n\n==============================\n"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:56
+#, elixir-autogen, elixir-format
+msgid "\n==============================\n\nHi %{email},\n\nYou can change your email by visiting the URL below:\n\n%{url}\n\nIf you didn't request this change, please ignore this.\n\n==============================\n"
+msgstr "\n==============================\n\nสวัสดีคุณ %{email}\n\nเปลี่ยนอีเมลของคุณได้จากลิงก์ด้านล่างนี้\n\n%{url}\n\nหากคุณไม่ได้ขอเปลี่ยนอีเมล ไม่ต้องดำเนินการใด ๆ\n\n==============================\n"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:158
+#, elixir-autogen, elixir-format
+msgid "\n==============================\n\nHi %{email},\n\nYou can confirm your account by visiting the URL below:\n\n%{url}\n\nIf you didn't create an account with us, please ignore this.\n\n==============================\n"
+msgstr "\n==============================\n\nสวัสดีคุณ %{email}\n\nยืนยันบัญชีของคุณได้จากลิงก์ด้านล่างนี้\n\n%{url}\n\nหากคุณไม่ได้สมัครบัญชีกับเรา ไม่ต้องดำเนินการใด ๆ\n\n==============================\n"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:94
+#, elixir-autogen, elixir-format
+msgid "\n==============================\n\nHi %{email},\n\nYou can log into your account by visiting the URL below:\n\n%{url}\n\nIf you didn't request this email, please ignore this.\n\n==============================\n"
+msgstr "\n==============================\n\nสวัสดีคุณ %{email}\n\nเข้าสู่ระบบได้จากลิงก์ด้านล่างนี้\n\n%{url}\n\nหากคุณไม่ได้ขออีเมลฉบับนี้ ไม่ต้องดำเนินการใด ๆ\n\n==============================\n"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:26
+#, elixir-autogen, elixir-format
+msgid "Bad Request"
+msgstr "คำขอไม่ถูกต้อง"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:157
+#, elixir-autogen, elixir-format
+msgid "Confirmation instructions"
+msgstr "วิธียืนยันบัญชี"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:28
+#, elixir-autogen, elixir-format
+msgid "Forbidden"
+msgstr "ไม่มีสิทธิ์เข้าถึง"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:32
+#, elixir-autogen, elixir-format
+msgid "Internal Server Error"
+msgstr "เซิร์ฟเวอร์เกิดข้อผิดพลาด"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:93
+#, elixir-autogen, elixir-format
+msgid "Log in instructions"
+msgstr "วิธีเข้าสู่ระบบ"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:29
+#, elixir-autogen, elixir-format
+msgid "Not Found"
+msgstr "ไม่พบหน้าที่ต้องการ"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:31
+#, elixir-autogen, elixir-format
+msgid "Too Many Requests"
+msgstr "ส่งคำขอถี่เกินไป"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:27
+#, elixir-autogen, elixir-format
+msgid "Unauthorized"
+msgstr "ต้องเข้าสู่ระบบก่อน"
+
+#: lib/sprint_lens_web/controllers/error_html.ex:30
+#, elixir-autogen, elixir-format
+msgid "Unprocessable Entity"
+msgstr "ข้อมูลที่ส่งมาไม่ถูกต้อง"
+
+#: lib/sprint_lens/accounts/user_notifier.ex:55
+#, elixir-autogen, elixir-format
+msgid "Update email instructions"
+msgstr "วิธีเปลี่ยนอีเมล"

@@ -17,6 +17,31 @@ defmodule SprintLens.UnitCase do
     end
   end
 
+  setup tags do
+    pin_locale(tags)
+    :ok
+  end
+
+  @doc """
+  Pins the interface language for a test module.
+
+  The interface is Thai first and Gettext's default now says so, so a test
+  that asserts on English copy has to ask for it:
+
+      @moduletag locale: "en"
+
+  Only the calling process's locale is set, never the application
+  environment. These tests run `async: true`, and an application environment
+  is global: one module pinning it would change the language underneath every
+  other module running at the same time. `SprintLensWeb.ConnCase` can afford
+  to pin both because its tests are serial.
+  """
+  def pin_locale(%{locale: locale}) do
+    SprintLensWeb.Locale.put(locale)
+  end
+
+  def pin_locale(_tags), do: :ok
+
   @doc """
   Transforms changeset errors into a map of messages, the same shape
   `SprintLens.DataCase.errors_on/1` returns, so an assertion reads the same
