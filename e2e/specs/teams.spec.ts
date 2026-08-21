@@ -95,10 +95,18 @@ test.describe('teams', () => {
     await page.goto(`${page.url()}/templates`)
     await waitForLiveView(page)
 
+    // In Thai, because this suite runs in Thai and the built-in templates are
+    // the product's own words rather than a team's (FR-906, FR-909). They used
+    // to be seeded in English and rendered straight out of the database, which
+    // is what this assertion was quietly encoding. "4Ls" and "KPT" are shipped
+    // untranslated on purpose — they are the names these formats are known by.
     const list = page.locator('#templates')
-    for (const name of ['Start-Stop-Continue', 'Mad-Sad-Glad', '4Ls', 'KPT', 'Sailboat']) {
+    for (const name of ['เริ่ม-หยุด-ทำต่อ', 'โกรธ-เศร้า-ดีใจ', '4Ls', 'KPT', 'เรือใบ']) {
       await expect(list).toContainText(name)
     }
+
+    // And a column heading with it, since the board is where this is seen.
+    await expect(list).toContainText('เริ่มทำ')
   })
 
   test('[FR-202] a custom template is saved with its columns', async ({ page }) => {
