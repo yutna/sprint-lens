@@ -77,6 +77,44 @@ defmodule SprintLensWeb.LayoutsTest do
     end
   end
 
+  describe "logo/1" do
+    @tag req: ["FR-911"]
+    test "draws the mark inline so it can take the colour beside it" do
+      html = render_component(&Layouts.logo/1, %{})
+
+      assert html =~ ~s(fill="currentColor")
+      assert html =~ ~s(fill-rule="evenodd")
+      # The two cards, as one path with the overlap knocked out.
+      assert html =~ "<path"
+      refute html =~ "<img"
+    end
+
+    # Decorative: the wordmark beside it is real text, and describing the image
+    # would make a screen reader say the name twice.
+    @tag req: ["FR-913"]
+    test "is hidden from assistive technology" do
+      assert render_component(&Layouts.logo/1, %{}) =~ ~s(aria-hidden="true")
+    end
+
+    @tag req: ["FR-911"]
+    test "takes the size and colour it is given" do
+      html = render_component(&Layouts.logo/1, %{class: "size-10 text-primary"})
+
+      assert html =~ ~s(class="size-10 text-primary")
+    end
+
+    # The drawing is read from the file at compile time; a component that
+    # rendered an empty path would still look like valid markup.
+    @tag req: ["FR-911"]
+    test "carries the same path data as the file the icons are built from" do
+      [_whole, from_file] =
+        Regex.run(~r/\sd="([^"]+)"/, File.read!("priv/static/images/logo-mark.svg"))
+
+      assert render_component(&Layouts.logo/1, %{}) =~
+               from_file |> String.split() |> Enum.join(" ")
+    end
+  end
+
   describe "theme_toggle/1" do
     @tag req: ["FR-910"]
     test "offers exactly light, dark and system" do

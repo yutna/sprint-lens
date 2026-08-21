@@ -17,7 +17,12 @@ defmodule SprintLensWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+  # Only what a browser looks for at the root belongs here; everything else
+  # lives under `images`, which is already allowed. A file missing from this
+  # list returns not found in production with no other symptom, which is the
+  # quietest way for an icon set to look finished and be broken.
+  def static_paths,
+    do: ~w(assets fonts images favicon.ico apple-touch-icon.png site.webmanifest robots.txt)
 
   def router do
     quote do

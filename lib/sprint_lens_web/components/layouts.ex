@@ -11,6 +11,19 @@ defmodule SprintLensWeb.Layouts do
   # Embed all files in layouts/* within this module.
   embed_templates "layouts/*"
 
+  # The mark is inlined rather than fetched as an image so it can take the
+  # colour of the text beside it, which is what saves a light and a dark
+  # variant. Read at compile time from the one drawing anyone edits — an
+  # `<img>` cannot inherit a colour, and a second copy of the path data here
+  # would be a second copy to keep in step.
+  @mark_source "priv/static/images/logo-mark.svg"
+  @external_resource @mark_source
+  @mark_path (fn ->
+                [_whole, path] = Regex.run(~r/\sd="([^"]+)"/, File.read!(@mark_source))
+
+                path |> String.split() |> Enum.join(" ")
+              end).()
+
   @doc """
   The `data-theme` the server stamps on `<html>`.
 
@@ -89,8 +102,12 @@ defmodule SprintLensWeb.Layouts do
     --%>
     <header class="navbar flex-wrap gap-2 border-b border-base-200 px-4 sm:px-6 lg:px-8">
       <div class="flex-1">
+        <%!--
+          The mark is decorative: the wordmark beside it is real text, so
+          describing the image would make a screen reader say the name twice.
+        --%>
         <.link navigate={~p"/"} class="flex w-fit items-center gap-2 text-base font-semibold">
-          <img src={~p"/images/logo.svg"} width="28" alt="" />
+          <.logo class="size-7 text-primary" />
           <span>SprintLens</span>
         </.link>
       </div>
@@ -127,6 +144,21 @@ defmodule SprintLensWeb.Layouts do
     </main>
 
     <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
+  The product's mark, in the colour of whatever it sits next to (FR-911).
+  """
+  attr :class, :string, default: "size-7"
+
+  def logo(assigns) do
+    assigns = assign(assigns, :path, @mark_path)
+
+    ~H"""
+    <svg viewBox="0 0 32 32" class={@class} fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d={@path} />
+    </svg>
     """
   end
 
