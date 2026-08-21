@@ -35,8 +35,14 @@ defmodule SprintLensWeb.Hooks.Preferences do
 
     # The plug pipeline ran in another process, so its decisions do not carry
     # over. Both are re-resolved here from the same inputs the plugs used: the
-    # profile, then the choice a signed-out visitor made in this session.
-    locale = user |> Locale.resolve(nil, session["locale"]) |> Locale.put()
+    # profile, the choice a signed-out visitor made in this session, and the
+    # browser header that `Locale.live_session/1` puts there for exactly this
+    # reason. Passing `nil` for the header is what used to make the connected
+    # render disagree with the first paint.
+    locale =
+      user
+      |> Locale.resolve(session["accept_language"], session["locale"])
+      |> Locale.put()
 
     socket =
       socket

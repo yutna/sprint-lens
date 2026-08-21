@@ -102,4 +102,94 @@ defmodule SprintLensWeb.Plugs.LocaleTest do
       refute html =~ ~s(data-theme="dark")
     end
   end
+
+  describe "on the API pipelines" do
+    # Every message in `SprintLensWeb.ApiError` is wrapped and fully
+    # translated, and none of them reached a locale: the public pipeline had
+    # no resolution at all, and the authenticated one only switched language
+    # after the token had been accepted — which the two refusals a client
+    # meets most often never get to.
+    @tag req: ["FR-906"]
+    test "the token exchange refuses in the caller's language", %{conn: conn} do
+      body =
+        conn
+        |> put_req_header("accept-language", "th")
+        |> post(~p"/api/v1/tokens", %{email: "nobody@example.com", password: "wrong-password"})
+        |> json_response(401)
+
+      assert body["error"]["message"] =~ ~r/\p{Thai}/u
+    end
+
+    @tag req: ["FR-906"]
+    test "and in English when that is what the caller asked for", %{conn: conn} do
+      body =
+        conn
+        |> put_req_header("accept-language", "en-GB,en;q=0.9")
+        |> post(~p"/api/v1/tokens", %{email: "nobody@example.com", password: "wrong-password"})
+        |> json_response(401)
+
+      refute body["error"]["message"] =~ ~r/\p{Thai}/u
+    end
+
+    @tag req: ["FR-906"]
+    test "a request with no token at all is refused in the caller's language", %{conn: conn} do
+      body =
+        conn
+        |> put_req_header("accept-language", "en")
+        |> get(~p"/api/v1/me")
+        |> json_response(401)
+
+      refute body["error"]["message"] =~ ~r/\p{Thai}/u
+    end
+
+    @tag req: ["FR-907"]
+    test "an authenticated caller gets their own language, not the header's", %{conn: conn} do
+      user = user_fixture()
+      {:ok, user} = Accounts.update_user_profile(user, %{language: "th"})
+      token = Accounts.create_api_token(user)
+
+      body =
+        conn
+        |> put_req_header("authorization", "Bearer " <> token)
+        |> put_req_header("accept-language", "en")
+        |> get(~p"/api/v1/teams/999999")
+        |> json_response(404)
+
+      assert body["error"]["message"] =~ ~r/\p{Thai}/u
+    end
+  end
+
+  describe "the first paint and the connected render" do
+    # The flicker. The plug saw the browser's `accept-language`; the LiveView
+    # hook re-resolved without it, because the header is not part of the
+    # session. A signed-out visitor whose browser asks for English therefore
+    # got an English page that turned Thai the moment the socket connected.
+    @tag req: ["FR-906"]
+    test "agree for a signed-out visitor whose browser asks for English", %{conn: conn} do
+      conn = put_req_header(conn, "accept-language", "en")
+
+      dead = conn |> get(~p"/users/log-in") |> html_response(200)
+      assert dead =~ ~s(lang="en")
+      refute dead =~ "เข้าสู่ระบบ"
+
+      {:ok, _lv, connected} = Phoenix.LiveViewTest.live(conn, ~p"/users/log-in")
+
+      # Not a blanket check for Thai script: the language switcher's own label
+      # for Thai is the word "ไทย" in every language, and always should be.
+      assert connected =~ ~s(lang="en")
+      refute connected =~ "เข้าสู่ระบบ"
+    end
+
+    @tag req: ["FR-906"]
+    test "and agree on Thai when the browser asks for nothing", %{conn: conn} do
+      dead = conn |> get(~p"/users/log-in") |> html_response(200)
+      assert dead =~ ~s(lang="th")
+      assert dead =~ "เข้าสู่ระบบ"
+
+      {:ok, _lv, connected} = Phoenix.LiveViewTest.live(conn, ~p"/users/log-in")
+
+      assert connected =~ ~s(lang="th")
+      assert connected =~ "เข้าสู่ระบบ"
+    end
+  end
 end

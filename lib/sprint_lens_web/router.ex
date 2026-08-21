@@ -22,12 +22,22 @@ defmodule SprintLensWeb.Router do
   # Unauthenticated JSON: the health probe and the token exchange.
   pipeline :api_public do
     plug :accepts, ["json"]
+    # There is no session and no user here, so `accept-language` is the only
+    # thing a client can say about what it reads. Without this the refusals
+    # from the token exchange came back in the organisation's language rather
+    # than the caller's (FR-906).
+    plug SprintLensWeb.Plugs.Locale
     plug SprintLensWeb.Plugs.RequestContext
   end
 
   # Everything else under /api/v1 (section 7.1).
   pipeline :api do
     plug :accepts, ["json"]
+    # Before the authentication, not after. `Plugs.ApiAuth` already switches
+    # to the authenticated user's language once it has one, but it halts on a
+    # bad token or a rate limit, and those two refusals are the ones a client
+    # is most likely to meet. A plug that ran afterwards would never see them.
+    plug SprintLensWeb.Plugs.Locale
     plug SprintLensWeb.Plugs.RequestContext
     plug SprintLensWeb.Plugs.ApiAuth
   end
@@ -140,6 +150,7 @@ defmodule SprintLensWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
+      session: {SprintLensWeb.Locale, :live_session, []},
       on_mount: [
         {SprintLensWeb.UserAuth, :require_authenticated},
         SprintLensWeb.Hooks.Preferences
@@ -166,6 +177,7 @@ defmodule SprintLensWeb.Router do
     # Changing an email address or a password demands a recent authentication,
     # so these live in their own live_session with the sudo-mode hook.
     live_session :require_sudo_mode,
+      session: {SprintLensWeb.Locale, :live_session, []},
       on_mount: [
         {SprintLensWeb.UserAuth, :require_sudo_mode},
         SprintLensWeb.Hooks.Preferences
@@ -186,6 +198,7 @@ defmodule SprintLensWeb.Router do
     pipe_through [:browser]
 
     live_session :current_user,
+      session: {SprintLensWeb.Locale, :live_session, []},
       on_mount: [
         {SprintLensWeb.UserAuth, :mount_current_scope},
         SprintLensWeb.Hooks.Preferences

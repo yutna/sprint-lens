@@ -51,6 +51,31 @@ defmodule SprintLensWeb.Locale do
   end
 
   @doc """
+  What a `live_session` has to carry from the request into the LiveView.
+
+  The plug pipeline and the LiveView run in different processes, so the hook
+  re-resolves the locale rather than inheriting it. For that to give the same
+  answer it needs the same inputs, and one of them — the browser's
+  `accept-language` — is not part of the session by default.
+
+  It was the missing input. A signed-out visitor whose browser asks for
+  English got an English first paint from the plug, and then Thai the moment
+  the socket connected and the hook resolved without the header. On the sign
+  in and registration pages that was a visible flicker between two languages.
+  """
+  @spec live_session(Plug.Conn.t()) :: %{String.t() => String.t() | nil}
+  def live_session(conn) do
+    %{"accept_language" => accept_language(conn)}
+  end
+
+  defp accept_language(conn) do
+    case Plug.Conn.get_req_header(conn, "accept-language") do
+      [header | _rest] -> header
+      [] -> nil
+    end
+  end
+
+  @doc """
   Makes `locale` the active one for the current process: Gettext for UI
   strings, CLDR for dates and numbers.
   """

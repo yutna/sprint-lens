@@ -218,9 +218,23 @@ defmodule SprintLens.AccountsProfileTest do
       assert Accounts.get_user_by_magic_link_token(token).id == user.id
     end
 
+    # In the recipient's language, which for a new account is the
+    # organisation default. The English wording this used to assert was only
+    # ever an accident of Gettext having no configured default.
     @tag req: ["FR-004"]
     test "the email explains it is a password reset, not an unexpected login" do
       user = user_fixture()
+
+      {:ok, email} =
+        Accounts.deliver_password_reset_instructions(user, fn _token -> "https://example.com" end)
+
+      assert email.subject =~ "รหัสผ่านใหม่"
+      assert email.text_body =~ "ตั้งรหัสผ่านใหม่"
+    end
+
+    @tag req: ["FR-004", "FR-906"]
+    test "and does so in English for someone whose profile says English" do
+      {:ok, user} = Accounts.update_user_profile(user_fixture(), %{language: "en"})
 
       {:ok, email} =
         Accounts.deliver_password_reset_instructions(user, fn _token -> "https://example.com" end)
