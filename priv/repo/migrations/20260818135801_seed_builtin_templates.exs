@@ -9,7 +9,12 @@ defmodule SprintLens.Repo.Migrations.SeedBuiltinTemplates do
   for the throwaway database `mix e2e` builds.
 
   Column names and hints are written in English here and translated at render
-  time, so a Thai-speaking team sees Thai column headings (FR-906).
+  time, so a Thai-speaking team sees Thai column headings (FR-906). The
+  translation is not done here and cannot be: a migration is never scanned by
+  `mix gettext.extract`. `SprintLens.Teams.BuiltinTemplates` carries the same
+  list where the extractor can see it, `SprintLensWeb.TemplateText` renders
+  it, and a test compares these rows against that module so the two copies
+  cannot drift apart in silence.
   """
 
   use Ecto.Migration

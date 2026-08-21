@@ -9,6 +9,7 @@ defmodule SprintLensWeb.TemplateLive.Index do
   alias SprintLens.Teams
   alias SprintLens.Teams.Template
   alias SprintLensWeb.CoreComponents
+  alias SprintLensWeb.TemplateText
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -90,7 +91,7 @@ defmodule SprintLensWeb.TemplateLive.Index do
           >
             <div class="flex items-start justify-between gap-2">
               <div>
-                <span class="font-semibold">{template.name}</span>
+                <span class="font-semibold">{TemplateText.template_name(template)}</span>
                 <span :if={template.is_builtin} class="badge badge-ghost badge-sm ml-2">
                   {gettext("Built-in")}
                 </span>
@@ -108,7 +109,7 @@ defmodule SprintLensWeb.TemplateLive.Index do
             </div>
             <ol class="mt-2 flex flex-wrap gap-1">
               <li
-                :for={name <- Template.column_names(template)}
+                :for={name <- TemplateText.template_column_names(template)}
                 class="badge badge-outline badge-sm"
               >
                 {name}

@@ -39,19 +39,29 @@ defmodule SprintLens.Retro.ColumnTest do
     end
   end
 
-  describe "attrs_from_template/1" do
+  describe "attrs_from_template/2" do
     @tag req: ["FR-201"]
     test "numbers the columns in the order the template lists them" do
       attrs =
-        Column.attrs_from_template([
-          %{"name" => "Start", "hint" => "Begin?"},
-          %{"name" => "Stop", "hint" => nil}
-        ])
+        Column.attrs_from_template(
+          [
+            %{"name" => "Start", "hint" => "Begin?"},
+            %{"name" => "Stop", "hint" => nil}
+          ],
+          true
+        )
 
       assert attrs == [
-               %{name: "Start", hint: "Begin?", position: 0},
-               %{name: "Stop", hint: nil, position: 1}
+               %{name: "Start", hint: "Begin?", position: 0, from_builtin: true},
+               %{name: "Stop", hint: nil, position: 1, from_builtin: true}
              ]
+    end
+
+    @tag req: ["FR-909"]
+    test "a team's own layout is marked as theirs, so nothing translates it" do
+      attrs = Column.attrs_from_template([%{"name" => "งานค้าง", "hint" => nil}], false)
+
+      assert [%{name: "งานค้าง", from_builtin: false}] = attrs
     end
   end
 end

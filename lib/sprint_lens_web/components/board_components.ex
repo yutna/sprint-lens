@@ -24,6 +24,7 @@ defmodule SprintLensWeb.BoardComponents do
   alias SprintLens.Retro.DiscussionNote
   alias SprintLens.Retro.Session
   alias SprintLens.Retro.Topic
+  alias SprintLensWeb.TemplateText
 
   @doc """
   The column tabs a narrow screen uses to move between columns (FR-902).
@@ -50,7 +51,7 @@ defmodule SprintLensWeb.BoardComponents do
         phx-click="select_column"
         phx-value-column-id={column.id}
       >
-        {column.name}
+        {TemplateText.column_name(column)}
       </button>
     </div>
     """
@@ -87,8 +88,10 @@ defmodule SprintLensWeb.BoardComponents do
         ]
       }
     >
-      <h3 class="font-semibold">{@column.name}</h3>
-      <p :if={@column.hint} class="mb-2 text-sm opacity-70">{@column.hint}</p>
+      <h3 class="font-semibold">{TemplateText.column_name(@column)}</h3>
+      <p :if={@column.hint} class="mb-2 text-sm opacity-70">
+        {TemplateText.column_hint(@column)}
+      </p>
 
       <%!--
         FR-920: the box empties the moment you submit, and fills itself back
@@ -109,7 +112,7 @@ defmodule SprintLensWeb.BoardComponents do
           rows="2"
           maxlength={Card.max_text()}
           class="w-full textarea"
-          aria-label={gettext("Write a card in %{column}", column: @column.name)}
+          aria-label={gettext("Write a card in %{column}", column: TemplateText.column_name(@column))}
           phx-hook=".CardCounter"
           id={"card-text-#{@column.id}"}
         ></textarea>

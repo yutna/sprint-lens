@@ -19,6 +19,7 @@ defmodule SprintLensWeb.SessionLive.Recap do
   alias SprintLens.AI
   alias SprintLens.Insights
   alias SprintLens.Retro
+  alias SprintLensWeb.TemplateText
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -150,7 +151,7 @@ defmodule SprintLensWeb.SessionLive.Recap do
             id={"recap-column-#{column.id}"}
             class="rounded-box border border-base-300 p-3"
           >
-            <h3 class="font-semibold">{column.name}</h3>
+            <h3 class="font-semibold">{TemplateText.column_name(column)}</h3>
 
             <ul class="mt-2 space-y-1">
               <li

@@ -17,7 +17,10 @@ defmodule SprintLensWeb.TranslationsTest do
   use SprintLens.UnitCase, async: true
 
   @locales ~w(th en)
-  @domains ~w(default errors)
+  # `templates` carries the wording the product ships inside its five built-in
+  # retrospective templates. It is a domain of its own so that text can be
+  # reviewed as a set, apart from interface chrome.
+  @domains ~w(default errors templates)
 
   defp catalogues do
     for locale <- @locales, domain <- @domains do

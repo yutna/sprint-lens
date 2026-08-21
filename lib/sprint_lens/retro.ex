@@ -22,6 +22,7 @@ defmodule SprintLens.Retro do
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.Session
   alias SprintLens.Teams
+  alias SprintLens.Teams.BuiltinTemplates
   alias SprintLens.Teams.Team
   alias SprintLens.Teams.Template
   alias SprintLens.Webhooks
@@ -193,19 +194,20 @@ defmodule SprintLens.Retro do
   end
 
   # A session with no template still gets a board: an empty one would leave
-  # participants with nowhere to write (FR-917).
-  @fallback_columns [
-    %{"name" => "Went well", "hint" => nil},
-    %{"name" => "To improve", "hint" => nil},
-    %{"name" => "Actions", "hint" => nil}
-  ]
-
-  defp template_columns(_team, nil), do: {:ok, Column.attrs_from_template(@fallback_columns)}
+  # participants with nowhere to write (FR-917). Those headings are the
+  # product's own words, so they are marked as such and translated on the same
+  # terms as a built-in template's (FR-906).
+  defp template_columns(_team, nil) do
+    {:ok, Column.attrs_from_template(BuiltinTemplates.fallback_columns(), true)}
+  end
 
   defp template_columns(team, template_id) do
     case Teams.fetch_template(team, template_id) do
-      {:ok, %Template{columns: columns}} -> {:ok, Column.attrs_from_template(columns)}
-      {:error, :not_found} -> {:error, :not_found}
+      {:ok, %Template{columns: columns, is_builtin: builtin?}} ->
+        {:ok, Column.attrs_from_template(columns, builtin?)}
+
+      {:error, :not_found} ->
+        {:error, :not_found}
     end
   end
 
@@ -485,7 +487,15 @@ defmodule SprintLens.Retro do
       timer: timer_payload(session, now),
       columns:
         Enum.map(session.columns, fn column ->
-          %{id: column.id, name: column.name, hint: column.hint, position: column.position}
+          %{
+            id: column.id,
+            name: column.name,
+            hint: column.hint,
+            position: column.position,
+            # Carried so the client can tell our wording from the team's and
+            # translate only the former (FR-906, FR-909).
+            from_builtin: column.from_builtin
+          }
         end)
     }
   end

@@ -16,6 +16,7 @@ defmodule SprintLensWeb.SearchLive.Index do
 
   alias SprintLens.Insights
   alias SprintLens.Teams
+  alias SprintLensWeb.TemplateText
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -82,7 +83,7 @@ defmodule SprintLensWeb.SearchLive.Index do
                 navigate={~p"/sessions/#{card.column.session_id}/recap"}
                 class="text-xs opacity-70 hover:underline"
               >
-                {card.column.session.title} · {card.column.name}
+                {card.column.session.title} · {TemplateText.column_name(card.column)}
               </.link>
             </li>
           </ul>
