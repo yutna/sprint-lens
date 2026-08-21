@@ -17,7 +17,13 @@ defmodule SprintLensWeb.UserLive.Registration do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope} locale={@locale} theme={@theme}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      locale={@locale}
+      theme={@theme}
+      current_path={@current_path}
+    >
       <div class="mx-auto max-w-sm">
         <div class="text-center">
           <.header>

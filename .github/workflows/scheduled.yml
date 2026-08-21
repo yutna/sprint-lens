@@ -31,6 +31,9 @@ jobs:
           version-file: .tool-versions
           version-type: strict
 
+      # No comments in .tool-versions: erlef/setup-beam tolerates them,
+      # actions/setup-node reads the first line as the version and fails with
+      # "Unable to find Node version '#'".
       - uses: actions/setup-node@v4
         with:
           node-version-file: .tool-versions

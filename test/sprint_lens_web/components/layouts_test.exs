@@ -84,15 +84,58 @@ defmodule SprintLensWeb.LayoutsTest do
     end
 
     @tag req: ["FR-914"]
-    test "every option is a real button, so it is keyboard operable" do
+    test "every option is a link, so it is keyboard operable and works without JavaScript" do
       html = render_component(&Layouts.theme_toggle/1, %{})
 
-      assert html |> String.split("<button") |> length() == 4
+      assert html |> String.split("<a ") |> length() == 4
     end
 
     @tag req: ["FR-910"]
-    test "dispatches the theme event the client script listens for" do
-      assert render_component(&Layouts.theme_toggle/1, %{}) =~ "phx:set-theme"
+    test "each option navigates to the controller that stores the choice" do
+      html = render_component(&Layouts.theme_toggle/1, %{current_path: "/teams/7"})
+
+      assert html =~ ~s(href="/theme/light?return_to=%2Fteams%2F7")
+      assert html =~ ~s(href="/theme/dark?return_to=%2Fteams%2F7")
+      assert html =~ ~s(href="/theme/system?return_to=%2Fteams%2F7")
+    end
+
+    # Not `aria-current`: the phase bar and the discussion focus already use
+    # it, and both suites find the active phase by taking the first
+    # `[aria-current="true"]` in the document. This sits above them.
+    @tag req: ["FR-910"]
+    test "the active option says so in text rather than only in colour" do
+      html = render_component(&Layouts.theme_toggle/1, %{theme: "dark"})
+
+      assert html =~ ~s(aria-label="Dark theme, current")
+      refute html =~ "aria-current"
+    end
+  end
+
+  describe "language_switcher/1" do
+    @tag req: ["FR-907"]
+    test "offers every supported language as a link back to the current page" do
+      html = render_component(&Layouts.language_switcher/1, %{current_path: "/sessions/3"})
+
+      assert html =~ ~s(href="/locale/th?return_to=%2Fsessions%2F3")
+      assert html =~ ~s(href="/locale/en?return_to=%2Fsessions%2F3")
+    end
+
+    # The whole point of the change: a link works on a controller-rendered
+    # page, and `JS.push` did not.
+    @tag req: ["FR-907"]
+    test "pushes no LiveView event, so it works where there is no live process" do
+      html = render_component(&Layouts.language_switcher/1, %{})
+
+      refute html =~ "phx-click"
+      refute html =~ "set_language"
+    end
+
+    @tag req: ["FR-907"]
+    test "the active language is announced, not only highlighted" do
+      html = render_component(&Layouts.language_switcher/1, %{locale: "en"})
+
+      assert html =~ ~s(class="sr-only">current</span>)
+      refute html =~ "aria-current"
     end
   end
 end

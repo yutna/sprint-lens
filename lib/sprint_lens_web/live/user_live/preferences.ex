@@ -15,7 +15,13 @@ defmodule SprintLensWeb.UserLive.Preferences do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope} locale={@locale} theme={@theme}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      locale={@locale}
+      theme={@theme}
+      current_path={@current_path}
+    >
       <.header>
         {gettext("Preferences")}
         <:subtitle>{gettext("How you appear, and how the app appears to you.")}</:subtitle>

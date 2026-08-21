@@ -12,8 +12,10 @@ defmodule SprintLensWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
     # After the scope, so a signed-in user's saved language wins over the
-    # browser's header (FR-907).
+    # browser's header (FR-907), and their saved theme over the session
+    # (FR-911).
     plug SprintLensWeb.Plugs.Locale
+    plug SprintLensWeb.Plugs.Theme
     plug SprintLensWeb.Plugs.RequestContext
   end
 
@@ -34,7 +36,12 @@ defmodule SprintLensWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    # Both switchers are ordinary links. They have to be: a pushed event needs
+    # a live process, and the landing page, the development routes and the
+    # error pages have none, so the click died silently on every one of them.
     get "/locale/:language", LocaleController, :update
+    get "/theme/:theme", ThemeController, :update
   end
 
   scope "/api/v1", SprintLensWeb.Api.V1 do

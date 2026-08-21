@@ -11,7 +11,7 @@ defmodule SprintLensWeb.UserLive.Confirmation do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app flash={@flash} current_scope={@current_scope} current_path={@current_path}>
       <div class="mx-auto max-w-sm">
         <div class="text-center">
           <.header>{gettext("Welcome, %{name}", name: @user.display_name)}</.header>

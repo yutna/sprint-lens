@@ -15,7 +15,7 @@ defmodule SprintLensWeb.UserLive.Settings do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app flash={@flash} current_scope={@current_scope} current_path={@current_path}>
       <div class="text-center">
         <.header>
           {gettext("Account settings")}

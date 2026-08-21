@@ -23,7 +23,13 @@ defmodule SprintLensWeb.SessionLive.Recap do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope} locale={@locale} theme={@theme}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      locale={@locale}
+      theme={@theme}
+      current_path={@current_path}
+    >
       <.header>
         {@session.title}
         <:subtitle>

@@ -1,4 +1,10 @@
-<Layouts.app flash={@flash} current_scope={@current_scope} locale={@locale}>
+<Layouts.app
+  flash={@flash}
+  current_scope={@current_scope}
+  locale={@locale}
+  theme={@theme}
+  current_path={@conn.request_path}
+>
   <div class="mx-auto max-w-2xl py-10 text-center">
     <.header>
       {gettext("Retrospectives your team actually acts on")}

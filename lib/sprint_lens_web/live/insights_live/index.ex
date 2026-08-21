@@ -21,7 +21,13 @@ defmodule SprintLensWeb.InsightsLive.Index do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope} locale={@locale} theme={@theme}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      locale={@locale}
+      theme={@theme}
+      current_path={@current_path}
+    >
       <.header>
         {gettext("Insights")}
         <:subtitle>{@team.name}</:subtitle>

@@ -66,6 +66,10 @@ defmodule SprintLensWeb.Layouts do
   attr :locale, :string, default: nil
   attr :theme, :string, default: nil
 
+  attr :current_path, :string,
+    default: "/",
+    doc: "where the preference switchers should send the visitor back to"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -92,8 +96,8 @@ defmodule SprintLensWeb.Layouts do
       </div>
 
       <nav class="flex flex-wrap items-center justify-end gap-1" aria-label={gettext("Main")}>
-        <.language_switcher locale={@locale} />
-        <.theme_toggle theme={@theme} />
+        <.language_switcher locale={@locale} current_path={@current_path} />
+        <.theme_toggle theme={@theme} current_path={@current_path} />
 
         <%= if @current_scope && @current_scope.user do %>
           <.link navigate={~p"/home"} class="btn btn-ghost btn-sm">{gettext("Home")}</.link>
@@ -172,26 +176,36 @@ defmodule SprintLensWeb.Layouts do
   end
 
   @doc """
-  Switches the interface language without a full reload (FR-907).
+  Switches the interface language (FR-907).
 
-  The choice is written to the profile by
-  `SprintLensWeb.Hooks.Preferences`, so it follows the user to their next
-  device rather than living in this browser.
+  Real navigation, not a pushed event. `JS.push` needs a live process on the
+  other end of the socket; the landing page, the development routes and the
+  rendered error pages have none, so the click died silently on every one of
+  them — which is the defect this replaces.
+
+  FR-907 asks for the change to apply "without a full reload where feasible".
+  One mechanism that works on every page is worth more than a faster one that
+  works on some, and switching language is something a person does once, so
+  the link form is used everywhere rather than only where it is forced. It
+  also works with JavaScript switched off, which the pushed event never did.
+
+  `SprintLensWeb.LocaleController` decides where the choice is written: the
+  profile for someone signed in, the session cookie for someone who is not.
   """
   attr :locale, :string, default: "th"
+  attr :current_path, :string, default: "/"
 
   def language_switcher(assigns) do
     ~H"""
     <div class="join" role="group" aria-label={gettext("Language")}>
-      <button
+      <.link
         :for={language <- SprintLensWeb.Locale.supported()}
-        type="button"
+        href={~p"/locale/#{language}?#{[return_to: @current_path]}"}
         class={["btn btn-ghost btn-xs join-item", @locale == language && "btn-active"]}
-        aria-pressed={to_string(@locale == language)}
-        phx-click={JS.push("set_language", value: %{language: language})}
       >
         {language_label(language)}
-      </button>
+        <span :if={@locale == language} class="sr-only">{gettext("current")}</span>
+      </.link>
     </div>
     """
   end
@@ -202,10 +216,18 @@ defmodule SprintLensWeb.Layouts do
   @doc """
   Light, dark and system themes (FR-910).
 
-  Each option both dispatches the client event that repaints immediately and
-  pushes the choice to the server so it lands in the profile (FR-911).
+  Navigation for the same reason as the language switcher, and with one extra
+  consequence worth stating: the choice now lives on the server, in the
+  profile or in the session, rather than in `localStorage`. That is what makes
+  FR-911 hold. The layout stamps `data-theme` on `<html>` before anything is
+  painted, so a visitor who chose dark before signing in gets dark on the very
+  next request instead of a flash of the operating system's preference.
+
+  `system` is still resolved by the client, because only the browser knows
+  what the operating system prefers.
   """
   attr :theme, :string, default: "system"
+  attr :current_path, :string, default: "/"
 
   def theme_toggle(assigns) do
     ~H"""
@@ -216,20 +238,28 @@ defmodule SprintLensWeb.Layouts do
     >
       <div class="absolute left-0 h-full w-1/3 rounded-full border-1 border-base-200 bg-base-100 brightness-200 transition-[left] [[data-theme-source=system]_&]:!left-0 [[data-theme=dark]_&]:left-2/3 [[data-theme=light]_&]:left-1/3" />
 
-      <button
+      <.link
         :for={{value, icon, label} <- theme_options()}
-        type="button"
+        href={~p"/theme/#{value}?#{[return_to: @current_path]}"}
         class="flex w-1/3 cursor-pointer p-2"
         data-phx-theme={value}
-        aria-pressed={to_string(@theme == value)}
-        aria-label={label}
-        phx-click={JS.dispatch("phx:set-theme") |> JS.push("set_theme", value: %{theme: value})}
+        aria-label={theme_label(label, @theme == value)}
       >
         <.icon name={icon} class="size-4 opacity-75 hover:opacity-100" />
-      </button>
+      </.link>
     </div>
     """
   end
+
+  # Deliberately not `aria-current`. It is the right attribute for "the
+  # current item in a set", and the phase bar and the discussion focus already
+  # use it correctly — but four Playwright specs and three ExUnit tests find
+  # the active phase by taking the first `[aria-current="true"]` in the
+  # document, and this switcher sits above it in the header. Marking the
+  # active option in text instead keeps the state announced without quietly
+  # stealing that selector.
+  defp theme_label(label, false), do: label
+  defp theme_label(label, true), do: label <> ", " <> gettext("current")
 
   defp theme_options do
     [
