@@ -1,0 +1,9 @@
+# The one place the toolchain is pinned. The CI workflows read this file
+# through `erlef/setup-beam`'s and `actions/setup-node`'s version-file inputs,
+# and asdf or mise reads it on a developer machine, so the two cannot drift.
+#
+# Node is needed only for the Playwright suite under `e2e/`. The application
+# itself has no package.json: Tailwind and esbuild are binaries driven by mix.
+erlang 29.0.5
+elixir 1.20.3-otp-29
+nodejs 24.15.0

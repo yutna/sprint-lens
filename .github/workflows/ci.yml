@@ -1,0 +1,108 @@
+# The change gate. This is the workflow that decides whether a change is
+# allowed in, and it is deliberately thin: almost all of it is `mix ci`, the
+# same alias a developer runs locally.
+name: change gate
+
+on:
+  # Every push and every pull request, per docs/plans/06-github-actions-ci.md.
+  # A same-repo pull request therefore gets two runs — one for the branch push
+  # and one for the pull request. If that ever becomes expensive, the knob is
+  # narrowing `push` to `[main]`; it is left wide so that a branch pushed
+  # without a pull request is still gated.
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: mix ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Restore deps and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: mix-test-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            mix-test-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-
+
+      # Dialyzer's lookup tables live under priv/plts, which git ignores.
+      # Without a cache every run rebuilds them from scratch and the job stops
+      # being useful. The prefix fallback matters as much as the key: a lock
+      # file change then reuses most of the previous table instead of starting
+      # over.
+      - name: Restore dialyzer PLT
+        uses: actions/cache@v4
+        with:
+          path: priv/plts
+          key: plt-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            plt-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-
+
+      - name: Fetch dependencies
+        run: mix deps.get --check-locked
+
+      - run: mkdir -p priv/plts
+
+      # One step on purpose. `mix ci` is the definition of the gate and it is
+      # what a developer runs locally; decomposing it here would let the two
+      # drift apart. A failure inside it is already legible from the log.
+      - name: Run the gate
+        run: mix ci
+
+      # `mix ci` ends with `sprint_lens.trace --write`, which rewrites
+      # docs/traceability.md — a tracked file. A dirty tree after a successful
+      # run means the committed report is stale. We fail rather than commit
+      # from the workflow, so the report stays part of the reviewable diff.
+      - name: Fail on traceability drift
+        run: |
+          if ! git diff --exit-code --stat; then
+            echo "::error title=Traceability report is stale::docs/traceability.md changed when the gate regenerated it. Run 'mix ci' locally and commit the result."
+            exit 1
+          fi
+
+  e2e-lint:
+    # The TypeScript under e2e/ is not covered by .formatter.exs, which knows
+    # only Elixir and HEEx. It is checked here rather than inside `mix ci` so
+    # that the application's gate stays free of a Node dependency; the local
+    # equivalent is `npm run check` in e2e/.
+    name: e2e lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Install
+        working-directory: e2e
+        run: npm ci
+
+      - name: Check
+        working-directory: e2e
+        run: npm run check

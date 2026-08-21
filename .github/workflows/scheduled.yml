@@ -1,0 +1,62 @@
+# Weekly maintenance. This catches the decay no pull request touches: an
+# upstream browser update, a dependency advisory, a test that is only flaky
+# over time. It runs the full acceptance gate, not just the change gate.
+name: scheduled maintenance
+
+on:
+  schedule:
+    # Monday 03:00 UTC, which is a quiet hour in every timezone this project
+    # is worked in.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: mix verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .tool-versions
+
+      # Deliberately uncached. The point of this run is to find decay, and a
+      # warm cache hides exactly the kind of decay it is looking for.
+      - name: Fetch dependencies
+        run: mix deps.get
+
+      - run: mkdir -p priv/plts
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: npm ci
+
+      - name: Install browsers
+        working-directory: e2e
+        run: npx playwright install --with-deps
+
+      - name: Run the acceptance gate
+        run: mix verify
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 30

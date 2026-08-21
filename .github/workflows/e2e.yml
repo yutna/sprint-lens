@@ -1,0 +1,99 @@
+# The Playwright acceptance suite. Kept out of the change gate because it is
+# slower and needs browsers; a failure here is a real failure, not a warning.
+name: end to end
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: mix e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Restore deps and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: mix-e2e-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            mix-e2e-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-
+
+      - name: Restore Playwright browsers
+        uses: actions/cache@v4
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Fetch dependencies
+        run: mix deps.get --check-locked
+
+      # The Tailwind and esbuild binaries the e2e asset build shells out to.
+      - name: Install asset tooling
+        run: MIX_ENV=e2e mix assets.setup
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: npm ci
+
+      - name: Install browsers
+        working-directory: e2e
+        run: npx playwright install --with-deps
+
+      # `mix e2e` migrates a throwaway database, builds the assets and runs the
+      # suite. It does NOT need the server started here: the Playwright config
+      # owns the server, boots it itself and waits on the health endpoint.
+      # Starting one in a separate step would conflict with that.
+      #
+      # The server's output is piped into this log by the Playwright config, so
+      # a boot failure shows up as its real cause rather than only as a timeout
+      # waiting on /api/v1/health.
+      - name: Run the suite
+        run: mix e2e
+
+      # The suite is configured to keep a trace, a screenshot and a video on
+      # failure. They are the only way to debug a failure that does not
+      # reproduce locally, so they must leave the runner.
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 14
+
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: e2e/test-results/
+          retention-days: 14
