@@ -51,6 +51,11 @@ defmodule SprintLens.Retro.Vote do
     |> foreign_key_constraint(:session_id)
     |> foreign_key_constraint(:card_id)
     |> foreign_key_constraint(:card_group_id)
+    # Twice, because the two adapters name the same index differently. SQLite
+    # does not put the index name in its error, so `ecto_sqlite3` reconstructs
+    # one from the table and the columns; PostgreSQL reports the real name.
+    # Declaring both is what makes the violation a changeset error on either.
+    |> unique_constraint([:session_id, :client_request_id], name: :votes_idempotency)
     |> unique_constraint([:session_id, :client_request_id])
   end
 

@@ -27,14 +27,34 @@ defmodule SprintLens.ApplicationTest do
       assert is_pid(Oban.whereis(Oban))
     end
 
+    # NFR-402 asks that a mutation is only acknowledged once it is durable.
+    # Both databases can promise that; they promise it with different words,
+    # so the assertion has to follow the adapter rather than assume one.
     @tag req: ["NFR-402"]
-    test "SQLite is configured for durability and for waiting rather than failing" do
+    test "the database is configured for durability, in its own terms" do
       config = Application.fetch_env!(:sprint_lens, SprintLens.Repo)
 
-      assert config[:journal_mode] == :wal
-      assert config[:foreign_keys] == :on
-      assert config[:busy_timeout] >= 5_000
-      assert config[:default_transaction_mode] == :immediate
+      if SprintLens.Repo.sqlite?() do
+        # Write-ahead logging with a full sync, foreign keys actually
+        # enforced, and a writer that waits rather than failing.
+        # Not `synchronous`: the test environment turns it off on purpose,
+        # because the sandbox wraps every test in a transaction that is rolled
+        # back and durability of a discarded write buys nothing.
+        assert config[:journal_mode] == :wal
+        assert config[:foreign_keys] == :on
+        assert config[:busy_timeout] >= 5_000
+        assert config[:default_transaction_mode] == :immediate
+      else
+        # PostgreSQL commits synchronously and enforces foreign keys without
+        # being asked, so durability is the server's default rather than
+        # something the client configures. What the client must not do is
+        # carry SQLite's settings across: the adapter rejects every one of
+        # them, so their absence is the assertion.
+        for pragma <- [:journal_mode, :synchronous, :foreign_keys, :busy_timeout] do
+          refute Keyword.has_key?(config, pragma),
+                 "#{pragma} is a SQLite pragma and PostgreSQL will refuse it"
+        end
+      end
     end
   end
 

@@ -11,6 +11,7 @@ defmodule SprintLens.Accounts.User do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2, where: 3]
 
   alias SprintLens.Changesets
 
@@ -55,6 +56,22 @@ defmodule SprintLens.Accounts.User do
   """
   @spec themes() :: [String.t()]
   def themes, do: @themes
+
+  @doc """
+  One user by email address, case-insensitively.
+
+  The database used to answer this with a `NOCASE` collation on the column,
+  which is SQLite's and which PostgreSQL does not have. The unique index is on
+  `lower(email)` now, and a lookup that does not lowercase would miss rows the
+  index already considers duplicates — so this is the only way in, and the
+  uniqueness check below uses it too.
+  """
+  @spec by_email(String.t()) :: Ecto.Query.t()
+  def by_email(email) do
+    downcased = String.downcase(email)
+
+    from u in __MODULE__, where: fragment("lower(?)", u.email) == ^downcased
+  end
 
   @doc """
   A user changeset for registering or changing the email.
@@ -155,12 +172,43 @@ defmodule SprintLens.Accounts.User do
 
     if Keyword.get(opts, :validate_unique, true) do
       changeset
-      |> unsafe_validate_unique(:email, SprintLens.Repo)
+      |> validate_email_available()
       |> unique_constraint(:email)
       |> validate_email_changed()
     else
       changeset
     end
+  end
+
+  # `unsafe_validate_unique/3` compares with `==`, which stopped meaning what
+  # it used to the moment the collation went: on PostgreSQL it would let
+  # "Somchai@example.com" through the form and then fail on the index. The
+  # index is on the lower-cased value, so the check has to be as well.
+  #
+  # Same purpose as before — telling someone their address is taken while they
+  # are still typing, rather than after they submit.
+  defp validate_email_available(changeset) do
+    case get_change(changeset, :email) do
+      nil ->
+        changeset
+
+      email ->
+        if taken?(email, get_field(changeset, :id)) do
+          add_error(changeset, :email, "has already been taken",
+            validation: :unsafe_unique,
+            fields: [:email]
+          )
+        else
+          changeset
+        end
+    end
+  end
+
+  defp taken?(email, id) do
+    query = by_email(email)
+    query = if id, do: where(query, [u], u.id != ^id), else: query
+
+    SprintLens.Repo.exists?(query)
   end
 
   defp validate_email_changed(changeset) do

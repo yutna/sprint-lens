@@ -24,7 +24,7 @@ defmodule SprintLens.Teams.Template do
   schema "retro_templates" do
     field :name, :string
     field :is_builtin, :boolean, default: false
-    field :columns, {:array, :map}, default: []
+    field :columns, SprintLens.Types.JsonList, default: []
 
     belongs_to :team, Team
 

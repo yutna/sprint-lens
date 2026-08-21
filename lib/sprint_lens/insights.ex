@@ -246,10 +246,30 @@ defmodule SprintLens.Insights do
     |> Map.new()
   end
 
-  # SQLite's `avg()` comes back as a float, and never as nil: a group only
-  # exists because it has rows in it. A session nobody answered has no row
-  # here at all, which is what leaves the gap in the trend.
-  defp round_average(average), do: Float.round(average, 2)
+  # An average is never nil here: a group only exists because it has rows in
+  # it, and a session nobody answered has no row at all — which is what leaves
+  # the gap in the trend rather than a zero. What it *is* depends on the
+  # database, which `Repo.to_float/1` is where we stop caring about.
+  defp round_average(average), do: average |> Repo.to_float() |> Float.round(2)
+
+  # Case-insensitive substring matching, in whichever spelling this database
+  # understands.
+  #
+  # SQLite's `LIKE` ignores case for ASCII; PostgreSQL's does not, and needs
+  # `ILIKE`. Nothing raises when this is wrong. A search simply stops finding
+  # things — "deploys" no longer matches "Deploys are slow" — and a search
+  # that quietly returns less looks like missing data rather than a bug, which
+  # is why the branch is explicit and both spellings are covered by the same
+  # tests running on both adapters.
+  #
+  # The substring match itself is not an adapter decision and is not up for
+  # revision: full-text search is not usable here because every tokeniser
+  # splits on whitespace and Thai does not have any.
+  @match_sql "? #{SprintLens.Repo.like_operator()} ? ESCAPE '\\'"
+
+  defmacrop matches(column, pattern) do
+    quote do: fragment(unquote(@match_sql), unquote(column), unquote(pattern))
+  end
 
   # `%` and `_` are wildcards to SQL, so a search for a literal one has to say
   # so — otherwise typing `%` matches everything the team ever wrote.
@@ -277,7 +297,7 @@ defmodule SprintLens.Insights do
         join: s in Session,
         on: s.id == col.session_id,
         where: s.team_id == ^team.id and s.state == "closed",
-        where: fragment("? LIKE ? ESCAPE '\\'", c.text, ^pattern),
+        where: matches(c.text, ^pattern),
         order_by: [desc: s.closed_at, asc: c.id],
         preload: [column: {col, session: s}]
     )
@@ -289,7 +309,7 @@ defmodule SprintLens.Insights do
         join: s in Session,
         on: s.id == n.session_id,
         where: s.team_id == ^team.id and s.state == "closed",
-        where: fragment("? LIKE ? ESCAPE '\\'", n.body, ^pattern),
+        where: matches(n.body, ^pattern),
         order_by: [desc: s.closed_at, asc: n.id],
         preload: [session: s]
     )
@@ -302,9 +322,7 @@ defmodule SprintLens.Insights do
     Repo.all(
       from a in ActionItem,
         where: a.team_id == ^team.id,
-        where:
-          fragment("? LIKE ? ESCAPE '\\'", a.title, ^pattern) or
-            fragment("? LIKE ? ESCAPE '\\'", a.description, ^pattern),
+        where: matches(a.title, ^pattern) or matches(a.description, ^pattern),
         order_by: [desc: a.inserted_at, asc: a.id],
         preload: [:assignee, :session]
     )

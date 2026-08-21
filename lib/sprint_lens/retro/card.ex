@@ -55,6 +55,11 @@ defmodule SprintLens.Retro.Card do
     |> cast(attrs, [:column_id, :author_id, :text, :position, :client_request_id])
     |> validate_required([:column_id, :text, :position])
     |> validate_text()
+    # Twice, because the two adapters name the same index differently. SQLite
+    # does not put the index name in its error, so `ecto_sqlite3` reconstructs
+    # one from the table and the columns; PostgreSQL reports the real name.
+    # Declaring both is what makes the violation a changeset error on either.
+    |> unique_constraint([:column_id, :client_request_id], name: :cards_idempotency)
     |> unique_constraint([:column_id, :client_request_id])
   end
 

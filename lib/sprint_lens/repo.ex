@@ -39,6 +39,32 @@ defmodule SprintLens.Repo do
   @spec postgres?() :: boolean()
   def postgres?, do: not @sqlite?
 
+  @like_operator if @sqlite?, do: "LIKE", else: "ILIKE"
+
+  @doc """
+  How this database spells a case-insensitive pattern match.
+
+  SQLite's `LIKE` already ignores case for ASCII; PostgreSQL's does not and
+  needs `ILIKE`. Resolved here so the difference is named once instead of
+  branched over at each of the four places that search.
+  """
+  @spec like_operator() :: String.t()
+  def like_operator, do: @like_operator
+
+  @doc """
+  Whatever a database returned for an average, as a float.
+
+  `avg()` over an integer column is a float on SQLite and a decimal on
+  PostgreSQL, and `Float.round/2` has no clause for a decimal — which was a
+  raise on the insights screen, a page a person opens rather than a background
+  job. Converted once, here at the boundary, so nothing further in has to know
+  which database it is talking to.
+  """
+  @spec to_float(Decimal.t() | float() | integer()) :: float()
+  def to_float(%Decimal{} = value), do: Decimal.to_float(value)
+  def to_float(value) when is_float(value), do: value
+  def to_float(value) when is_integer(value), do: value * 1.0
+
   @doc """
   `get/2` for an id that arrived in a URL.
 

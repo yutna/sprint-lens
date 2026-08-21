@@ -97,14 +97,15 @@ defmodule SprintLens.AITest do
     on_exit(fn -> :telemetry.detach(handler) end)
   end
 
+  # Filtered in Elixir rather than in SQL. `json_extract` is SQLite's; asking
+  # PostgreSQL for it is an undefined function, and a test suite that only
+  # runs against one of the two databases is not testing the other.
   defp queued_args(suggestion) do
-    Repo.one!(
-      from j in Oban.Job,
-        where: fragment("json_extract(?, '$.suggestion_id')", j.args) == ^suggestion.id,
-        order_by: [desc: j.id],
-        limit: 1,
-        select: j.args
-    )
+    args =
+      Repo.all(from j in Oban.Job, order_by: [desc: j.id], select: j.args)
+
+    Enum.find(args, &(&1["suggestion_id"] == suggestion.id)) ||
+      flunk("no job was queued for suggestion #{suggestion.id}")
   end
 
   describe "whether AI is available at all (AI-001, AI-003)" do

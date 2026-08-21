@@ -58,14 +58,22 @@ defmodule SprintLens.Repo.Migrations.CreateAdminTables do
   defp seed_settings do
     now = DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_naive()
 
+    # `insert_all` against a bare table name has no schema to tell it how to
+    # dump a boolean. SQLite needs the integer — given `true` it stores the
+    # string "true", which then fails to load as a boolean. PostgreSQL needs
+    # the boolean and refuses the integer outright. So the value follows the
+    # adapter, which is the sort of branch the dual-adapter rule allows as
+    # long as it says so out loud.
+    truth = if repo().__adapter__() == Ecto.Adapters.SQLite3, do: 1, else: true
+
     repo().insert_all("org_settings", [
       %{
         id: 1,
         default_language: @default_language,
         default_vote_budget: @default_vote_budget,
         retention_days: @default_retention_days,
-        ai_enabled: 1,
-        webhooks_enabled: 1,
+        ai_enabled: truth,
+        webhooks_enabled: truth,
         inserted_at: now,
         updated_at: now
       }

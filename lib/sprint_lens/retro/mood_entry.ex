@@ -67,6 +67,14 @@ defmodule SprintLens.Retro.MoodEntry do
     # FR-211 asks for "an optional one-word note", so the field is short by
     # design rather than a free-text box in disguise.
     |> validate_length(:word, max: 40)
+    # Twice, because the two adapters name the same index differently. SQLite
+    # does not put the index name in its error, so `ecto_sqlite3` reconstructs
+    # one from the table and the columns; PostgreSQL reports the real name.
+    # Declaring both is what makes the violation a changeset error on either.
+    |> unique_constraint([:session_id, :user_id, :kind],
+      name: :mood_entries_one_per_person,
+      message: "has already been answered"
+    )
     |> unique_constraint([:session_id, :user_id, :kind],
       message: "has already been answered"
     )

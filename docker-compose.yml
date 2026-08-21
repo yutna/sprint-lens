@@ -1,0 +1,39 @@
+# The development PostgreSQL, and nothing else.
+#
+# SQLite is the default for development and test and needs no setup at all;
+# this exists for the times you want to run against the database production
+# actually uses — before changing a migration, or to reproduce something that
+# only happens on PostgreSQL.
+#
+#     docker compose up -d
+#     DATABASE_ADAPTER=postgres mix ecto.setup
+#     DATABASE_ADAPTER=postgres mix phx.server
+#
+# `DATABASE_ADAPTER` is read at compile time, so a build made without it stays
+# on SQLite no matter what is running here.
+#
+# This is not how the application is deployed. The deployment guides are in
+# docs/, and they bring their own compose file.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: sprint_lens_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # The databases themselves are created by `mix ecto.create`, one per
+      # environment, so only the cluster is set up here.
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

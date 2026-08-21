@@ -59,14 +59,19 @@ defmodule SprintLens.Repo.Migrations.SeedBuiltinTemplates do
   def up do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
+    # `insert_all` against a bare table name has no schema to tell it how to
+    # dump a boolean. SQLite needs the integer — given `true` it stores the
+    # string "true", which then fails to load as a boolean. PostgreSQL needs
+    # the boolean and refuses the integer outright. So the value follows the
+    # adapter, which is the sort of branch the dual-adapter rule allows as
+    # long as it says so out loud.
+    truth = if repo().__adapter__() == Ecto.Adapters.SQLite3, do: 1, else: true
+
     entries =
       Enum.map(@templates, fn {name, columns} ->
         %{
           name: name,
-          # 1, not `true`: `insert_all` against a bare table name has no
-          # schema to tell it how to dump a boolean, and would store the
-          # string "true" — which then fails to load as a boolean.
-          is_builtin: 1,
+          is_builtin: truth,
           team_id: nil,
           columns: encode(columns),
           inserted_at: now,

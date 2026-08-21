@@ -237,7 +237,7 @@ defmodule SprintLens.Teams do
           {:ok, Membership.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
   def add_member_by_email(actor, %Team{} = team, email, role \\ "member") do
     authorized(actor, team, :manage_members, fn ->
-      case Repo.get_by(User, email: String.trim(email || "")) do
+      case email |> to_string() |> String.trim() |> User.by_email() |> Repo.one() do
         nil ->
           # Reported on the invite changeset, which has an `email` field, so
           # the form can put the message next to the input the person typed

@@ -121,7 +121,20 @@ defmodule SprintLens.Actions.ActionItem do
     ])
     |> validate_required([:team_id])
     |> shared_validations()
+    # Each of these is declared twice, under both names the databases use for
+    # it. The migration gave the index a name that says what it means; Ecto
+    # derives a different one from the table and the fields, and which of the
+    # two comes back depends on the adapter. SQLite does not put the index
+    # name in its error at all, so `ecto_sqlite3` reconstructs the derived
+    # one; PostgreSQL reports the real one.
+    #
+    # Only the derived name was declared before, so on PostgreSQL nothing
+    # matched and what should have been a changeset error was a raise. FR-505's
+    # "carried once" was holding by accident on one database and not at all on
+    # the other.
+    |> unique_constraint([:team_id, :client_request_id], name: :action_items_idempotency)
     |> unique_constraint([:team_id, :client_request_id])
+    |> unique_constraint(:carried_from_id, name: :action_items_carried_once)
     |> unique_constraint(:carried_from_id)
   end
 

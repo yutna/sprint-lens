@@ -41,7 +41,9 @@ defmodule SprintLens.Repo.Migrations.CreateTeamsAndTemplates do
       add :is_builtin, :boolean, null: false, default: false
       # A list of %{"name" => ..., "hint" => ...}, two to six entries
       # (FR-202). Stored as JSON because columns are only ever read and
-      # written as a whole layout.
+      # written as a whole layout, and as text rather than as a database's own
+      # JSON type so that both adapters store the same bytes. The encoding is
+      # `SprintLens.Types.JsonList`'s job, not the adapter's.
       add :columns, :text, null: false
 
       timestamps(type: :utc_datetime)
@@ -49,8 +51,12 @@ defmodule SprintLens.Repo.Migrations.CreateTeamsAndTemplates do
 
     create index(:retro_templates, [:team_id])
 
+    # The condition names the column and stops there. `is_builtin = 1` is
+    # true on SQLite, where a boolean is an integer, and a type error on
+    # PostgreSQL, where it is a boolean — and a partial index is not something
+    # you notice missing until two built-in templates share a name.
     create unique_index(:retro_templates, [:name],
-             where: "is_builtin = 1",
+             where: "is_builtin",
              name: :builtin_template_name
            )
   end

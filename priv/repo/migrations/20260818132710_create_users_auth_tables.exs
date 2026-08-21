@@ -12,7 +12,7 @@ defmodule SprintLens.Repo.Migrations.CreateUsersAuthTables do
 
   def change do
     create table(:users) do
-      add :email, :string, null: false, collate: :nocase
+      add :email, :string, null: false
       add :hashed_password, :string
       add :confirmed_at, :utc_datetime
 
@@ -29,11 +29,20 @@ defmodule SprintLens.Repo.Migrations.CreateUsersAuthTables do
       timestamps(type: :utc_datetime)
     end
 
-    create unique_index(:users, [:email])
+    # On the lower-cased value, not on a case-insensitive collation. The
+    # collation this used to name is SQLite's own and PostgreSQL has none by
+    # that name, so a fresh production database could not be created at all.
+    # An expression index works on both and needs no extension — but it only
+    # holds if every lookup lowercases too, which is why
+    # `SprintLens.Accounts.User.by_email/1` exists and is the only way in.
+    create unique_index(:users, ["lower(email)"], name: :users_email_index)
 
     create table(:users_tokens) do
       add :user_id, references(:users, on_delete: :delete_all), null: false
-      add :token, :binary, null: false, size: 32
+      # No `size: 32`. PostgreSQL's binary type takes no modifier and refuses
+      # the table outright; on SQLite the modifier was advisory and did
+      # nothing. The length is enforced where it is generated.
+      add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string
       add :authenticated_at, :utc_datetime
