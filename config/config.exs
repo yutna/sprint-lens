@@ -28,7 +28,26 @@ config :sprint_lens,
 # the runtime needs a time zone database.
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
-# SQLite tuning shared by every environment.
+# Which database this build talks to. SQLite is the development and test
+# database, PostgreSQL is the supported production one, and the application
+# has to be correct on either (docs/plans/09).
+#
+# The choice is made here, once, and everything else in these files derives
+# from it. It is a compile-time decision because Ecto needs its adapter before
+# `SprintLens.Repo` exists — a release cannot be told at boot which database
+# it is for, only at build time:
+#
+#     DATABASE_ADAPTER=postgres mix release
+database_adapter =
+  case System.get_env("DATABASE_ADAPTER", "sqlite") do
+    "sqlite" -> Ecto.Adapters.SQLite3
+    "postgres" -> Ecto.Adapters.Postgres
+    other -> raise "DATABASE_ADAPTER must be sqlite or postgres, got #{inspect(other)}"
+  end
+
+config :sprint_lens, :database_adapter, database_adapter
+
+# SQLite tuning, and only for SQLite: PostgreSQL rejects every one of these.
 #
 # `synchronous: :full` is deliberate: NFR-402 says a mutation may only be
 # acknowledged once it is durable in the datastore. `:normal` (the adapter
@@ -38,24 +57,42 @@ config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 # board mutations read-then-write inside one transaction (vote budgets,
 # card positions), and a deferred transaction that upgrades to a writer can
 # fail with SQLITE_BUSY instead of waiting on `busy_timeout`.
-config :sprint_lens, SprintLens.Repo,
-  journal_mode: :wal,
-  synchronous: :full,
-  foreign_keys: :on,
-  busy_timeout: 5_000,
-  default_transaction_mode: :immediate,
-  cache_size: -64_000,
-  temp_store: :memory
+if database_adapter == Ecto.Adapters.SQLite3 do
+  config :sprint_lens, SprintLens.Repo,
+    journal_mode: :wal,
+    synchronous: :full,
+    foreign_keys: :on,
+    busy_timeout: 5_000,
+    default_transaction_mode: :immediate,
+    cache_size: -64_000,
+    temp_store: :memory
+end
 
-# Background jobs. `Oban.Engines.Lite` is the SQLite engine.
+# Background jobs.
 #   * webhook delivery with exponential backoff (FR-706)
 #   * scheduled retention purge (FR-803)
 #   * AI suggestion jobs (AI-005, AI-006)
+#
+# The engine and the notifier follow the adapter, and are published as their
+# own settings because three places need them: this block, and both database
+# case templates. They used to be written out in all three. A test template
+# left behind would exercise a different engine from the one the application
+# runs, and prove nothing while staying green.
+{oban_engine, oban_notifier} =
+  if database_adapter == Ecto.Adapters.Postgres do
+    {Oban.Engines.Basic, Oban.Notifiers.Postgres}
+  else
+    # SQLite has no `LISTEN`/`NOTIFY`, so job notifications travel over the
+    # cluster's process groups instead of the database.
+    {Oban.Engines.Lite, Oban.Notifiers.PG}
+  end
+
+config :sprint_lens, :oban_engine, oban_engine
+config :sprint_lens, :oban_notifier, oban_notifier
+
 config :sprint_lens, Oban,
-  engine: Oban.Engines.Lite,
-  # SQLite has no `LISTEN`/`NOTIFY`, so job notifications travel over the
-  # cluster's process groups instead of the database.
-  notifier: Oban.Notifiers.PG,
+  engine: oban_engine,
+  notifier: oban_notifier,
   repo: SprintLens.Repo,
   queues: [default: 5, webhooks: 5, retention: 1, ai: 2],
   plugins: [

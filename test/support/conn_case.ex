@@ -10,12 +10,21 @@ defmodule SprintLensWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  # The engine and the notifier follow the configured adapter. Read here, in
+  # the module body, because `Application.compile_env!/2` may not be called
+  # from inside a function and `use Oban.Testing` expands into one.
+  @oban_engine Application.compile_env!(:sprint_lens, :oban_engine)
+  @oban_notifier Application.compile_env!(:sprint_lens, :oban_notifier)
+
   using opts do
     if Keyword.get(opts, :async, false) do
       raise ArgumentError, """
       SprintLensWeb.ConnCase cannot run async — see SprintLens.DataCase for why.
       """
     end
+
+    engine = @oban_engine
+    notifier = @oban_notifier
 
     quote do
       # The default endpoint for testing
@@ -24,11 +33,13 @@ defmodule SprintLensWeb.ConnCase do
       use SprintLensWeb, :verified_routes
 
       # Same options as `SprintLens.DataCase`: a page that shows what a
-      # background job did has to be able to run one (FR-706).
+      # background job did has to be able to run one (FR-706), and the engine
+      # has to be the one the application is configured with rather than a
+      # copy that can fall behind it.
       use Oban.Testing,
         repo: SprintLens.Repo,
-        engine: Oban.Engines.Lite,
-        notifier: Oban.Notifiers.PG
+        engine: unquote(engine),
+        notifier: unquote(notifier)
 
       import Phoenix.ConnTest
       import Phoenix.LiveViewTest

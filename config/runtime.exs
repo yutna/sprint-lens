@@ -45,16 +45,40 @@ if config_env() == :dev do
 end
 
 if config_env() == :prod do
-  database_path =
-    System.get_env("DATABASE_PATH") ||
-      raise """
-      environment variable DATABASE_PATH is missing.
-      For example: /etc/sprint_lens/sprint_lens.db
-      """
+  pool_size = String.to_integer(System.get_env("POOL_SIZE") || "5")
 
-  config :sprint_lens, SprintLens.Repo,
-    database: database_path,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
+  # Which of the two this release was built for was decided at compile time;
+  # here it only decides which variable has to be present. Both raise rather
+  # than fall back, because a production database chosen by default is a
+  # production database nobody meant to use.
+  if Application.get_env(:sprint_lens, :database_adapter) == Ecto.Adapters.Postgres do
+    database_url =
+      System.get_env("DATABASE_URL") ||
+        raise """
+        environment variable DATABASE_URL is missing.
+        For example: postgres://user:pass@host/database
+        """
+
+    config :sprint_lens, SprintLens.Repo,
+      url: database_url,
+      pool_size: pool_size,
+      # Managed PostgreSQL is almost always behind TLS, and a hosted database
+      # whose hostname resolves to IPv6 only is common enough that leaving the
+      # socket to guess produces an :nxdomain that looks like a wrong password.
+      ssl: System.get_env("DATABASE_SSL", "true") == "true",
+      socket_options: if(System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: [])
+  else
+    database_path =
+      System.get_env("DATABASE_PATH") ||
+        raise """
+        environment variable DATABASE_PATH is missing.
+        For example: /etc/sprint_lens/sprint_lens.db
+        """
+
+    config :sprint_lens, SprintLens.Repo,
+      database: database_path,
+      pool_size: pool_size
+  end
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

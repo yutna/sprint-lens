@@ -25,6 +25,17 @@ defmodule SprintLens.DataCase do
 
   use ExUnit.CaseTemplate
 
+  # The engine and the notifier follow the configured adapter. Read here, in
+  # the module body, because `Application.compile_env!/2` may not be called
+  # from inside a function and `use Oban.Testing` expands into one.
+  #
+  # They used to be written out in both case templates and in `config.exs`.
+  # A template left behind after an adapter change would exercise a different
+  # engine from the one the application runs, and prove nothing while staying
+  # green.
+  @oban_engine Application.compile_env!(:sprint_lens, :oban_engine)
+  @oban_notifier Application.compile_env!(:sprint_lens, :oban_notifier)
+
   using opts do
     if Keyword.get(opts, :async, false) do
       raise ArgumentError, """
@@ -39,14 +50,19 @@ defmodule SprintLens.DataCase do
       """
     end
 
+    engine = @oban_engine
+    notifier = @oban_notifier
+
     quote do
-      # `Oban.Testing` needs the engine and the notifier as well as the repo:
-      # its defaults are the Postgres ones, and this application runs on
-      # SQLite, whose notifier is the process-group one.
+      # `Oban.Testing` needs the engine and the notifier as well as the repo,
+      # and they have to be the ones the application is actually configured
+      # with. Hardcoded, a template left behind after an adapter change would
+      # exercise a different engine from the one running in production and
+      # prove nothing while staying green.
       use Oban.Testing,
         repo: SprintLens.Repo,
-        engine: Oban.Engines.Lite,
-        notifier: Oban.Notifiers.PG
+        engine: unquote(engine),
+        notifier: unquote(notifier)
 
       alias SprintLens.Repo
 

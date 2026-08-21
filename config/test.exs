@@ -9,12 +9,29 @@ config :bcrypt_elixir, :log_rounds, 1
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :sprint_lens, SprintLens.Repo,
-  database: Path.expand("../sprint_lens_test#{System.get_env("MIX_TEST_PARTITION")}.db", __DIR__),
   pool_size: 5,
-  pool: Ecto.Adapters.SQL.Sandbox,
-  # The sandbox holds every test inside an outer transaction, so per-test
-  # durability is irrelevant and `:full` only slows the suite down.
-  synchronous: :off
+  pool: Ecto.Adapters.SQL.Sandbox
+
+# Which database, and how to reach it. `DATABASE_ADAPTER` is read here rather
+# than taken from `config/config.exs` because config files do not share
+# bindings, and repeating one line beats inventing a way to. The connection
+# details come from the environment so a developer, a compose file and a
+# continuous integration service container can each point at their own.
+if System.get_env("DATABASE_ADAPTER") == "postgres" do
+  config :sprint_lens, SprintLens.Repo,
+    username: System.get_env("PGUSER", "postgres"),
+    password: System.get_env("PGPASSWORD", "postgres"),
+    hostname: System.get_env("PGHOST", "localhost"),
+    port: String.to_integer(System.get_env("PGPORT", "5432")),
+    database: "sprint_lens_test#{System.get_env("MIX_TEST_PARTITION")}"
+else
+  config :sprint_lens, SprintLens.Repo,
+    database:
+      Path.expand("../sprint_lens_test#{System.get_env("MIX_TEST_PARTITION")}.db", __DIR__),
+    # The sandbox holds every test inside an outer transaction, so per-test
+    # durability is irrelevant and `:full` only slows the suite down.
+    synchronous: :off
+end
 
 # Jobs are asserted on, never executed in the background, so every test can
 # make deterministic assertions with `Oban.Testing`.

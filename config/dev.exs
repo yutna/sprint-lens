@@ -2,10 +2,25 @@ import Config
 
 # Configure your database
 config :sprint_lens, SprintLens.Repo,
-  database: Path.expand("../sprint_lens_dev.db", __DIR__),
   pool_size: 5,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true
+
+# Which database, and how to reach it. `DATABASE_ADAPTER` is read here rather
+# than taken from `config/config.exs` because config files do not share
+# bindings, and repeating one line beats inventing a way to. The connection
+# details come from the environment so a developer, a compose file and a
+# continuous integration service container can each point at their own.
+if System.get_env("DATABASE_ADAPTER") == "postgres" do
+  config :sprint_lens, SprintLens.Repo,
+    username: System.get_env("PGUSER", "postgres"),
+    password: System.get_env("PGPASSWORD", "postgres"),
+    hostname: System.get_env("PGHOST", "localhost"),
+    port: String.to_integer(System.get_env("PGPORT", "5432")),
+    database: "sprint_lens_dev"
+else
+  config :sprint_lens, SprintLens.Repo, database: Path.expand("../sprint_lens_dev.db", __DIR__)
+end
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
