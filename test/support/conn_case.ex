@@ -40,6 +40,7 @@ defmodule SprintLensWeb.ConnCase do
 
   setup tags do
     SprintLens.DataCase.setup_sandbox(tags)
+    SprintLens.DataCase.restore_default_language()
     setup_locale(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end

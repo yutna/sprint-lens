@@ -2086,3 +2086,9 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Update email instructions"
 msgstr ""
+
+#: lib/sprint_lens_web/user_auth.ex:236
+#: lib/sprint_lens_web/user_auth.ex:288
+#, elixir-autogen, elixir-format
+msgid "You must log in to access this page."
+msgstr ""

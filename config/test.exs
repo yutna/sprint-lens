@@ -68,3 +68,9 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# The organisation's default language is cached in the application
+# environment, and the test suite pins it per module with `@moduletag
+# locale:`. A boot-time read would fight that, and the sandbox owns every
+# connection at that point anyway.
+config :sprint_lens, load_org_settings: false

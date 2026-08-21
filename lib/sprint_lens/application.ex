@@ -16,6 +16,10 @@ defmodule SprintLens.Application do
       SprintLens.Repo,
       {Ecto.Migrator,
        repos: Application.fetch_env!(:sprint_lens, :ecto_repos), skip: skip_migrations?()},
+      # After the repository, because it reads a row; before the endpoint,
+      # because the first request wants the organisation's default language
+      # (FR-802).
+      SprintLens.Admin.SettingsLoader,
       {DNSCluster, query: Application.get_env(:sprint_lens, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: SprintLens.PubSub},
       {SprintLens.RateLimit, clean_period: :timer.minutes(5)},

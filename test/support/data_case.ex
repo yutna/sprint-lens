@@ -60,7 +60,28 @@ defmodule SprintLens.DataCase do
 
   setup tags do
     SprintLens.DataCase.setup_sandbox(tags)
+    SprintLens.DataCase.restore_default_language()
     :ok
+  end
+
+  @doc """
+  Puts the organisation's cached default language back after the test.
+
+  `SprintLens.Admin.update_settings/2` writes it into the application
+  environment so that a change an administrator makes actually takes effect
+  (FR-802). The application environment is global, so a test that changes the
+  setting would otherwise change the interface language for everything that
+  ran after it — including the async modules running beside it.
+  """
+  def restore_default_language do
+    previous = Application.fetch_env(:sprint_lens, :default_language)
+
+    on_exit(fn ->
+      case previous do
+        {:ok, language} -> Application.put_env(:sprint_lens, :default_language, language)
+        :error -> Application.delete_env(:sprint_lens, :default_language)
+      end
+    end)
   end
 
   @doc """

@@ -2079,3 +2079,9 @@ msgstr "ข้อมูลที่ส่งมาไม่ถูกต้อง
 #, elixir-autogen, elixir-format
 msgid "Update email instructions"
 msgstr "วิธีเปลี่ยนอีเมล"
+
+#: lib/sprint_lens_web/user_auth.ex:236
+#: lib/sprint_lens_web/user_auth.ex:288
+#, elixir-autogen, elixir-format
+msgid "You must log in to access this page."
+msgstr "ต้องเข้าสู่ระบบก่อนจึงจะเข้าหน้านี้ได้"

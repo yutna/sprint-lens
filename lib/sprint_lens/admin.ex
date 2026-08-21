@@ -81,8 +81,41 @@ defmodule SprintLens.Admin do
         changed(current, updated)
       end)
       |> commit(:settings)
+      |> tap(&cache_language/1)
     end
   end
+
+  @doc """
+  Publishes the organisation's default language to the running system
+  (FR-802).
+
+  The column has always been editable and audited, and nothing ever read it:
+  `SprintLens.Accounts.default_language/0` returns the application
+  environment, and no code put the stored value there. An administrator could
+  change the default language and watch nothing happen.
+
+  The environment is the cache rather than the source. Reading the row instead
+  would mean a query on every locale resolution — twice per request — and
+  would break every test that renders a component without a database, since
+  the answer would suddenly need one.
+
+  Two consequences worth knowing. The value is loaded once at boot by
+  `SprintLens.Admin.SettingsLoader`, so a change survives a restart. And each
+  node caches its own copy, so with more than one replica a change reaches
+  only the node that served it until the others restart — the same class of
+  caveat as the rate limiter, and it belongs in the deployment guide beside
+  it.
+  """
+  @spec cache_default_language() :: :ok
+  def cache_default_language do
+    Application.put_env(:sprint_lens, :default_language, settings().default_language)
+  end
+
+  defp cache_language({:ok, %OrgSettings{default_language: language}}) do
+    Application.put_env(:sprint_lens, :default_language, language)
+  end
+
+  defp cache_language(_not_updated), do: :ok
 
   @doc """
   Whether AI features are switched on (FR-806, AI-003).
