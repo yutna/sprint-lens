@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-hidden="true">
+  <!--
+    SprintLens — the mascot. A finished session.
+
+    The only pose that smiles, and it is for the team getting to the end
+    together — never for a number they produced.
+
+    Drawn as the mark is drawn: one solid rounded shape with its features
+    knocked out of it by `fill-rule="evenodd"`. Same corner radius, same tilt,
+    same single colour, no outlines and no second tone — which is what stops
+    the character and the logo looking like two different projects.
+
+    It is one character with a fixed, small set of poses, and it appears only
+    where there is nothing else on the screen. Never on a live board: that
+    space belongs to what the team wrote.
+
+    Decorative. Where the text beside it already says the same thing its
+    alternative text is empty, so a screen reader does not say it twice.
+  -->
+  <path
+    fill="currentColor"
+    fill-rule="evenodd"
+    d="M 12.11 7.61 L 21.09 8.23 A 5 5 0 0 1 25.73 13.57 L 25.23 20.75 A 5 5 0 0 1
+         19.89 25.39 L 10.91 24.77 A 5 5 0 0 1 6.27 19.43 L 6.77 12.25 A 5 5 0 0 1
+         12.11 7.61 Z M 10.3 15.0 A 2.275 2.275 0 0 1 14.5 15.0 A 6.475 6.475 0 0 0
+         10.3 15.0 Z M 17.5 15.0 A 2.275 2.275 0 0 1 21.7 15.0 A 6.475 6.475 0 0 0 17.5
+         15.0 Z M 11.9 19.6 A 4.948 4.948 0 0 0 20.5 19.6 A 9.745 9.745 0 0 1 11.9 19.6
+         Z"
+  />
+</svg>

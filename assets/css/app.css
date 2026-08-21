@@ -21,7 +21,16 @@
 /* daisyUI theme plugin.
   We ship with two themes, a light one inspired on Phoenix colors and a dark one inspired
   on Elixir colors. Build your own at: https://daisyui.com/theme-generator/ */
-/* The generated palette failed WCAG AA on twelve of its sixteen text-on-colour
+/* The product's colour is one hue in both themes: oklch 340, a mangosteen
+ * red-purple. It used to be two — the light theme carried Phoenix's orange and
+ * the dark theme carried Elixir's indigo, which meant the product had no
+ * colour of its own at all, only its frameworks'. The hue is chosen as much
+ * for where it is not: error sits at 17.6, warning at 58, success at 184 and
+ * info at 259, so the brand can never be mistaken for a status. Lightness
+ * differs between the themes (52% and 56%) because the surfaces do; the hue
+ * does not. See `priv/static/images/logo-mark.svg`.
+ *
+ * The generated palette failed WCAG AA on twelve of its sixteen text-on-colour
  * pairs — a `primary` button's label at 4.14:1 in dark and 2.75:1 in light,
  * against the 4.5:1 FR-913 asks for. Only the lightness of the surface colours
  * moved; the hue and chroma are the originals, so the app still looks like
@@ -36,8 +45,8 @@
   --color-base-200: oklch(25.26% 0.014 253.1);
   --color-base-300: oklch(20.15% 0.012 254.09);
   --color-base-content: oklch(97.807% 0.029 256.847);
-  --color-primary: oklch(53% 0.233 277.117);
-  --color-primary-content: oklch(96% 0.018 272.314);
+  --color-primary: oklch(56% 0.19 340);
+  --color-primary-content: oklch(97% 0.018 340);
   --color-secondary: oklch(53% 0.233 277.117);
   --color-secondary-content: oklch(96% 0.018 272.314);
   --color-accent: oklch(54% 0.25 292.717);
@@ -71,8 +80,8 @@
   --color-base-200: oklch(96% 0.001 286.375);
   --color-base-300: oklch(92% 0.004 286.32);
   --color-base-content: oklch(21% 0.006 285.885);
-  --color-primary: oklch(54% 0.213 47.604);
-  --color-primary-content: oklch(98% 0.016 73.684);
+  --color-primary: oklch(52% 0.19 340);
+  --color-primary-content: oklch(98% 0.015 340);
   --color-secondary: oklch(55% 0.027 264.364);
   --color-secondary-content: oklch(98% 0.002 247.839);
   --color-accent: oklch(0% 0 0);

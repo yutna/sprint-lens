@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-hidden="true">
+  <!--
+    SprintLens — the mark.
+
+    Two cards, tossed down on a table at slightly different angles. Where they
+    overlap, the shape that is left is a lens.
+
+    That is the whole argument of the product in one figure: a retrospective is
+    what you can see once two people have put their views down next to each
+    other. The lens is not drawn — it is the gap, which is also why the mark is
+    a single colour and a single shape. Nothing is added to make the meaning;
+    the meaning is what is missing.
+
+    Cards rather than a magnifying glass because cards are what this product is
+    made of, and because a magnifier is what every tool with "look" in its name
+    already uses. The tilt is the same tilt the board gives its cards.
+
+    Construction, so it can be edited rather than merely admired:
+
+      two rounded squares, half-size 7.2, corner radius 3.8
+      left  card: centred (10.9, 17.0), rotated -12 degrees
+      right card: centred (21.1, 15.0), rotated  12 degrees
+      the pair rotated -6 degrees about the canvas centre
+      `fill-rule="evenodd"` is what turns the overlap into the lens
+
+    Clear space: 3 units on every side of the 32-unit canvas — the mark already
+    carries it, so it can be placed flush.
+
+    `currentColor` on purpose: the mark takes the colour of the text beside it,
+    so it needs no light and dark variants and no second file to keep in step.
+    Rendered as an `<img>` there is no colour to inherit, so anything outside
+    the application uses a variant built by `priv/static/images/build.sh`.
+  -->
+  <g transform="rotate(-6 16 16)">
+    <path
+      fill="currentColor"
+      fill-rule="evenodd"
+      d="M 6.08 10.66 L 12.73 9.25 A 3.8 3.8 0 0 1 17.24 12.18
+         L 18.65 18.83 A 3.8 3.8 0 0 1 15.72 23.34
+         L 9.07 24.75 A 3.8 3.8 0 0 1 4.56 21.82
+         L 3.15 15.17 A 3.8 3.8 0 0 1 6.08 10.66 Z
+         M 19.27 7.25 L 25.92 8.66 A 3.8 3.8 0 0 1 28.85 13.17
+         L 27.44 19.82 A 3.8 3.8 0 0 1 22.93 22.75
+         L 16.28 21.34 A 3.8 3.8 0 0 1 13.35 16.83
+         L 14.76 10.18 A 3.8 3.8 0 0 1 19.27 7.25 Z"
+    />
+  </g>
+</svg>
