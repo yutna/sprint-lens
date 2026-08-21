@@ -6,6 +6,20 @@ stable id (`FR-nnn`, `NFR-nnn`, `AI-nnn`) that the code and the tests refer to.
 
 ## Project guidelines
 
+- The application runs on two databases. SQLite is the development and test
+  database; PostgreSQL is the supported production one. Which is compiled in
+  is decided by `DATABASE_ADAPTER` at build time, and `mix ci` must be green
+  on both. Two rules follow:
+  - **No adapter-specific SQL in a context without an explicit branch.** The
+    branch is commented, says why the two differ, and both sides are covered
+    by the same tests running on both adapters. There are three of these:
+    `Repo.like_operator/0`, `Repo.to_float/1` and `Board.lock_session/2`.
+  - **PostgreSQL decides what is correct.** SQLite is more forgiving in
+    several places — it ignores case in `LIKE`, it takes one writer at a time,
+    it does not report which index a violation came from — and code written
+    for the forgiving one is code that breaks in production. Where they
+    disagree, write for PostgreSQL and let SQLite happen to work.
+
 - Run `mix ci` when you are done with a change. It must be green: compile with
   warnings as errors, formatted, no Credo issues, **100% line coverage**, and a
   refreshed traceability report.

@@ -16,7 +16,7 @@
   "NFR-303" =>
     "A 30-day completion SLA cannot be observed in a test run. The erasure mechanism it bounds is tested under FR-805.",
   "NFR-403" =>
-    "Backup and restore with standard tools is a deployment property. The app-side commitment (a single SQLite file with no exotic state) is structural.",
+    "Backup and restore with standard tools is a deployment property. What the application commits to is that all of its state is in one database, with no extensions and no types a standard dump does not carry — true of both adapters, and structural rather than assertable.",
   "NFR-601" =>
     "Browser support matrix. Approximated by running the Playwright suite on chromium, firefox and webkit, but the 'last two major versions' claim is not assertable.",
   "NFR-603" =>

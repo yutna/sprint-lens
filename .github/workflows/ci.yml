@@ -22,9 +22,38 @@ permissions:
 
 jobs:
   gate:
-    name: mix ci
+    # Both databases, because the application supports both and the ways they
+    # differ are quiet: a search that stops matching, a budget that stops being
+    # a budget, an index whose name only one of them reports. None of those
+    # fail loudly on the adapter they are wrong for.
+    name: mix ci (${{ matrix.database }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+
+    env:
+      DATABASE_ADAPTER: ${{ matrix.database }}
+
+    # Started for both legs. The SQLite leg ignores it, which costs a few
+    # seconds and is simpler than making the service conditional.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - uses: actions/checkout@v5
@@ -42,9 +71,9 @@ jobs:
           path: |
             deps
             _build
-          key: mix-test-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+          key: mix-test-${{ matrix.database }}-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            mix-test-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-
+            mix-test-${{ matrix.database }}-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-
 
       # Dialyzer's lookup tables live under priv/plts, which git ignores.
       # Without a cache every run rebuilds them from scratch and the job stops
@@ -55,9 +84,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: priv/plts
-          key: plt-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+          key: plt-${{ matrix.database }}-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            plt-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-
+            plt-${{ matrix.database }}-${{ runner.os }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-
 
       - name: Fetch dependencies
         run: mix deps.get --check-locked

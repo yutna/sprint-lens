@@ -131,7 +131,7 @@ test title.
 | NFR-305 | covered | |
 | NFR-401 | covered | |
 | NFR-402 | covered | |
-| NFR-403 | documented gap | Backup and restore with standard tools is a deployment property. The app-side commitment (a single SQLite file with no exotic state) is structural. |
+| NFR-403 | documented gap | Backup and restore with standard tools is a deployment property. What the application commits to is that all of its state is in one database, with no extensions and no types a standard dump does not carry — true of both adapters, and structural rather than assertable. |
 | NFR-404 | covered | |
 | NFR-501 | covered | |
 | NFR-502 | covered | |

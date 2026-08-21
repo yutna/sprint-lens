@@ -487,10 +487,11 @@ defmodule SprintLens.Retro.Board do
   Casts one vote on a topic (FR-401, FR-402, FR-403).
 
   A vote is a row, so the total and the budget are both just counts and
-  retracting is a delete. The budget is checked inside the same transaction as
-  the insert: SQLite takes one writer at a time, which makes a check-then-write
-  here as strong as a constraint would be, and no constraint could express
-  "at most `session.vote_budget` rows for this voter" anyway.
+  retracting is a delete. No constraint can express "at most
+  `session.vote_budget` rows for this voter", so the budget is checked inside
+  the same transaction as the insert — and that only holds if the two
+  transactions cannot interleave. See `lock_session/2` for what makes that
+  true on each database.
 
   Repeating a request id returns the original vote rather than casting a
   second one (§7.5).
@@ -517,6 +518,7 @@ defmodule SprintLens.Retro.Board do
     {card_id, group_id} = Topic.to_ids(ref)
 
     Multi.new()
+    |> Multi.run(:lock, fn repo, _changes -> lock_session(repo, session) end)
     |> Multi.run(:budget, fn _repo, _changes -> check_budget(session, voter) end)
     |> Multi.run(:once, fn _repo, _changes -> check_multi_vote(session, voter, ref) end)
     |> Multi.insert(
@@ -541,6 +543,31 @@ defmodule SprintLens.Retro.Board do
       {:error, _step, reason, _changes} ->
         {:error, reason}
     end
+  end
+
+  # Makes the check-then-write above atomic against another vote in the same
+  # session.
+  #
+  # SQLite takes one writer at a time, so it already is: the second
+  # transaction cannot begin writing until the first has finished, and the
+  # count it then reads includes the first vote. PostgreSQL has no such
+  # serialisation. Two participants voting at the same instant both read the
+  # same remaining budget and both insert, nothing fails, and somebody has
+  # spent more votes than the session allows (FR-403). The data is simply
+  # wrong, which is the worst kind of wrong.
+  #
+  # The session row rather than the voter's votes: a lock on rows that exist
+  # cannot stop a concurrent insert of a row that does not. All votes in one
+  # session serialise as a result, which is what SQLite was doing anyway and
+  # is nothing next to how often a person clicks.
+  if SprintLens.Repo.postgres?() do
+    defp lock_session(repo, session) do
+      repo.one!(from s in Session, where: s.id == ^session.id, select: 1, lock: "FOR UPDATE")
+
+      {:ok, :locked}
+    end
+  else
+    defp lock_session(_repo, _session), do: {:ok, :one_writer_at_a_time}
   end
 
   defp check_budget(session, voter) do
