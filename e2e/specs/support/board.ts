@@ -128,9 +128,9 @@ export async function scrollsSideways(page: Page): Promise<boolean> {
 
 /** The ids of the board's columns, in board order. */
 export async function columnIds(page: Page): Promise<string[]> {
-  const ids = await page.locator('#board section[role="tabpanel"]').evaluateAll((nodes) =>
-    nodes.map((node) => node.id.replace('column-', '')),
-  )
+  const ids = await page
+    .locator('#board section[role="tabpanel"]')
+    .evaluateAll((nodes) => nodes.map((node) => node.id.replace('column-', '')))
 
   expect(ids.length).toBeGreaterThan(1)
 

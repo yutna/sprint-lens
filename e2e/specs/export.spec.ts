@@ -110,9 +110,9 @@ test.describe('exporting and notifying', () => {
     await expect(page.locator('#webhook_form')).toBeVisible()
     await expect(page.locator('#deliveries-empty')).toBeVisible()
 
-    await page.locator('#webhook_form input[name="webhook[url]"]').fill(
-      'https://hooks.example.invalid/sprintlens',
-    )
+    await page
+      .locator('#webhook_form input[name="webhook[url]"]')
+      .fill('https://hooks.example.invalid/sprintlens')
     await page
       .locator('#webhook_form input[name="webhook[secret]"]')
       .fill('a-secret-long-enough-to-use')

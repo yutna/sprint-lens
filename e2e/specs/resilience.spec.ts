@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
-import { brainstormWithTwoPeople, columnIds, writeCard } from './support/board'
-import { registerAndSignIn, waitForLiveView } from './support/auth'
+import { brainstormWithTwoPeople, columnIds } from './support/board'
+import { waitForLiveView } from './support/auth'
 
 /**
  * What the board does when things go wrong or slowly (FR-918, FR-920,
@@ -24,7 +24,7 @@ test.describe('when the day goes badly', () => {
     // Dropping the socket rather than the whole context: it is what a lost
     // connection does to the client, and it is the event the banner listens
     // for.
-    await page.evaluate(() => window.liveSocket.disconnect())
+    await page.evaluate(() => window.liveSocket!.disconnect())
 
     // Persistent, not a toast that fades: the connection is still down and
     // saying so once would be worse than not saying it (FR-918).
@@ -38,7 +38,7 @@ test.describe('when the day goes badly', () => {
     })
     expect(scrolls).toBe(false)
 
-    await page.evaluate(() => window.liveSocket.connect())
+    await page.evaluate(() => window.liveSocket!.connect())
 
     await expect(page.locator('#client-error')).toBeHidden({ timeout: 15_000 })
 
@@ -81,7 +81,9 @@ test.describe('when the day goes badly', () => {
     await waitForLiveView(page)
 
     const paint = await page.evaluate(() => {
-      const entry = performance.getEntriesByType('paint').find((e) => e.name === 'first-contentful-paint')
+      const entry = performance
+        .getEntriesByType('paint')
+        .find((e) => e.name === 'first-contentful-paint')
       return entry ? entry.startTime : performance.now()
     })
 

@@ -44,7 +44,10 @@ test.describe('the narrowest supported screen', () => {
 
       // Turned on its side the screen is 640px wide, which is where the
       // board stops showing one column at a time (FR-902) and shows them
-      // all. Both are correct; the tabs only exist in the narrow one.
+      // all. Both are correct; the tabs only exist in the narrow one. The
+      // branch is the assertion — FR-901 names two orientations, and the
+      // point of this test is that the board is right in both.
+      // eslint-disable-next-line playwright/no-conditional-in-test
       if (viewport.width < 640) {
         await page.locator(`#tab-${second}`).click()
       }
@@ -54,6 +57,7 @@ test.describe('the narrowest supported screen', () => {
       // FR-905 holds at both, which is the failure mode a rotation finds.
       expect(await scrollsSideways(page), `scrolled sideways at ${viewport.width}px`).toBe(false)
 
+      // eslint-disable-next-line playwright/no-conditional-in-test
       if (viewport.width < 640) {
         await page.locator(`#tab-${first}`).click()
       }

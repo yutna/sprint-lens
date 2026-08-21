@@ -19,7 +19,7 @@ export type Account = { email: string; displayName: string }
  */
 export async function waitForLiveView(page: Page): Promise<void> {
   await page.waitForFunction(() => {
-    const socket = (window as unknown as { liveSocket?: { isConnected(): boolean } }).liveSocket
+    const socket = window.liveSocket
     return Boolean(socket && socket.isConnected())
   })
 }
