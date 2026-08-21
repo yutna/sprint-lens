@@ -1,0 +1,66 @@
+name: Defect
+description: Something behaves differently from what the specification says
+labels: ["defect"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The specification is `docs/specs/team-retro-spec-en.md` and it is
+        normative. If the behaviour you are reporting is not described there,
+        it may be a proposal rather than a defect — either is welcome.
+
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens
+      description: The behaviour you saw, not the cause you suspect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen
+      description: If the specification says so, quote the requirement.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      placeholder: |
+        1. Start the server with `mix phx.server`
+        2. Open http://localhost:4000
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: requirement
+    attributes:
+      label: Requirement identifier
+      description: The identifier this contradicts, if you know it.
+      placeholder: FR-902
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Interface language
+      description: The interface is Thai first, and several defects have only
+        appeared in one language.
+      options:
+        - Thai
+        - English
+        - Both
+        - Not relevant
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        Browser and version:
+        Screen width (a phone layout is a different code path):
+        Theme (light or dark):
+        Elixir and Erlang (`elixir --version`):

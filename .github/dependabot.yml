@@ -1,0 +1,40 @@
+# Grouped on purpose. An ungrouped run on three ecosystems opens a wall of
+# pull requests every Monday and they stop being read, which is worse than
+# not having it. Each group is one pull request that one person can reason
+# about in one sitting.
+version: 2
+
+updates:
+  - package-ecosystem: mix
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      elixir:
+        patterns: ["*"]
+    # Pinned to a tag and fetched sparsely from git; a bump is a deliberate
+    # design decision, not a dependency refresh. daisyUI is on its way out
+    # entirely (docs/plans/02-design-system-and-ui-overhaul.md).
+    ignore:
+      - dependency-name: daisyui
+      - dependency-name: heroicons
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      e2e:
+        patterns: ["*"]

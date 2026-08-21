@@ -1,0 +1,42 @@
+name: Proposal
+description: New behaviour, or a change to behaviour the specification describes
+labels: ["proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New user-visible behaviour needs a new requirement identifier appended
+        to the specification before it can be tested, because
+        `mix sprint_lens.trace` warns about an identifier a test claims and the
+        specification does not declare. Identifiers are never renumbered.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Who has it, and what they do today instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What else you considered
+      description: Including doing nothing.
+
+  - type: checkboxes
+    id: consequences
+    attributes:
+      label: Consequences to think about
+      options:
+        - label: This changes the specification and needs a new requirement identifier
+        - label: This affects the retrospective board, which carries most of the test weight
+        - label: This touches anonymity, blind reveal or anything else that protects psychological safety
+        - label: This adds user-visible text, which has to work in Thai and English
