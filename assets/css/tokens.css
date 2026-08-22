@@ -1,0 +1,129 @@
+/* The design tokens this project owns.
+ *
+ * Everything the interface is built from that is not a colour: radius,
+ * elevation, motion, focus, and the type scale. Nothing here is used yet —
+ * the components that consume it arrive next — so adding it changes nothing
+ * on screen, which is the point of doing it first.
+ *
+ * ## Where the colours are
+ *
+ * Still in the daisyUI theme blocks in `app.css`, deliberately. They are the
+ * one thing daisyUI already models well, `test/sprint_lens_web/contrast_test.exs`
+ * parses those blocks to prove every text-on-surface pair clears 4.5:1, and
+ * duplicating sixteen values here would mean two places to change and one
+ * test watching the wrong one. They move here when daisyUI goes, and the
+ * contrast test moves with them in the same commit.
+ *
+ * ## Why the names are not Tailwind's
+ *
+ * `--radius-card` rather than `--radius-md`, `--shadow-raised` rather than
+ * `--shadow-lg`. Tailwind v4 already defines those, and redefining them would
+ * silently restyle every existing component while this layer is supposed to
+ * be inert. Naming them for what they are also makes a one-off value obvious
+ * in review: `rounded-card` says a decision was made, `rounded-[13px]` says
+ * one was avoided.
+ */
+
+:root {
+  /* Radius. Softer and larger than what is on screen today, which is a
+   * quarter of a rem and reads as a grid of boxes. The direction is a table
+   * with things resting on it, and paper has corners. */
+  --sl-radius-control: 0.5rem;
+  --sl-radius-card: 0.75rem;
+  --sl-radius-panel: 1rem;
+  --sl-radius-room: 1.5rem;
+
+  /* Elevation. Three steps and no more: a thing resting on the table, a thing
+   * lifted off it, and a thing over everything. The shadows are wide and
+   * shallow rather than dark and tight — paper on a surface, not a drop
+   * shadow in a design tool. */
+  --sl-shadow-resting: 0 1px 2px oklch(0% 0 0 / 0.05), 0 1px 3px oklch(0% 0 0 / 0.06);
+  --sl-shadow-lifted: 0 2px 4px oklch(0% 0 0 / 0.04), 0 6px 16px oklch(0% 0 0 / 0.08);
+  --sl-shadow-over: 0 4px 8px oklch(0% 0 0 / 0.06), 0 16px 40px oklch(0% 0 0 / 0.14);
+
+  /* Motion. Three durations, two easings, and a budget: nothing on a routine
+   * interaction goes past `--sl-duration-slow`. */
+  --sl-duration-quick: 120ms;
+  --sl-duration-base: 200ms;
+  --sl-duration-slow: 300ms;
+  --sl-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --sl-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Focus. A ring of the project's own, so it does not disappear along with
+   * daisyUI (FR-914). */
+  --sl-focus-width: 2px;
+  --sl-focus-offset: 2px;
+}
+
+/* Reduced motion, handled once here rather than at every animation.
+ *
+ * Durations collapse; they do not vanish. FR-916's reduced variant is an
+ * instant state change, not the absence of feedback — someone who asked for
+ * less motion still has to be able to tell that their card landed. Anything
+ * that animates reads these tokens, so honouring the preference is not
+ * something each component has to remember. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sl-duration-quick: 1ms;
+    --sl-duration-base: 1ms;
+    --sl-duration-slow: 1ms;
+  }
+}
+
+/* The dark theme lifts its shadows: a shadow the same colour as the surface
+ * behind it is not a shadow. */
+[data-theme="dark"] {
+  --sl-shadow-resting: 0 1px 2px oklch(0% 0 0 / 0.3), 0 1px 3px oklch(0% 0 0 / 0.28);
+  --sl-shadow-lifted: 0 2px 4px oklch(0% 0 0 / 0.28), 0 6px 16px oklch(0% 0 0 / 0.4);
+  --sl-shadow-over: 0 4px 8px oklch(0% 0 0 / 0.32), 0 16px 40px oklch(0% 0 0 / 0.55);
+}
+
+/* Registered with Tailwind so the tokens are reachable as utilities —
+ * `rounded-card`, `shadow-lifted`, `text-title` — rather than as raw
+ * variables scattered through the markup.
+ *
+ * `inline` matters: it makes the generated utility reference the variable
+ * instead of baking in the value, which is what lets the dark theme and the
+ * reduced-motion query above change the answer at runtime. */
+@theme inline {
+  --radius-control: var(--sl-radius-control);
+  --radius-card: var(--sl-radius-card);
+  --radius-panel: var(--sl-radius-panel);
+  --radius-room: var(--sl-radius-room);
+
+  --shadow-resting: var(--sl-shadow-resting);
+  --shadow-lifted: var(--sl-shadow-lifted);
+  --shadow-over: var(--sl-shadow-over);
+
+  /* The type scale, as roles rather than sizes. A heading is `text-title`
+   * because it is a title; what size that is stays one decision in one place.
+   *
+   * Every step carries its own line height, and they are generous: Thai marks
+   * sit above and below the line and collide at Latin's defaults. */
+  --text-display: 2.5rem;
+  --text-display--line-height: 1.2;
+  --text-title: 1.75rem;
+  --text-title--line-height: 1.3;
+  --text-heading: 1.25rem;
+  --text-heading--line-height: 1.45;
+  --text-body: 1rem;
+  --text-body--line-height: 1.75;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.6;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.6;
+}
+
+/* A focus ring the project owns.
+ *
+ * `:focus-visible`, so it appears for a keyboard and not for a mouse. This is
+ * the one thing in this file that is not inert: today the interface inherits
+ * whatever daisyUI provides, which is inconsistent between control types and
+ * disappears entirely when daisyUI does. FR-914 asks for every action to be
+ * keyboard operable, and an operable control nobody can see the focus on is
+ * only half of that. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--sl-focus-width) solid var(--color-primary);
+  outline-offset: var(--sl-focus-offset);
+  border-radius: var(--sl-radius-control);
+}
