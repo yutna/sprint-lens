@@ -172,6 +172,17 @@ h4 {
  * board is made of. Padding rather than height alone, so the label stays
  * centred and the target grows around it. */
 @media (pointer: coarse) {
+  /* The owned half of the rule. The components no longer carry library size
+   * classes, so the guarantee hangs off what a thing *is* — `data-slot` and
+   * the real elements — rather than off which utilities happen to be on it.
+   * The daisyUI half below stays until the last of it is gone; until then
+   * both halves are needed and neither is redundant. */
+  [data-slot="button"],
+  [data-slot="control"],
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  summary,
   .btn-xs,
   .btn-sm,
   .checkbox-xs,
@@ -185,6 +196,8 @@ h4 {
   }
 
   /* A checkbox has no label inside it to keep it wide, so it grows square. */
+  input[type="checkbox"],
+  input[type="radio"],
   .checkbox-xs,
   .checkbox-sm {
     width: 44px;

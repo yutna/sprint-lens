@@ -1,35 +1,53 @@
 defmodule SprintLensWeb.CoreComponents do
   @moduledoc """
-  Provides core UI components.
+  The pieces every screen is built from.
 
-  At first glance, this module may seem daunting, but its goal is to provide
-  core building blocks for your application, such as tables, forms, and
-  inputs. The components consist mostly of markup and are well-documented
-  with doc strings and declarative assigns. You may customize and style
-  them in any way you want, based on your application growth and needs.
+  ## What changed, and what did not
 
-  The foundation for styling is Tailwind CSS, a utility-first CSS framework,
-  augmented with daisyUI, a Tailwind CSS plugin that provides UI components
-  and themes. Here are useful references:
+  These began as the Phoenix generator's components styled with daisyUI
+  classes. `AGENTS.md` asks for components written by hand instead, and the
+  interface cannot have a voice of its own while it is wearing a component
+  library's. So the markup and the styling are the project's now — Tailwind
+  utilities over the tokens in `assets/css/tokens.css`, no `@apply`, no
+  library classes.
 
-    * [daisyUI](https://daisyui.com/docs/intro/) - a good place to get
-      started and see the available components.
+  What deliberately did not change is every caller's side of the contract:
+  the function names, their attributes and slots, the ids they render, and
+  the behaviour their tests assert. Seventeen LiveViews call into this module
+  and around three hundred element lookups depend on what comes out. Rewriting
+  the insides while leaving the edges alone is what makes the screens that
+  follow a restyle rather than a rewire.
 
-    * [Tailwind CSS](https://tailwindcss.com) - the foundational framework
-      we build on. You will use it for layout, sizing, flexbox, grid, and
-      spacing.
+  ## Two hooks that are not styling
 
-    * [Heroicons](https://heroicons.com) - see `icon/1` for usage.
+  `data-slot` marks what a thing *is* — a button, a field, a control — so the
+  stylesheet can guarantee a forty-four pixel touch target (FR-904) without
+  depending on which utility classes happen to be on the element that day.
 
-    * [Phoenix.Component](https://phoenix-live-view.hexdocs.pm/Phoenix.Component.html) -
-      the component system used by Phoenix. Some components, such as `<.link>`
-      and `<.form>`, are defined there.
-
+  `aria-invalid` marks a field the server rejected. It replaces the
+  `input-error` class the tests used to look for, and it is the better
+  contract twice over: it is what assistive technology reads (FR-919), and it
+  does not disappear the next time the styling does.
   """
+
   use Phoenix.Component
   use Gettext, backend: SprintLensWeb.Gettext
 
   alias Phoenix.LiveView.JS
+
+  # Shared field furniture, so a text input, a select and a textarea cannot
+  # drift apart. Functions rather than module attributes: inside a `~H`
+  # sigil `@thing` means `assigns.thing`, so an attribute referenced from a
+  # template silently renders nothing.
+  defp control_class do
+    "w-full rounded-control border bg-base-100 px-3 py-2.5 text-body " <>
+      "transition-colors placeholder:text-base-content/40 " <>
+      "disabled:cursor-not-allowed disabled:opacity-60"
+  end
+
+  defp control_border([], _error_class), do: "border-base-300 hover:border-base-content/30"
+  defp control_border(_errors, nil), do: "border-error"
+  defp control_border(_errors, error_class), do: error_class
 
   @doc """
   Renders flash notices.
@@ -63,26 +81,33 @@ defmodule SprintLensWeb.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-top toast-end z-50"
+      data-slot="flash"
+      data-tone={@kind}
+      class="fixed top-4 right-4 z-50 flex justify-end"
       {@rest}
     >
       <div class={
         [
           # Never wider than the viewport it floats over (FR-905).
-          "alert w-[calc(100vw-2rem)] max-w-80 text-wrap sm:w-96 sm:max-w-96",
-          @kind == :info && "alert-info",
-          @kind == :error && "alert-error"
+          "flex w-[calc(100vw-2rem)] max-w-80 items-start gap-3 rounded-panel p-4 text-wrap",
+          "shadow-over sm:w-96 sm:max-w-96",
+          @kind == :info && "bg-info text-info-content",
+          @kind == :error && "bg-error text-error-content"
         ]
       }>
         <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
         <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
-        <div>
+        <div class="min-w-0 flex-1">
           <p :if={@title} class="font-semibold">{@title}</p>
           <p>{msg}</p>
         </div>
-        <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
-          <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
+        <button
+          type="button"
+          data-slot="button"
+          class="shrink-0 cursor-pointer opacity-60 transition-opacity hover:opacity-100"
+          aria-label={gettext("close")}
+        >
+          <.icon name="hero-x-mark" class="size-5" />
         </button>
       </div>
     </div>
@@ -100,26 +125,37 @@ defmodule SprintLensWeb.CoreComponents do
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
   attr :class, :any
-  attr :variant, :string, values: ~w(primary)
+  attr :variant, :string, values: ~w(primary ghost danger)
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+    base =
+      "inline-flex items-center justify-center gap-2 rounded-control px-4 py-2.5 " <>
+        "text-label font-medium transition-[background-color,opacity] " <>
+        "duration-(--sl-duration-quick) cursor-pointer " <>
+        "disabled:pointer-events-none disabled:opacity-50"
+
+    variants = %{
+      "primary" => "bg-primary text-primary-content shadow-resting hover:opacity-90",
+      "danger" => "bg-error text-error-content shadow-resting hover:opacity-90",
+      "ghost" => "text-base-content hover:bg-base-200",
+      nil => "bg-base-200 text-base-content hover:bg-base-300"
+    }
 
     assigns =
       assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
+        [base, Map.fetch!(variants, assigns[:variant])]
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
       ~H"""
-      <.link class={@class} {@rest}>
+      <.link class={@class} data-slot="button" {@rest}>
         {render_slot(@inner_block)}
       </.link>
       """
     else
       ~H"""
-      <button class={@class} {@rest}>
+      <button class={@class} data-slot="button" {@rest}>
         {render_slot(@inner_block)}
       </button>
       """
@@ -215,8 +251,8 @@ defmodule SprintLensWeb.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
+    <div class="mb-4" data-slot="field">
+      <label for={@id} class="flex items-center gap-2.5 text-label">
         <input
           type="hidden"
           name={@name}
@@ -224,17 +260,17 @@ defmodule SprintLensWeb.CoreComponents do
           disabled={@rest[:disabled]}
           form={@rest[:form]}
         />
-        <span class="label">
-          <input
-            type="checkbox"
-            id={@id}
-            name={@name}
-            value="true"
-            checked={@checked}
-            class={@class || "checkbox checkbox-sm"}
-            {@rest}
-          />{@label}
-        </span>
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value="true"
+          checked={@checked}
+          data-slot="control"
+          aria-invalid={@errors != [] && "true"}
+          class={@class || "size-5 rounded-control border-base-300 text-primary"}
+          {@rest}
+        />{@label}
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -243,13 +279,18 @@ defmodule SprintLensWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4" data-slot="field">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="mb-1.5 block text-label font-medium">{@label}</span>
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          data-slot="control"
+          aria-invalid={@errors != [] && "true"}
+          class={[
+            @class || control_class(),
+            @class == nil && control_border(@errors, @error_class)
+          ]}
           multiple={@multiple}
           {@rest}
         >
@@ -264,15 +305,17 @@ defmodule SprintLensWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4" data-slot="field">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="mb-1.5 block text-label font-medium">{@label}</span>
         <textarea
           id={@id}
           name={@name}
+          data-slot="control"
+          aria-invalid={@errors != [] && "true"}
           class={[
-            @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
+            @class || control_class(),
+            @class == nil && control_border(@errors, @error_class)
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
@@ -285,17 +328,19 @@ defmodule SprintLensWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4" data-slot="field">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="mb-1.5 block text-label font-medium">{@label}</span>
         <input
           type={@type}
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          data-slot="control"
+          aria-invalid={@errors != [] && "true"}
           class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
+            @class || control_class(),
+            @class == nil && control_border(@errors, @error_class)
           ]}
           {@rest}
         />
@@ -305,11 +350,15 @@ defmodule SprintLensWeb.CoreComponents do
     """
   end
 
-  # Helper used by inputs to generate form errors
+  # Helper used by inputs to generate form errors.
+  #
+  # `text-error` is load-bearing: a Playwright spec finds a validation message
+  # by that class. It is the one styling class in this module that is also a
+  # contract.
   defp error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
-      <.icon name="hero-exclamation-circle" class="size-5" />
+    <p class="mt-1.5 flex items-center gap-2 text-label text-error">
+      <.icon name="hero-exclamation-circle" class="size-5 shrink-0" />
       {render_slot(@inner_block)}
     </p>
     """
@@ -324,12 +373,12 @@ defmodule SprintLensWeb.CoreComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
+    <header class={[@actions != [] && "flex items-start justify-between gap-6", "pb-4"]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8">
+        <h1 class="text-title font-semibold">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="text-sm text-base-content/70">
+        <p :if={@subtitle != []} class="text-label text-base-content/70">
           {render_slot(@subtitle)}
         </p>
       </div>
@@ -370,25 +419,29 @@ defmodule SprintLensWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
-      <thead>
+    <table class="w-full text-left text-label" data-slot="table">
+      <thead class="border-b border-base-300 text-base-content/70">
         <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
-          <th :if={@action != []}>
+          <th :for={col <- @col} class="py-2.5 pr-4 font-medium">{col[:label]}</th>
+          <th :if={@action != []} class="py-2.5">
             <span class="sr-only">{gettext("Actions")}</span>
           </th>
         </tr>
       </thead>
-      <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
+      <tbody
+        id={@id}
+        phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}
+        class="divide-y divide-base-200"
+      >
+        <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="hover:bg-base-200/60">
           <td
             :for={col <- @col}
             phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
+            class={["py-3 pr-4", @row_click && "hover:cursor-pointer"]}
           >
             {render_slot(col, @row_item.(row))}
           </td>
-          <td :if={@action != []} class="w-0 font-semibold">
+          <td :if={@action != []} class="w-0 py-3 font-medium">
             <div class="flex gap-4">
               <%= for action <- @action do %>
                 {render_slot(action, @row_item.(row))}
@@ -417,12 +470,10 @@ defmodule SprintLensWeb.CoreComponents do
 
   def list(assigns) do
     ~H"""
-    <ul class="list">
-      <li :for={item <- @item} class="list-row">
-        <div class="list-col-grow">
-          <div class="font-bold">{item.title}</div>
-          <div>{render_slot(item)}</div>
-        </div>
+    <ul class="divide-y divide-base-200" data-slot="list">
+      <li :for={item <- @item} class="flex flex-col gap-0.5 py-3">
+        <div class="text-label font-semibold text-base-content/70">{item.title}</div>
+        <div>{render_slot(item)}</div>
       </li>
     </ul>
     """

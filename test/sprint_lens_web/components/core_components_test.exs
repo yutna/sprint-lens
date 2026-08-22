@@ -33,7 +33,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
       html = render_component(&flash/1, kind: :info, flash: %{"info" => "Saved"})
 
       assert html =~ "Saved"
-      assert html =~ "alert-info"
+      assert html =~ ~s(data-tone="info")
       assert html =~ ~s(role="alert")
     end
 
@@ -42,7 +42,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
       html = render_component(&flash/1, kind: :error, flash: %{"error" => "Could not save"})
 
       assert html =~ "Could not save"
-      assert html =~ "alert-error"
+      assert html =~ ~s(data-tone="error")
     end
 
     @tag req: ["FR-919"]
@@ -79,7 +79,9 @@ defmodule SprintLensWeb.CoreComponentsTest do
 
       assert html =~ "<button"
       assert html =~ "Save"
-      assert html =~ "btn"
+      # The touch-target rule in the stylesheet hangs off this, not off a
+      # styling class, so that it cannot be lost in a restyle (FR-904).
+      assert html =~ ~s(data-slot="button")
     end
 
     @tag req: ["FR-914"]
@@ -108,8 +110,8 @@ defmodule SprintLensWeb.CoreComponentsTest do
     test "applies the primary variant" do
       html = render_component(&button/1, %{variant: "primary", inner_block: inner("Go")})
 
-      assert html =~ "btn-primary"
-      refute html =~ "btn-soft"
+      assert html =~ "bg-primary"
+      refute html =~ "bg-base-200"
     end
 
     @tag req: ["FR-914"]
@@ -136,14 +138,14 @@ defmodule SprintLensWeb.CoreComponentsTest do
       html = render_component(&input/1, field: field(:email, "", [{"can't be blank", []}]))
 
       assert html =~ "can&#39;t be blank" or html =~ "can't be blank"
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
     end
 
     @tag req: ["FR-919"]
     test "hides errors on a field the user has not touched yet" do
       html = render_component(&input/1, field: field(:email, "", [{"can't be blank", []}], false))
 
-      refute html =~ "input-error"
+      refute html =~ "aria-invalid"
     end
 
     @tag req: ["FR-919"]
@@ -226,7 +228,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
           errors: ["is required"]
         )
 
-      assert html =~ "select-error"
+      assert html =~ ~s(aria-invalid="true")
       assert html =~ "is required"
     end
 
@@ -248,7 +250,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
           errors: ["should be at most 500 character(s)"]
         )
 
-      assert html =~ "textarea-error"
+      assert html =~ ~s(aria-invalid="true")
       assert html =~ "500"
     end
 
@@ -257,7 +259,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
       html = render_component(&input/1, name: "n", value: "", class: "custom-input")
 
       assert html =~ "custom-input"
-      refute html =~ ~s(class="w-full input")
+      refute html =~ "rounded-control"
     end
 
     @tag req: ["FR-919"]
@@ -266,7 +268,10 @@ defmodule SprintLensWeb.CoreComponentsTest do
         render_component(&input/1, name: "n", value: "", errors: ["bad"], error_class: "ring-red")
 
       assert html =~ "ring-red"
-      refute html =~ "input-error"
+      # The custom class replaces the default border, not the state: a field
+      # the server rejected is still announced as invalid.
+      refute html =~ "border-error"
+      assert html =~ ~s(aria-invalid="true")
     end
   end
 

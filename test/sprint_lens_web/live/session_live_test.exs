@@ -103,7 +103,7 @@ defmodule SprintLensWeb.SessionLiveTest do
         |> form("#session_form", session: %{title: "Bad", vote_budget: "0"})
         |> render_submit()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
       assert Retro.list_sessions(ctx.team) == []
     end
 
@@ -112,7 +112,7 @@ defmodule SprintLensWeb.SessionLiveTest do
       {:ok, lv, _html} = live(ctx.conn, ~p"/teams/#{ctx.team}/sessions")
 
       assert lv |> form("#session_form", session: %{title: ""}) |> render_change() =~
-               "input-error"
+               ~s(aria-invalid="true")
     end
 
     @tag req: ["FR-106"]

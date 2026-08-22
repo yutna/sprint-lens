@@ -74,7 +74,7 @@ defmodule SprintLensWeb.TeamLiveTest do
 
       html = lv |> form("#team_form", team: %{name: "  "}) |> render_submit()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
       assert Teams.list_teams(user) == []
     end
 
@@ -82,7 +82,8 @@ defmodule SprintLensWeb.TeamLiveTest do
     test "validates as you type", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/teams")
 
-      assert lv |> form("#team_form", team: %{name: ""}) |> render_change() =~ "input-error"
+      assert lv |> form("#team_form", team: %{name: ""}) |> render_change() =~
+               ~s(aria-invalid="true")
     end
 
     @tag req: ["FR-103"]
@@ -217,7 +218,7 @@ defmodule SprintLensWeb.TeamLiveTest do
         |> form("#team_settings_form", team: %{name: team.name, default_vote_budget: "0"})
         |> render_submit()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
       {:ok, reloaded} = Teams.fetch_team(user, team.id)
       assert reloaded.default_vote_budget == 5
     end
@@ -231,7 +232,7 @@ defmodule SprintLensWeb.TeamLiveTest do
         |> form("#team_settings_form", team: %{name: "", default_vote_budget: "5"})
         |> render_change()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
     end
 
     @tag req: ["NFR-201"]

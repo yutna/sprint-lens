@@ -69,7 +69,7 @@ defmodule SprintLensWeb.UserLive.PreferencesTest do
 
       html = lv |> form("#preferences_form", user: %{display_name: ""}) |> render_submit()
 
-      assert html =~ "input-error" or html =~ "ต้องไม่เว้นว่าง"
+      assert html =~ ~s(aria-invalid="true") or html =~ "ต้องไม่เว้นว่าง"
       assert Accounts.get_user!(user.id).display_name == user.display_name
     end
 
@@ -79,7 +79,7 @@ defmodule SprintLensWeb.UserLive.PreferencesTest do
 
       html = lv |> form("#preferences_form", user: %{display_name: ""}) |> render_change()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
     end
 
     @tag req: ["FR-003"]
