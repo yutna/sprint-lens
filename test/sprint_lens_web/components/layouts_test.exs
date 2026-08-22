@@ -9,6 +9,21 @@ defmodule SprintLensWeb.LayoutsTest do
 
   alias SprintLensWeb.Layouts
 
+  # Attribute order in the rendered tag is Phoenix's business, so the tab is
+  # found first and read second.
+  defp here?(html, id) do
+    [tag] = Regex.run(~r/<a[^>]*id="#{id}"[^>]*>/, html)
+
+    String.contains?(tag, ~s(aria-current="page"))
+  end
+
+  defp strip(current_path) do
+    render_component(&Layouts.team_nav/1, %{
+      team: %SprintLens.Teams.Team{id: 7},
+      current_path: current_path
+    })
+  end
+
   defp inner(text) do
     [%{__slot__: :inner_block, inner_block: fn _assigns, _ -> text end}]
   end
@@ -165,6 +180,71 @@ defmodule SprintLensWeb.LayoutsTest do
       # does nothing.
       refute html =~ ~s(href="/teams/1/insights")
       assert html =~ ~s(aria-label="Breadcrumb")
+    end
+  end
+
+  describe "team_nav/1" do
+    # Six buttons lived in the team detail page's own header, and nowhere
+    # else. Following one meant losing the way back to the other five.
+    @tag req: ["FR-901"]
+    test "offers every section of a team, from any page of it" do
+      html = strip("/teams/7/actions")
+
+      for section <- ~w(overview sessions actions insights search templates) do
+        assert html =~ ~s(id="team-#{section}-link")
+      end
+
+      assert html =~ ~s(aria-label="Team sections")
+    end
+
+    @tag req: ["FR-901"]
+    test "marks the section you are in, without stealing the phase bar's selector" do
+      html = strip("/teams/7/actions")
+
+      assert here?(html, "team-actions-link")
+      refute here?(html, "team-insights-link")
+      refute html =~ ~s(aria-current="true")
+    end
+
+    # `/teams/7` is a prefix of every other section, so an overview tab that
+    # matched by prefix would be lit on all six at once.
+    @tag req: ["FR-901"]
+    test "overview lights up on the team page and on none of its sections" do
+      assert here?(strip("/teams/7"), "team-overview-link")
+      refute here?(strip("/teams/7/insights"), "team-overview-link")
+    end
+
+    # Six labels do not fit across a phone, and FR-905 is about the document
+    # not scrolling sideways — so the strip scrolls instead of the page.
+    @tag req: ["FR-905"]
+    test "scrolls itself rather than widening the page" do
+      assert strip("/teams/7") =~ "overflow-x-auto"
+    end
+
+    @tag req: ["FR-901"]
+    test "is in the chrome of a page inside a team, and absent from one that is not" do
+      user = %SprintLens.Accounts.User{display_name: "Somchai", email: "s@example.com"}
+
+      inside =
+        render_component(&Layouts.app/1, %{
+          flash: %{},
+          current_scope: %{user: user},
+          current_path: "/teams/7",
+          team: %SprintLens.Teams.Team{id: 7},
+          inner_block: inner("x")
+        })
+
+      assert inside =~ ~s(id="team-nav")
+
+      outside =
+        render_component(&Layouts.app/1, %{
+          flash: %{},
+          current_scope: %{user: user},
+          current_path: "/home",
+          inner_block: inner("x")
+        })
+
+      refute outside =~ ~s(id="team-nav")
     end
   end
 

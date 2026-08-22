@@ -50,7 +50,7 @@ defmodule SprintLensWeb.ActionComponents do
         <.input field={@form[:due_date]} type="date" label={gettext("Due")} />
       </div>
 
-      <p :if={@topic} id="action-topic" class="text-sm opacity-70">
+      <p :if={@topic} id="action-topic" class="text-label text-base-content/70">
         {gettext("Linked to: %{topic}", topic: @topic.title)}
       </p>
 
@@ -72,12 +72,12 @@ defmodule SprintLensWeb.ActionComponents do
     ~H"""
     <li
       id={"action-#{@action.id}"}
-      class="flex flex-wrap items-center gap-2 rounded-box border border-base-200 p-2"
+      class="flex flex-wrap items-center gap-2 rounded-card border border-base-200 p-3"
     >
       <div class="min-w-0 grow">
         <p class="break-words font-medium">{@action.title}</p>
 
-        <p class="flex flex-wrap items-center gap-2 text-xs opacity-70">
+        <p class="flex flex-wrap items-center gap-2 text-caption text-base-content/70">
           <span id={"action-owner-#{@action.id}"}>
             {if @action.assignee, do: @action.assignee.display_name, else: gettext("Unassigned")}
           </span>
@@ -90,21 +90,17 @@ defmodule SprintLensWeb.ActionComponents do
             Overdue is a fact about an unfinished item, so it is stated rather
             than left to the reader to work out from a date (FR-506).
           --%>
-          <span
+          <.badge
             :if={Actions.overdue?(@action, @now)}
             id={"action-overdue-#{@action.id}"}
-            class="badge badge-error badge-xs"
+            tone="danger"
           >
             {gettext("Overdue")}
-          </span>
+          </.badge>
 
-          <span
-            :if={@action.carried_from_id}
-            id={"action-carried-#{@action.id}"}
-            class="badge badge-ghost badge-xs"
-          >
+          <.badge :if={@action.carried_from_id} id={"action-carried-#{@action.id}"}>
             {gettext("Carried over")}
-          </span>
+          </.badge>
         </p>
       </div>
 
@@ -124,7 +120,8 @@ defmodule SprintLensWeb.ActionComponents do
         <select
           id={"action-status-#{@action.id}"}
           name="status"
-          class="select select-xs"
+          data-slot="control"
+          class="rounded-control border border-base-300 bg-base-100 px-2 py-1.5 text-label"
         >
           <option
             :for={status <- ActionItem.statuses()}
@@ -136,13 +133,13 @@ defmodule SprintLensWeb.ActionComponents do
         </select>
       </form>
 
-      <span
+      <.badge
         :if={not @editable}
         id={"action-status-badge-#{@action.id}"}
-        class={["badge badge-sm", status_class(ActionItem.status(@action))]}
+        tone={status_tone(ActionItem.status(@action))}
       >
         {status_label(ActionItem.status(@action))}
-      </span>
+      </.badge>
 
       {render_slot(@controls, @action)}
     </li>
@@ -165,13 +162,13 @@ defmodule SprintLensWeb.ActionComponents do
     <section
       id="carry-over-review"
       aria-labelledby="carry-over-heading"
-      class="rounded-box border border-base-300 p-3"
+      class="rounded-panel border border-base-200 bg-base-100 p-4"
     >
       <h3 id="carry-over-heading" class="font-semibold">
         {gettext("Still open from last time")}
       </h3>
 
-      <p :if={@actions == []} id="carry-over-empty" class="mt-2 text-sm opacity-60">
+      <p :if={@actions == []} id="carry-over-empty" class="mt-2 text-label text-base-content/60">
         {gettext("Nothing is outstanding. Good place to start.")}
       </p>
 
@@ -215,8 +212,8 @@ defmodule SprintLensWeb.ActionComponents do
   # The badge is only rendered where the row is read-only, which is the Home
   # page, which lists only what is still open — so `done` and `dropped` never
   # reach here.
-  defp status_class(:in_progress), do: "badge-info"
-  defp status_class(_open), do: "badge-outline"
+  defp status_tone(:in_progress), do: "info"
+  defp status_tone(_open), do: "neutral"
 
   defp member_options(members) do
     Enum.map(members, &{&1.display_name, &1.id})

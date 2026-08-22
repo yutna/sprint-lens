@@ -20,17 +20,18 @@ defmodule SprintLensWeb.TemplateLive.Index do
       locale={@locale}
       theme={@theme}
       current_path={@current_path}
+      team={@team}
+      breadcrumbs={[
+        {gettext("Teams"), ~p"/teams"},
+        {@team.name, ~p"/teams/#{@team}"},
+        {gettext("Templates"), ~p"/teams/#{@team}/templates"}
+      ]}
     >
       <.header>
         {gettext("Templates")}
         <:subtitle>
           {gettext("Column layouts for %{team}", team: @team.name)}
         </:subtitle>
-        <:actions>
-          <.button navigate={~p"/teams/#{@team}"} variant="ghost" size="sm">
-            {gettext("Back to team")}
-          </.button>
-        </:actions>
       </.header>
 
       <.form

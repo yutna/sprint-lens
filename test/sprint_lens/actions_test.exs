@@ -515,6 +515,37 @@ defmodule SprintLens.ActionsTest do
       assert Enum.sort(ids) == Enum.sort([first.id, second.id])
     end
 
+    # The two databases disagree about where a NULL belongs in an ascending
+    # sort — SQLite puts it first, PostgreSQL puts it last — so the home page
+    # would have opened on "no deadline" in development and on "due tomorrow"
+    # in production. This runs on both and expects the same answer.
+    @tag req: ["FR-504", "FR-506"]
+    test "soonest due first, and the ones with no date at the end", ctx do
+      soon = DateTime.add(DateTime.utc_now(:second), 1, :day)
+      later = DateTime.add(DateTime.utc_now(:second), 9, :day)
+
+      undated =
+        write_action(ctx, ctx.session, %{title: "Undated", assignee_id: ctx.participant.id})
+
+      last =
+        write_action(ctx, ctx.session, %{
+          title: "Later",
+          assignee_id: ctx.participant.id,
+          due_date: later
+        })
+
+      first =
+        write_action(ctx, ctx.session, %{
+          title: "Soon",
+          assignee_id: ctx.participant.id,
+          due_date: soon
+        })
+
+      ids = ctx.participant |> Actions.list_my_actions() |> Enum.map(& &1.id)
+
+      assert ids == [first.id, last.id, undated.id]
+    end
+
     @tag req: ["FR-504"]
     test "and nobody signed out has any", ctx do
       write_action(ctx, ctx.session, %{title: "Mine", assignee_id: ctx.participant.id})

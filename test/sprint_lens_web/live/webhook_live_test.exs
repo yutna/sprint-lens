@@ -198,7 +198,13 @@ defmodule SprintLensWeb.WebhookLiveTest do
 
       {:ok, lv, _html} = live(ctx.conn, ~p"/teams/#{ctx.team}")
 
-      assert has_element?(lv, "#deliveries .badge-success", "delivered")
+      # `[data-tone]` rather than a class: the tone is what the badge means,
+      # and it survives the next time the styling changes.
+      assert has_element?(
+               lv,
+               ~s(#deliveries [data-slot="badge"][data-tone="success"]),
+               "delivered"
+             )
     end
   end
 end

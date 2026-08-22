@@ -27,15 +27,16 @@ defmodule SprintLensWeb.InsightsLive.Index do
       locale={@locale}
       theme={@theme}
       current_path={@current_path}
+      team={@team}
+      breadcrumbs={[
+        {gettext("Teams"), ~p"/teams"},
+        {@team.name, ~p"/teams/#{@team}"},
+        {gettext("Insights"), ~p"/teams/#{@team}/insights"}
+      ]}
     >
       <.header>
         {gettext("Insights")}
         <:subtitle>{@team.name}</:subtitle>
-        <:actions>
-          <.button navigate={~p"/teams/#{@team}"} variant="ghost" size="sm">
-            {gettext("Back to team")}
-          </.button>
-        </:actions>
       </.header>
 
       <p

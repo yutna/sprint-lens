@@ -35,6 +35,22 @@ defmodule SprintLensWeb.CoreComponents do
 
   alias Phoenix.LiveView.JS
 
+  # The mascot's four poses, read at compile time from the drawings themselves
+  # so the component and the files cannot fall out of step. Each pose is one
+  # path, exactly as the mark is (see `SprintLensWeb.Layouts.logo/1`).
+  @mascot_poses ~w(waiting empty error done)
+
+  for pose <- @mascot_poses do
+    @external_resource "priv/static/images/mascot-#{pose}.svg"
+  end
+
+  @mascot_paths (for pose <- @mascot_poses, into: %{} do
+                   source = "priv/static/images/mascot-#{pose}.svg"
+                   [_whole, path] = Regex.run(~r/\sd="([^"]+)"/, File.read!(source))
+
+                   {pose, path |> String.split() |> Enum.join(" ")}
+                 end)
+
   # Shared field furniture, so a text input, a select and a textarea cannot
   # drift apart. Functions rather than module attributes: inside a `~H`
   # sigil `@thing` means `assigns.thing`, so an attribute referenced from a
@@ -395,6 +411,205 @@ defmodule SprintLensWeb.CoreComponents do
       </div>
       <div class="flex-none">{render_slot(@actions)}</div>
     </header>
+    """
+  end
+
+  @doc """
+  A short fact about the thing beside it: a state, a role, a count.
+
+  The tones are solid rather than tinted. A tinted badge — coloured text on a
+  ten-percent wash of the same hue — is the prettier option and fails WCAG at
+  small sizes in both themes; `test/sprint_lens_web/contrast_test.exs` proves
+  the `{role}` / `{role}-content` pairs clear 4.5:1, so those are the pairs a
+  badge is allowed to use.
+
+  ## Examples
+
+      <.badge>Built-in</.badge>
+      <.badge tone="danger">Overdue</.badge>
+  """
+  attr :tone, :string,
+    default: "neutral",
+    values: ~w(neutral primary info success warning danger)
+
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    tones = %{
+      "neutral" => "border border-base-300 bg-base-200 text-base-content/80",
+      "primary" => "bg-primary text-primary-content",
+      "info" => "bg-info text-info-content",
+      "success" => "bg-success text-success-content",
+      "warning" => "bg-warning text-warning-content",
+      "danger" => "bg-error text-error-content"
+    }
+
+    assigns =
+      assign(assigns, :class, [
+        "inline-flex shrink-0 items-center gap-1 rounded-control px-2 py-0.5",
+        "text-caption leading-normal font-medium whitespace-nowrap",
+        Map.fetch!(tones, assigns.tone),
+        assigns.class
+      ])
+
+    ~H"""
+    <span class={@class} data-slot="badge" data-tone={@tone} {@rest}>
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  @doc """
+  A person, where there is no room for the whole of them.
+
+  The initial of a display name in a circle. There are no uploaded pictures in
+  this product and there is no plan for any, so this is the whole of it — and
+  it is decorative, because every place it appears has the person's name in
+  text beside it.
+
+  ## Examples
+
+      <.avatar name={@user.display_name} />
+  """
+  attr :name, :any, required: true, doc: "a display name, or nil if the record lost one"
+  attr :tone, :string, default: "neutral", values: ~w(neutral primary)
+  attr :class, :any, default: "size-9 text-label"
+
+  def avatar(assigns) do
+    tones = %{
+      "neutral" => "bg-base-300 text-base-content/80",
+      "primary" => "bg-primary text-primary-content"
+    }
+
+    assigns =
+      assign(assigns,
+        initial: initial(assigns.name),
+        tone_class: Map.fetch!(tones, assigns.tone)
+      )
+
+    ~H"""
+    <span
+      class={["grid shrink-0 place-items-center rounded-full font-semibold", @tone_class, @class]}
+      aria-hidden="true"
+    >
+      {@initial}
+    </span>
+    """
+  end
+
+  # A record with no display name is the shape a bad migration leaves behind.
+  # The page it appears on still has to render.
+  defp initial(name) when is_binary(name) do
+    name |> String.trim() |> String.first() |> to_string() |> String.upcase()
+  end
+
+  defp initial(_missing), do: "?"
+
+  @doc """
+  One labelled region of a page.
+
+  Every screen is a stack of these, and they were being written out by hand
+  each time — a `<section>`, an `aria-labelledby`, an `<h2>` and the same four
+  utility classes, six times over on two screens. Repeating a landmark is how
+  one of them ends up without a name.
+
+  The heading id is derived from the region's, so the label and the thing it
+  labels cannot drift apart.
+
+  ## Examples
+
+      <.panel id="members" title={gettext("Members")}>
+        ...
+      </.panel>
+  """
+  attr :id, :string, required: true
+  attr :title, :string, required: true
+  attr :class, :any, default: nil
+  slot :subtitle, doc: "what the region is for, when the title does not say it"
+  slot :actions, doc: "controls that belong to this region rather than the page"
+  slot :inner_block, required: true
+
+  def panel(assigns) do
+    ~H"""
+    <section id={@id} aria-labelledby={"#{@id}-heading"} class={["space-y-3", @class]}>
+      <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <div class="min-w-0">
+          <h2 id={"#{@id}-heading"} class="text-heading font-semibold">{@title}</h2>
+          <p :if={@subtitle != []} class="text-label text-base-content/70">
+            {render_slot(@subtitle)}
+          </p>
+        </div>
+        <div :if={@actions != []} class="flex flex-none flex-wrap items-center gap-2">
+          {render_slot(@actions)}
+        </div>
+      </div>
+
+      {render_slot(@inner_block)}
+    </section>
+    """
+  end
+
+  @doc """
+  What a region shows when there is nothing in it yet (FR-917).
+
+  An empty region is the most common state a new team sees and the least
+  designed one in most software: a blank rectangle, or the word "None". This
+  says what would be here, and where the first one comes from.
+
+  The mascot is decorative and marked so. The sentence beside it already says
+  what the picture says, and a screen reader should not say it twice.
+  """
+  attr :id, :string, required: true
+  attr :pose, :string, default: "empty", values: ~w(waiting empty error done)
+  attr :title, :string, required: true
+  attr :class, :any, default: nil
+  slot :inner_block, doc: "a sentence about what goes here and how it gets here"
+  slot :actions, doc: "the one thing to do about it, if there is one"
+
+  def empty_state(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={[
+        "flex flex-col items-center gap-3 rounded-panel border border-dashed border-base-300",
+        "px-6 py-10 text-center",
+        @class
+      ]}
+    >
+      <.mascot pose={@pose} class="size-12 text-base-content/25" />
+      <div class="space-y-1">
+        <p class="font-medium">{@title}</p>
+        <p :if={@inner_block != []} class="text-label text-base-content/70">
+          {render_slot(@inner_block)}
+        </p>
+      </div>
+      <div :if={@actions != []} class="flex flex-wrap justify-center gap-2 pt-1">
+        {render_slot(@actions)}
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  The character, in one of the four poses it has.
+
+  Inlined at compile time rather than fetched as an image, for the reason the
+  mark is: an `<img>` cannot take the colour of the text around it, so it
+  would need one file per theme, and a second copy of the path data here would
+  be a second copy to keep in step with the drawing.
+  """
+  attr :pose, :string, required: true, values: ~w(waiting empty error done)
+  attr :class, :any, default: "size-12"
+
+  def mascot(assigns) do
+    assigns = assign(assigns, :path, Map.fetch!(@mascot_paths, assigns.pose))
+
+    ~H"""
+    <svg viewBox="0 0 32 32" class={@class} fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d={@path} />
+    </svg>
     """
   end
 

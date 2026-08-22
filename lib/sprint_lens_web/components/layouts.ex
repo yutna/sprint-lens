@@ -100,6 +100,10 @@ defmodule SprintLensWeb.Layouts do
     default: [],
     doc: "`{label, path}` pairs from the top of the hierarchy down to this page"
 
+  attr :team, :map,
+    default: nil,
+    doc: "the team this page is inside, which puts its sections in the chrome"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -173,6 +177,7 @@ defmodule SprintLensWeb.Layouts do
       </div>
 
       <.breadcrumbs :if={@breadcrumbs != []} trail={@breadcrumbs} />
+      <.team_nav :if={@team} team={@team} current_path={@current_path} />
     </header>
 
     <main id="main" class="px-4 py-8 sm:px-6 lg:px-8">
@@ -224,6 +229,80 @@ defmodule SprintLensWeb.Layouts do
     </.link>
     """
   end
+
+  @doc """
+  The sections that exist inside a team.
+
+  Everything below the team level used to be reached from buttons an
+  individual page added to its own header — six of them on team detail, and
+  none of them anywhere else, so following one meant losing the way back to
+  the other five. This is the same set on every page of a team, in the same
+  place, saying which one you are on.
+
+  Overview matches exactly and the rest match by prefix: `/teams/7` is a
+  prefix of every other section, so an overview tab that matched by prefix
+  would be lit on all six.
+
+  It scrolls itself on a narrow screen rather than widening the page — six
+  labels do not fit across a phone, and the requirement is no horizontal
+  scroll of the document (FR-905).
+  """
+  attr :team, :map, required: true
+  attr :current_path, :string, required: true
+
+  def team_nav(assigns) do
+    base = ~p"/teams/#{assigns.team}"
+
+    sections = [
+      {"overview", gettext("Overview"), base, :exact},
+      {"sessions", gettext("Retrospectives"), "#{base}/sessions", :prefix},
+      {"actions", gettext("Actions"), "#{base}/actions", :prefix},
+      {"insights", gettext("Insights"), "#{base}/insights", :prefix},
+      {"search", gettext("Search"), "#{base}/search", :prefix},
+      {"templates", gettext("Templates"), "#{base}/templates", :prefix}
+    ]
+
+    assigns =
+      assign(assigns, :sections, Enum.map(sections, &tab(&1, assigns.current_path)))
+
+    ~H"""
+    <nav
+      aria-label={gettext("Team sections")}
+      class="border-t border-base-200 bg-base-100"
+      id="team-nav"
+    >
+      <div class="mx-auto w-full max-w-6xl overflow-x-auto px-4 sm:px-6 lg:px-8">
+        <ul class="flex w-max min-w-full items-stretch gap-1">
+          <li :for={tab <- @sections}>
+            <.link
+              navigate={tab.path}
+              id={"team-#{tab.key}-link"}
+              data-slot="button"
+              aria-current={tab.here? && "page"}
+              class={[
+                "flex items-center border-b-2 px-3 py-2.5 text-label font-medium",
+                "transition-colors duration-(--sl-duration-quick) whitespace-nowrap",
+                if(tab.here?,
+                  do: "border-primary text-base-content",
+                  else: "border-transparent text-base-content/70 hover:text-base-content"
+                )
+              ]}
+            >
+              {tab.label}
+            </.link>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    """
+  end
+
+  defp tab({key, label, path, match}, current_path) do
+    %{key: key, label: label, path: path, here?: here?(match, path, current_path)}
+  end
+
+  defp here?(:exact, path, current_path), do: current_path == path
+  defp here?(:prefix, path, current_path), do: String.starts_with?(current_path, path)
 
   @doc """
   Where you are in the hierarchy, from the top down.
@@ -280,12 +359,7 @@ defmodule SprintLensWeb.Layouts do
         data-slot="button"
         class="flex cursor-pointer list-none items-center gap-2 rounded-control px-3 py-2 text-label font-medium hover:bg-base-200"
       >
-        <span
-          class="grid size-7 shrink-0 place-items-center rounded-full bg-primary text-caption font-semibold text-primary-content"
-          aria-hidden="true"
-        >
-          {initial(@user)}
-        </span>
+        <.avatar name={@user.display_name} tone="primary" class="size-7 text-caption" />
         <span class="hidden max-w-40 truncate sm:inline">{@user.display_name}</span>
         <.icon name="hero-chevron-down-micro" class="size-4 opacity-60" />
       </summary>
@@ -323,12 +397,6 @@ defmodule SprintLensWeb.Layouts do
     </details>
     """
   end
-
-  defp initial(%{display_name: name}) when is_binary(name) do
-    name |> String.trim() |> String.first() |> to_string() |> String.upcase()
-  end
-
-  defp initial(_user), do: "?"
 
   @doc """
   The product's mark, in the colour of whatever it sits next to (FR-911).
@@ -383,11 +451,15 @@ defmodule SprintLensWeb.Layouts do
   Distinct from a flash, which is about something that just happened, and from
   an error, which is about something being wrong.
   """
+  attr :rest, :global
   slot :inner_block, required: true
 
   def notice(assigns) do
     ~H"""
-    <div class="flex items-start gap-3 rounded-card border border-info/30 bg-info/10 p-4 text-label">
+    <div
+      class="flex items-start gap-3 rounded-card border border-info/30 bg-info/10 p-4 text-label"
+      {@rest}
+    >
       <.icon name="hero-information-circle" class="mt-0.5 size-5 shrink-0 text-info" />
       <div class="min-w-0 space-y-0.5">{render_slot(@inner_block)}</div>
     </div>

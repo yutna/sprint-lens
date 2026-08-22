@@ -301,6 +301,141 @@ defmodule SprintLensWeb.CoreComponentsTest do
     end
   end
 
+  describe "badge/1" do
+    @tag req: ["FR-917"]
+    test "says what it is and which tone it carries" do
+      html = render_component(&badge/1, %{tone: "danger", inner_block: inner("Overdue")})
+
+      assert html =~ "Overdue"
+      assert html =~ ~s(data-slot="badge")
+      assert html =~ ~s(data-tone="danger")
+    end
+
+    # The tinted version of this component — coloured text on a wash of the
+    # same hue — reads better and fails WCAG at this size in both themes.
+    # Only the pairs `contrast_test.exs` proves are allowed.
+    @tag req: ["FR-913"]
+    test "every tone is a contrast pair the palette test checks" do
+      for tone <- ~w(neutral primary info success warning danger) do
+        html = render_component(&badge/1, %{tone: tone, inner_block: inner("x")})
+
+        assert html =~ ~s(data-tone="#{tone}")
+      end
+    end
+
+    @tag req: ["FR-917"]
+    test "takes an id, so a test can find the one it means" do
+      html = render_component(&badge/1, %{id: "action-overdue-7", inner_block: inner("Overdue")})
+
+      assert html =~ ~s(id="action-overdue-7")
+    end
+  end
+
+  describe "panel/1" do
+    @tag req: ["FR-918"]
+    test "names its region with the heading inside it" do
+      html =
+        render_component(&panel/1, %{id: "members", title: "Members", inner_block: inner("x")})
+
+      assert html =~ ~s(id="members" aria-labelledby="members-heading")
+      assert html =~ "<section"
+      assert html =~ ~s(<h2 id="members-heading")
+      assert html =~ "Members"
+    end
+
+    @tag req: ["FR-918"]
+    test "renders a subtitle and region-level actions when given" do
+      html =
+        render_component(&panel/1, %{
+          id: "members",
+          title: "Members",
+          subtitle: inner("6 people", :subtitle),
+          actions: inner("Invite", :actions),
+          inner_block: inner("x")
+        })
+
+      assert html =~ "6 people"
+      assert html =~ "Invite"
+    end
+
+    @tag req: ["FR-918"]
+    test "and neither when not" do
+      html =
+        render_component(&panel/1, %{id: "members", title: "Members", inner_block: inner("x")})
+
+      refute html =~ "6 people"
+      refute html =~ "Invite"
+    end
+  end
+
+  describe "empty_state/1" do
+    @tag req: ["FR-917"]
+    test "says what would be here rather than leaving a gap" do
+      html =
+        render_component(&empty_state/1, %{
+          id: "home-actions-empty",
+          title: "Nothing assigned to you.",
+          inner_block: inner("Anything the team asks you to take on shows up here.")
+        })
+
+      assert html =~ ~s(id="home-actions-empty")
+      assert html =~ "Nothing assigned to you."
+      assert html =~ "shows up here"
+      # The picture says what the sentence says, so it is not said twice.
+      assert html =~ ~s(aria-hidden="true")
+    end
+
+    @tag req: ["FR-917"]
+    test "carries the one thing to do about it, when there is one" do
+      html =
+        render_component(&empty_state/1, %{
+          id: "teams-empty",
+          title: "You are not in a team yet.",
+          actions: inner("Create your first team", :actions)
+        })
+
+      assert html =~ "Create your first team"
+    end
+  end
+
+  describe "mascot/1" do
+    @tag req: ["FR-917"]
+    test "draws each of the four poses, and each is a different drawing" do
+      paths =
+        for pose <- ~w(waiting empty error done) do
+          html = render_component(&mascot/1, %{pose: pose})
+
+          assert html =~ "<svg"
+          assert html =~ ~s(fill="currentColor")
+          html
+        end
+
+      assert paths |> Enum.uniq() |> length() == 4
+    end
+  end
+
+  describe "avatar/1" do
+    @tag req: ["FR-918"]
+    test "takes the first letter of a display name, in upper case" do
+      html = render_component(&avatar/1, %{name: "somchai"})
+
+      assert html =~ ">\n  S\n</span>"
+      assert html =~ ~s(aria-hidden="true")
+    end
+
+    # The shape a bad data migration leaves behind. The page still renders.
+    @tag req: ["FR-919"]
+    test "and a question mark when the record has no name at all" do
+      assert render_component(&avatar/1, %{name: nil}) =~ "?"
+    end
+
+    @tag req: ["FR-913"]
+    test "is drawn in one of the two contrast pairs the palette test checks" do
+      assert render_component(&avatar/1, %{name: "A", tone: "primary"}) =~ "bg-primary"
+      assert render_component(&avatar/1, %{name: "A", tone: "neutral"}) =~ "bg-base-300"
+    end
+  end
+
   describe "table/1" do
     test "renders column headers and rows" do
       html =
