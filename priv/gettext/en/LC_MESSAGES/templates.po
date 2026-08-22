@@ -11,212 +11,212 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "4Ls"
 msgstr "4Ls"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "Actions"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Anchor"
 msgstr "Anchor"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Continue"
 msgstr "Continue"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Glad"
 msgstr "Glad"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Island"
 msgstr "Island"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "KPT"
 msgstr "KPT"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Keep"
 msgstr "Keep"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Lacked"
 msgstr "Lacked"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Learned"
 msgstr "Learned"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Liked"
 msgstr "Liked"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Longed for"
 msgstr "Longed for"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Mad"
 msgstr "Mad"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Mad-Sad-Glad"
 msgstr "Mad-Sad-Glad"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Problem"
 msgstr "Problem"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Rocks"
 msgstr "Rocks"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Sad"
 msgstr "Sad"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Sailboat"
 msgstr "Sailboat"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Start"
 msgstr "Start"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Start-Stop-Continue"
 msgstr "Start-Stop-Continue"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Stop"
 msgstr "Stop"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "To improve"
 msgstr "To improve"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Try"
 msgstr "Try"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Went well"
 msgstr "Went well"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What are we aiming for?"
 msgstr "What are we aiming for?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What did you enjoy?"
 msgstr "What did you enjoy?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What did you find out?"
 msgstr "What did you find out?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What did you wish you had?"
 msgstr "What did you wish you had?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What disappointed you?"
 msgstr "What disappointed you?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What frustrated you?"
 msgstr "What frustrated you?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What got in the way?"
 msgstr "What got in the way?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What is holding us back?"
 msgstr "What is holding us back?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What is pushing us forward?"
 msgstr "What is pushing us forward?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What is working and should carry on?"
 msgstr "What is working and should carry on?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What is worth keeping?"
 msgstr "What is worth keeping?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What made you happy?"
 msgstr "What made you happy?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What risks are ahead?"
 msgstr "What risks are ahead?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What should we begin doing?"
 msgstr "What should we begin doing?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What should we stop doing?"
 msgstr "What should we stop doing?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What should we try next?"
 msgstr "What should we try next?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "What was missing?"
 msgstr "What was missing?"
 
-#: lib/sprint_lens_web/template_text.ex:79
+#: lib/sprint_lens_web/template_text.ex:89
 #, elixir-autogen, elixir-format
 msgid "Wind"
 msgstr "Wind"

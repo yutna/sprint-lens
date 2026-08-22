@@ -15,9 +15,11 @@ defmodule SprintLensWeb.SessionLiveTest do
   @moduletag locale: "en"
 
   alias SprintLens.Retro
+  alias SprintLens.Retro.Board
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.Session
   alias SprintLens.Retro.SessionServer
+  alias SprintLens.Teams
 
   setup :register_and_log_in_user
 
@@ -103,7 +105,7 @@ defmodule SprintLensWeb.SessionLiveTest do
         |> form("#session_form", session: %{title: "Bad", vote_budget: "0"})
         |> render_submit()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
       assert Retro.list_sessions(ctx.team) == []
     end
 
@@ -112,7 +114,7 @@ defmodule SprintLensWeb.SessionLiveTest do
       {:ok, lv, _html} = live(ctx.conn, ~p"/teams/#{ctx.team}/sessions")
 
       assert lv |> form("#session_form", session: %{title: ""}) |> render_change() =~
-               "input-error"
+               ~s(aria-invalid="true")
     end
 
     @tag req: ["FR-106"]
@@ -155,7 +157,7 @@ defmodule SprintLensWeb.SessionLiveTest do
       other_team = team_with_lead(other_lead)
 
       {:ok, theirs} =
-        SprintLens.Teams.create_template(other_lead, other_team, %{
+        Teams.create_template(other_lead, other_team, %{
           name: "Theirs",
           columns: [%{"name" => "A"}, %{"name" => "B"}]
         })
@@ -173,6 +175,421 @@ defmodule SprintLensWeb.SessionLiveTest do
 
       assert {:error, {:live_redirect, %{to: "/teams"}}} =
                live(ctx.conn, ~p"/teams/#{theirs}/sessions")
+    end
+  end
+
+  describe "the column grid Tailwind has to be able to see" do
+    @tag req: ["FR-902"]
+    test "a board lays out one grid column per board column", ctx do
+      template =
+        Enum.find(Teams.list_templates(ctx.team), &(&1.name == "Start-Stop-Continue"))
+
+      session = start_session(ctx, %{template_id: template.id})
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "sm:grid-cols-3"
+    end
+
+    @tag req: ["FR-902"]
+    test "down to the two a template is allowed to have", ctx do
+      {:ok, pair} =
+        Teams.create_template(ctx.facilitator, ctx.team, %{
+          name: "Two",
+          columns: [%{"name" => "Good"}, %{"name" => "Bad"}]
+        })
+
+      session = start_session(ctx, %{template_id: pair.id})
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "sm:grid-cols-2"
+    end
+
+    @tag req: ["FR-902"]
+    test "and wraps rather than shrinking past four", ctx do
+      {:ok, wide} =
+        Teams.create_template(ctx.facilitator, ctx.team, %{
+          name: "Six",
+          columns: Enum.map(1..6, &%{"name" => "C#{&1}"})
+        })
+
+      session = start_session(ctx, %{template_id: wide.id})
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "sm:grid-cols-4"
+      refute html =~ "sm:grid-cols-6"
+    end
+
+    # This one reads the source rather than the output, because the defect it
+    # guards against is invisible in the output.
+    #
+    # Tailwind generates a utility only if it finds the class name written out
+    # somewhere it scans. The board built its grid class by interpolation, so
+    # `sm:grid-cols-3` never appeared in any file — the rule existed only
+    # because an unrelated screen happened to use the same literal, and
+    # deleting that screen's would have collapsed every three-column board to
+    # a single stack with nothing failing anywhere.
+    @tag req: ["FR-902"]
+    test "and every one of those class names is written out, not assembled" do
+      source = File.read!("lib/sprint_lens_web/components/board_components.ex")
+
+      refute source =~ ~r/grid-cols-#\{/,
+             "a grid class built by interpolation is a class Tailwind cannot see"
+
+      for columns <- 2..4 do
+        assert source =~ "sm:grid-cols-#{columns}"
+      end
+    end
+  end
+
+  describe "the phase stepper (FR-206)" do
+    # It was six equal badges with one filled in, which is the shape of a
+    # filter. A retrospective is a sequence, and the sequence is the point.
+    @tag req: ["FR-206"]
+    test "says which phases are behind, which is now, and which are ahead", ctx do
+      session = start_session(ctx)
+      {:ok, session} = Retro.set_phase(ctx.facilitator, session, :vote)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      bar = lv |> element("#phase-bar") |> render()
+
+      # Four of the six are numbered; the three behind carry a tick instead,
+      # and the current one is the fourth.
+      assert bar =~ ~s(aria-current="true")
+      assert bar =~ "hero-check-micro"
+      assert bar =~ ">5<"
+      assert bar =~ ">6<"
+      refute bar =~ ">1<"
+    end
+
+    # "Group" tells somebody who has run a retrospective what to do. It tells
+    # a first-timer nothing at all.
+    @tag req: ["FR-918"]
+    test "and says what the phase is for, in a sentence", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert lv |> element("#phase-goal") |> render() =~ "Arrive, say how the sprint felt"
+
+      {:ok, _moved} = Retro.set_phase(ctx.facilitator, session, :group)
+
+      assert render(lv) =~ "Put the cards that are about the same thing together"
+    end
+
+    @tag req: ["NFR-201"]
+    test "a participant reads it and cannot steer it", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      assert has_element?(lv, "#phase-bar")
+      refute has_element?(lv, "#phase-vote")
+      refute has_element?(lv, "#advance-phase")
+    end
+  end
+
+  describe "sound, which is off unless it is asked for (FR-921)" do
+    setup ctx do
+      loud = insert(:user, language: "en", sound_enabled: true)
+      join_team(loud, ctx.team)
+
+      Map.merge(ctx, %{loud: loud, loud_conn: log_in_user(build_conn(), loud)})
+    end
+
+    # The server decides, not the browser. Somebody who has not asked for
+    # sound is never sent the event, so there is nothing to suppress and no
+    # muted state to fall out of date on a page left open all afternoon.
+    @tag req: ["FR-921"]
+    test "a person who has not asked for it is sent no sound and given no player", ctx do
+      session = start_session(ctx, %{is_blind: true})
+
+      {:ok, lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      refute html =~ ~s(id="sound-player")
+
+      lv |> element("#reveal-cards") |> render_click()
+
+      refute_push_event(lv, "sound", %{})
+    end
+
+    @tag req: ["FR-921"]
+    test "and somebody who has hears the reveal", ctx do
+      session = start_session(ctx, %{is_blind: true})
+
+      {:ok, lv, html} = live(ctx.loud_conn, ~p"/sessions/#{session}")
+
+      assert html =~ ~s(id="sound-player")
+
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+      facilitator_lv |> element("#reveal-cards") |> render_click()
+
+      assert_push_event(lv, "sound", %{name: :reveal})
+    end
+
+    @tag req: ["FR-921"]
+    test "the close reaches everyone in the room", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.loud_conn, ~p"/sessions/#{session}")
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      facilitator_lv |> element("#close-session") |> render_click()
+
+      assert_push_event(lv, "sound", %{name: :close})
+    end
+
+    # A vote is the only one of the four that is personal: it is the sound of
+    # your own token going down.
+    @tag req: ["FR-921"]
+    test "a vote is heard by the person who spent it and by nobody else", ctx do
+      session = start_session(ctx)
+      {:ok, session} = Retro.set_phase(ctx.facilitator, session, :brainstorm)
+
+      {:ok, card} =
+        Board.create_card(ctx.loud, session, %{
+          "column_id" => to_string(hd(session.columns).id),
+          "text" => "Worth voting on"
+        })
+
+      {:ok, _voting} = Retro.set_phase(ctx.facilitator, session, :vote)
+
+      {:ok, lv, _html} = live(ctx.loud_conn, ~p"/sessions/#{session}")
+      {:ok, other_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      lv |> element("#vote-up-card-#{card.id}") |> render_click()
+
+      assert_push_event(lv, "sound", %{name: :vote})
+      refute_push_event(other_lv, "sound", %{})
+    end
+
+    @tag req: ["FR-915", "FR-921"]
+    test "the timer running out is said out loud and written down", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.loud_conn, ~p"/sessions/#{session}")
+
+      refute has_element?(lv, "#timer-expired")
+
+      render_hook(lv, "timer_expired", %{})
+
+      assert has_element?(lv, "#timer-expired", "Time is up")
+      assert_push_event(lv, "sound", %{name: :timer})
+    end
+
+    # Setting a new one has to clear the notice, or the room is told the time
+    # is up for the rest of the session.
+    @tag req: ["FR-915"]
+    test "and starting another one takes the notice back down", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      render_hook(lv, "timer_expired", %{})
+      assert has_element?(lv, "#timer-expired")
+
+      lv |> element("#timer-300") |> render_click()
+
+      refute has_element?(lv, "#timer-expired")
+    end
+
+    # The number was worked out on the server when the board rendered, and the
+    # board renders when something happens — so a five-minute timer read
+    # "5:00" until somebody wrote a card, and there was never a moment of
+    # expiry for FR-915 to announce.
+    @tag req: ["FR-208"]
+    test "the countdown carries what it needs to keep counting in the browser", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      lv |> element("#timer-300") |> render_click()
+
+      remaining = lv |> element("#timer-remaining") |> render()
+
+      assert remaining =~ ~s(data-running="true")
+      assert remaining =~ ~s(data-remaining="300")
+    end
+  end
+
+  describe "the reveal, on a blind board (FR-209)" do
+    @tag req: ["FR-209"]
+    test "cards land one beat after another once they are shown", ctx do
+      session = start_session(ctx, %{is_blind: true})
+      {:ok, session} = Retro.set_phase(ctx.facilitator, session, :brainstorm)
+      column = hd(session.columns)
+
+      for text <- ["First", "Second"] do
+        {:ok, _card} =
+          Board.create_card(ctx.facilitator, session, %{
+            "column_id" => to_string(column.id),
+            "text" => text
+          })
+      end
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      # Hidden: nothing to stage yet.
+      refute render(lv) =~ "data-arrive"
+
+      lv |> element("#reveal-cards") |> render_click()
+
+      html = render(lv)
+      assert html =~ "data-arrive"
+      assert html =~ "--sl-arrive-index: 0"
+      assert html =~ "--sl-arrive-index: 1"
+    end
+
+    # A board that was never hidden has nothing to reveal, and a card somebody
+    # has just written should not fade in as though it were a secret.
+    @tag req: ["FR-209"]
+    test "and an ordinary board does not stage anything", ctx do
+      session = start_session(ctx)
+      {:ok, session} = Retro.set_phase(ctx.facilitator, session, :brainstorm)
+
+      {:ok, _card} =
+        Board.create_card(ctx.facilitator, session, %{
+          "column_id" => to_string(hd(session.columns).id),
+          "text" => "Plain"
+        })
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "Plain"
+      refute html =~ "data-arrive"
+    end
+  end
+
+  describe "the lobby, before it starts (FR-204, FR-213)" do
+    # The board used to render in full before the session existed: six phase
+    # badges pointing at a phase nobody was in, and every column empty.
+    @tag req: ["FR-213"]
+    test "a session that has not started is a room, not an empty board", ctx do
+      session = create_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert has_element?(lv, "#lobby")
+      refute has_element?(lv, "#phase-bar")
+      refute has_element?(lv, "#board")
+      refute has_element?(lv, "#timer")
+    end
+
+    @tag req: ["FR-204"]
+    test "the code is big enough to read out, and spelled out for a reader", ctx do
+      session = create_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      code = lv |> element("#join-code") |> render()
+
+      # The text stays exactly the code: it is compared against what somebody
+      # types, so the spacing is letter-spacing rather than actual spaces.
+      assert code =~ ">\n    #{session.join_code}\n  <"
+      assert code =~ session.join_code |> String.graphemes() |> Enum.join(" ")
+    end
+
+    @tag req: ["FR-204"]
+    test "and the whole link is on the page, for the people in the chat", ctx do
+      session = create_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      url = SprintLensWeb.Endpoint.url() <> "/join/#{session.join_code}"
+
+      assert lv |> element("#copy-join-link") |> render() =~ url
+      assert lv |> element("#join-link") |> render() =~ url
+    end
+
+    @tag req: ["FR-213"]
+    test "the room fills up as people arrive", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert has_element?(facilitator_lv, "#lobby-waiting")
+
+      {:ok, _participant_lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      assert has_element?(facilitator_lv, "#participant-#{ctx.participant.id}")
+      refute has_element?(facilitator_lv, "#lobby-waiting")
+    end
+
+    # The one useful thing a person can do while waiting, and it used to be
+    # unavailable until after the thing they were waiting for had happened.
+    @tag req: ["FR-213"]
+    test "someone waiting can say they are ready before it starts", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+      {:ok, participant_lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      participant_lv |> element("#toggle-ready") |> render_click()
+
+      assert render(facilitator_lv) =~ "1 of 2 ready"
+      assert has_element?(facilitator_lv, "#participant-#{ctx.participant.id}", "Ready")
+    end
+
+    @tag req: ["FR-213"]
+    test "and the facilitator is told when the room is ready", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      # Alone in the room, "everyone is ready" would be a statement about
+      # nobody, so it says the other true thing instead.
+      assert facilitator_lv |> element("#lobby-cue") |> render() =~ "start whenever you like"
+
+      {:ok, participant_lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      assert facilitator_lv |> element("#lobby-cue") |> render() =~ "waiting on a few"
+
+      participant_lv |> element("#toggle-ready") |> render_click()
+      facilitator_lv |> element("#toggle-ready") |> render_click()
+
+      assert facilitator_lv |> element("#lobby-cue") |> render() =~ "Everyone is ready"
+      assert has_element?(facilitator_lv, ~s(#start-session[data-room-ready="true"]))
+    end
+
+    @tag req: ["NFR-201"]
+    test "a participant is offered no way to start it", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      refute has_element?(lv, "#start-session")
+      refute has_element?(lv, "#lobby-cue")
+      assert has_element?(lv, "#toggle-ready")
+    end
+
+    @tag req: ["FR-201"]
+    test "the columns say what the room is about to be asked for", ctx do
+      session = create_session(ctx)
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "Went well"
+      assert html =~ "To improve"
+    end
+
+    @tag req: ["FR-205"]
+    test "starting it puts the board in the lobby's place", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      lv |> element("#start-session") |> render_click()
+
+      refute has_element?(lv, "#lobby")
+      assert has_element?(lv, "#phase-bar")
     end
   end
 
@@ -196,6 +613,19 @@ defmodule SprintLensWeb.SessionLiveTest do
 
       assert html =~ "Went well"
       assert html =~ "To improve"
+    end
+
+    # The hint is the column's question, and it is the only thing on the board
+    # that tells somebody who has not done this before what to write there.
+    @tag req: ["FR-201"]
+    test "and the question each column is asking", ctx do
+      template = Enum.find(Teams.list_templates(ctx.team), &(&1.name == "KPT"))
+      session = start_session(ctx, %{template_id: template.id})
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "Keep"
+      assert html =~ "What is worth keeping?"
     end
 
     @tag req: ["FR-204"]

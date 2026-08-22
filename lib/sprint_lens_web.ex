@@ -22,7 +22,8 @@ defmodule SprintLensWeb do
   # list returns not found in production with no other symptom, which is the
   # quietest way for an icon set to look finished and be broken.
   def static_paths,
-    do: ~w(assets fonts images favicon.ico apple-touch-icon.png site.webmanifest robots.txt)
+    do:
+      ~w(assets fonts images sounds favicon.ico apple-touch-icon.png site.webmanifest robots.txt)
 
   def router do
     quote do

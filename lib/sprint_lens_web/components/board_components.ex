@@ -38,7 +38,7 @@ defmodule SprintLensWeb.BoardComponents do
       id="column-tabs"
       role="tablist"
       aria-label={gettext("Columns")}
-      class="tabs tabs-box mb-3 flex sm:hidden"
+      class="mb-3 flex gap-1 overflow-x-auto rounded-control bg-base-200 p-1 sm:hidden"
     >
       <button
         :for={column <- @columns}
@@ -47,7 +47,15 @@ defmodule SprintLensWeb.BoardComponents do
         id={"tab-#{column.id}"}
         aria-selected={to_string(column.id == @active)}
         aria-controls={"column-#{column.id}"}
-        class={["tab flex-1", column.id == @active && "tab-active"]}
+        data-slot="button"
+        class={[
+          "flex-1 rounded-control px-3 py-2 text-label font-medium whitespace-nowrap",
+          "transition-colors duration-(--sl-duration-quick)",
+          if(column.id == @active,
+            do: "bg-base-100 text-base-content shadow-resting",
+            else: "text-base-content/70"
+          )
+        ]}
         phx-click="select_column"
         phx-value-column-id={column.id}
       >
@@ -81,17 +89,19 @@ defmodule SprintLensWeb.BoardComponents do
       aria-labelledby={"tab-#{@column.id}"}
       class={
         [
-          "min-w-0 rounded-box border border-base-300 p-3",
+          "min-w-0 space-y-3 rounded-panel border border-base-200 bg-base-100 p-3",
           # One column at a time on a narrow screen (FR-902); all of them once
           # there is room.
           @column.id == @active || "hidden sm:block"
         ]
       }
     >
-      <h3 class="font-semibold">{TemplateText.column_name(@column)}</h3>
-      <p :if={@column.hint} class="mb-2 text-sm opacity-70">
-        {TemplateText.column_hint(@column)}
-      </p>
+      <div class="space-y-0.5">
+        <h3 class="font-semibold">{TemplateText.column_name(@column)}</h3>
+        <p :if={@column.hint} class="text-label text-base-content/70">
+          {TemplateText.column_hint(@column)}
+        </p>
+      </div>
 
       <%!--
         FR-920: the box empties the moment you submit, and fills itself back
@@ -111,26 +121,38 @@ defmodule SprintLensWeb.BoardComponents do
           name="card[text]"
           rows="2"
           maxlength={Card.max_text()}
-          class="w-full textarea"
+          class="w-full rounded-control border border-base-300 bg-base-100 px-3 py-2 text-body transition-colors placeholder:text-base-content/40 hover:border-base-content/30"
           aria-label={gettext("Write a card in %{column}", column: TemplateText.column_name(@column))}
           phx-hook=".CardCounter"
           id={"card-text-#{@column.id}"}
         ></textarea>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs opacity-60" id={"card-counter-#{@column.id}"} aria-live="polite">
+          <span
+            id={"card-counter-#{@column.id}"}
+            aria-live="polite"
+            class="text-caption tabular-nums text-base-content/60"
+          >
             0/{Card.max_text()}
           </span>
-          <.button id={"add-card-#{@column.id}"} variant="primary" class="btn btn-primary btn-xs">
+          <.button id={"add-card-#{@column.id}"} variant="primary" size="sm">
             {gettext("Add")}
           </.button>
         </div>
       </.form>
 
-      <ul id={"cards-#{@column.id}"} class="mt-3 space-y-2">
+      <ul id={"cards-#{@column.id}"} class="space-y-2">
+        <%!--
+          `data-arrive` is only set on a board that was hidden and has just
+          been shown. Everywhere else the cards are simply there, and a card
+          somebody has just written should not fade in as though it were
+          somebody else's secret.
+        --%>
         <li
-          :for={card <- @cards}
+          :for={{card, index} <- Enum.with_index(@cards)}
           id={"card-#{card.id}"}
-          class="rounded-box border border-base-200 bg-base-100 p-2"
+          data-arrive={revealed?(@session) || nil}
+          style={revealed?(@session) && "--sl-arrive-index: #{index}"}
+          class="rounded-card border border-base-200 bg-base-100 p-3 shadow-resting"
         >
           <.card_body
             card={card}
@@ -146,7 +168,7 @@ defmodule SprintLensWeb.BoardComponents do
         </li>
       </ul>
 
-      <p :if={@cards == []} class="mt-3 text-sm opacity-60" id={"column-empty-#{@column.id}"}>
+      <p :if={@cards == []} class="text-label text-base-content/60" id={"column-empty-#{@column.id}"}>
         {gettext("Nothing here yet.")}
       </p>
     </section>
@@ -202,6 +224,36 @@ defmodule SprintLensWeb.BoardComponents do
   end
 
   @doc """
+  How many grid columns a board of `count` columns lays out in.
+
+  Shared with the recap, which draws the same board after the fact.
+  """
+  @spec column_grid(pos_integer()) :: String.t()
+  # A lookup table of literal class names, and it has to stay one.
+  #
+  # This used to build the class by interpolating the column count into it,
+  # which Tailwind cannot see: it scans the source for class strings, and a
+  # name assembled at runtime never appears in one. Three of the four survived
+  # only because other files happened to use `sm:grid-cols-2`, `-3` and `-4`
+  # as literals — and
+  # `sm:grid-cols-1` was already missing from the stylesheet, which nobody
+  # noticed because one column falls back to one column anyway. Deleting an
+  # unrelated `sm:grid-cols-3` somewhere else would have silently collapsed
+  # every three-column board into a single stack.
+  #
+  # Capped at four: a six-column template wraps onto a second row rather than
+  # shrinking every column past the width of a card. There is no clause for
+  # one column because there cannot be one — `Template.column_bounds/0` starts
+  # at two and the fallback board has three.
+  def column_grid(2), do: "sm:grid-cols-2"
+  def column_grid(3), do: "sm:grid-cols-3"
+  def column_grid(_four_or_more), do: "sm:grid-cols-4"
+
+  # A blind board that has been revealed, which is the only situation the
+  # cards are staged for.
+  defp revealed?(session), do: session.is_blind and session.cards_revealed
+
+  @doc """
   One card: its text, who wrote it, and what can be done with it.
   """
   attr :card, :map, required: true
@@ -225,16 +277,17 @@ defmodule SprintLensWeb.BoardComponents do
       phx-submit="update_card"
     >
       <input type="hidden" name="card[id]" value={@card.id} />
-      <textarea name="card[text]" rows="2" maxlength={Card.max_text()} class="w-full textarea">{@card.text}</textarea>
+      <textarea
+        name="card[text]"
+        rows="2"
+        maxlength={Card.max_text()}
+        class="w-full rounded-control border border-base-300 bg-base-100 px-3 py-2 text-body transition-colors placeholder:text-base-content/40 hover:border-base-content/30"
+      >{@card.text}</textarea>
       <div class="flex gap-1">
-        <.button id={"save-card-#{@card.id}"} variant="primary" class="btn btn-primary btn-xs">
+        <.button id={"save-card-#{@card.id}"} variant="primary" size="sm">
           {gettext("Save")}
         </.button>
-        <.button
-          id={"cancel-edit-#{@card.id}"}
-          phx-click="cancel_edit"
-          class="btn btn-ghost btn-xs"
-        >
+        <.button id={"cancel-edit-#{@card.id}"} phx-click="cancel_edit" variant="ghost" size="sm">
           {gettext("Cancel")}
         </.button>
       </div>
@@ -243,7 +296,7 @@ defmodule SprintLensWeb.BoardComponents do
     <div :if={@editing != @card.id}>
       <p class="whitespace-pre-wrap break-words">{@card.text}</p>
 
-      <p class="mt-1 text-xs opacity-60">
+      <p class="mt-1 text-caption text-base-content/60">
         <%!--
           Authorship is never shown in an anonymous session — not to the
           facilitator, not to an Org Admin (FR-210).
@@ -257,11 +310,11 @@ defmodule SprintLensWeb.BoardComponents do
         cards have to be selectable. A real checkbox, so it is reachable by
         keyboard and announced as what it is (FR-914).
       --%>
-      <label :if={@can_group} class="mt-1 flex w-fit items-center gap-1 text-xs">
+      <label :if={@can_group} class="mt-2 flex w-fit items-center gap-1.5 text-caption">
         <input
           type="checkbox"
           id={"select-card-#{@card.id}"}
-          class="checkbox checkbox-xs"
+          class="size-4 rounded-sm border-base-300 accent-primary"
           checked={@selected && MapSet.member?(@selected, @card.id)}
           phx-click="toggle_card"
           phx-value-id={@card.id}
@@ -275,7 +328,8 @@ defmodule SprintLensWeb.BoardComponents do
           id={"edit-card-button-#{@card.id}"}
           phx-click="edit_card"
           phx-value-id={@card.id}
-          class="btn btn-ghost btn-xs"
+          variant="ghost"
+          size="sm"
         >
           {gettext("Edit")}
         </.button>
@@ -286,7 +340,8 @@ defmodule SprintLensWeb.BoardComponents do
           phx-click="delete_card"
           phx-value-id={@card.id}
           data-confirm={gettext("Delete this card?")}
-          class="btn btn-ghost btn-xs"
+          variant="ghost"
+          size="sm"
         >
           {gettext("Delete")}
         </.button>
@@ -303,7 +358,8 @@ defmodule SprintLensWeb.BoardComponents do
           phx-click="move_card"
           phx-value-id={@card.id}
           phx-value-column-id={target.id}
-          class="btn btn-ghost btn-xs"
+          variant="ghost"
+          size="sm"
         >
           {gettext("→ %{column}", column: target.name)}
         </.button>
@@ -328,53 +384,77 @@ defmodule SprintLensWeb.BoardComponents do
 
   def topics_panel(assigns) do
     ~H"""
-    <section id="topics-panel" class="rounded-box border border-base-300 p-3">
-      <div class="flex flex-wrap items-center gap-2">
-        <h3 class="font-semibold">{gettext("Topics")}</h3>
+    <section id="topics-panel" class="space-y-3 rounded-panel border border-base-200 bg-base-100 p-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <h3 class="text-heading font-semibold">{gettext("Topics")}</h3>
 
         <%!--
           Your own budget, always (FR-403). Nobody else's, ever: one person's
           spending is not the room's business.
         --%>
-        <span :if={@can_vote} id="vote-remaining" class="badge badge-outline">
-          {gettext("%{remaining} of %{budget} votes left",
-            remaining: @summary.remaining,
-            budget: @summary.budget
-          )}
+        <span
+          :if={@can_vote}
+          id="vote-remaining"
+          class="flex flex-wrap items-center gap-2 text-label"
+        >
+          <%!--
+            The budget as a row of tokens rather than a sentence. It is a
+            fixed pool spent down over the phase, and a pool is a thing you
+            watch getting smaller — the number is still there in the label
+            underneath, for anybody who is counting rather than glancing.
+          --%>
+          <span aria-hidden="true" class="flex gap-1">
+            <span
+              :for={token <- 1..@summary.budget//1}
+              class={[
+                "size-2.5 rounded-full",
+                if(token <= @summary.remaining, do: "bg-primary", else: "bg-base-300")
+              ]}
+            ></span>
+          </span>
+          <span class="text-base-content/70">
+            {gettext("%{remaining} of %{budget} votes left",
+              remaining: @summary.remaining,
+              budget: @summary.budget
+            )}
+          </span>
         </span>
 
-        <span :if={not @summary.revealed} id="votes-hidden" class="text-sm opacity-70">
+        <span :if={not @summary.revealed} id="votes-hidden" class="text-label text-base-content/70">
           {gettext("Totals are hidden until the facilitator reveals them.")}
         </span>
 
         <.button
           :if={@is_facilitator and not @summary.revealed}
           id="reveal-votes"
-          variant="primary"
           phx-click="reveal_votes"
-          class="btn btn-primary btn-xs"
+          variant="primary"
+          size="sm"
         >
           {gettext("Reveal totals")}
         </.button>
       </div>
 
-      <ol id="topics" class="mt-3 space-y-2">
+      <ol id="topics" class="space-y-2">
         <li
           :for={topic <- @topics}
           id={"topic-#{Topic.dom_id(topic)}"}
           aria-current={to_string(topic.focused?)}
           class={[
-            "rounded-box border p-2",
-            if(topic.focused?, do: "border-primary bg-primary/5", else: "border-base-200")
+            "rounded-card border p-3 transition-colors duration-(--sl-duration-base)",
+            if(topic.focused?,
+              do: "border-primary bg-primary/5 shadow-resting",
+              else: "border-base-200"
+            )
           ]}
         >
           <div class="flex flex-wrap items-start gap-2">
-            <p class="grow whitespace-pre-wrap break-words">{topic.title}</p>
+            <p class="grow break-words whitespace-pre-wrap">{topic.title}</p>
 
             <span
               :if={not is_nil(topic.votes)}
               id={"topic-total-#{Topic.dom_id(topic)}"}
-              class="badge badge-primary badge-sm"
+              class="shrink-0 rounded-control bg-primary px-2 py-0.5 text-caption font-medium text-primary-content"
             >
               {ngettext("%{count} vote", "%{count} votes", topic.votes, count: topic.votes)}
             </span>
@@ -382,20 +462,20 @@ defmodule SprintLensWeb.BoardComponents do
             <span
               :if={topic.my_votes > 0}
               id={"topic-mine-#{Topic.dom_id(topic)}"}
-              class="badge badge-sm"
+              class="shrink-0 rounded-control border border-base-300 bg-base-200 px-2 py-0.5 text-caption text-base-content/80"
             >
               {gettext("you: %{count}", count: topic.my_votes)}
             </span>
           </div>
 
           <ul :if={topic.kind == :group and topic.cards != []} class="mt-1 space-y-1 pl-3">
-            <li :for={card <- topic.cards} class="text-sm opacity-70">{card.text}</li>
+            <li :for={card <- topic.cards} class="text-label text-base-content/70">{card.text}</li>
           </ul>
 
           <p
             :if={topic.note}
             id={"topic-note-#{Topic.dom_id(topic)}"}
-            class="mt-2 rounded-box bg-base-200 p-2 text-sm"
+            class="mt-2 rounded-card bg-base-200 p-3 text-label"
           >
             {topic.note}
           </p>
@@ -406,7 +486,8 @@ defmodule SprintLensWeb.BoardComponents do
               id={"vote-up-#{Topic.dom_id(topic)}"}
               phx-click="cast_vote"
               phx-value-topic={topic.key}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Vote")}
             </.button>
@@ -416,7 +497,8 @@ defmodule SprintLensWeb.BoardComponents do
               id={"vote-down-#{Topic.dom_id(topic)}"}
               phx-click="retract_vote"
               phx-value-topic={topic.key}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Take back")}
             </.button>
@@ -426,7 +508,8 @@ defmodule SprintLensWeb.BoardComponents do
               id={"focus-#{Topic.dom_id(topic)}"}
               phx-click="set_focus"
               phx-value-topic={topic.key}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Discuss this")}
             </.button>
@@ -435,7 +518,8 @@ defmodule SprintLensWeb.BoardComponents do
               :if={@is_facilitator and topic.focused?}
               id="clear-focus"
               phx-click="clear_focus"
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Stop discussing")}
             </.button>
@@ -445,7 +529,8 @@ defmodule SprintLensWeb.BoardComponents do
               id={"note-#{Topic.dom_id(topic)}"}
               phx-click="edit_note"
               phx-value-topic={topic.key}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {if topic.note, do: gettext("Edit note"), else: gettext("Add note")}
             </.button>
@@ -464,18 +549,18 @@ defmodule SprintLensWeb.BoardComponents do
               name="note[body]"
               rows="2"
               maxlength={DiscussionNote.max_body()}
-              class="w-full textarea"
+              class="w-full rounded-control border border-base-300 bg-base-100 px-3 py-2 text-body transition-colors placeholder:text-base-content/40 hover:border-base-content/30"
               aria-label={gettext("Discussion note")}
             >{topic.note}</textarea>
             <div class="flex gap-1">
               <.button
                 id={"save-note-#{Topic.dom_id(topic)}"}
                 variant="primary"
-                class="btn btn-primary btn-xs"
+                size="sm"
               >
                 {gettext("Save")}
               </.button>
-              <.button id="cancel-note" phx-click="cancel_note" class="btn btn-ghost btn-xs">
+              <.button id="cancel-note" phx-click="cancel_note" variant="ghost" size="sm">
                 {gettext("Cancel")}
               </.button>
             </div>
@@ -483,7 +568,7 @@ defmodule SprintLensWeb.BoardComponents do
         </li>
       </ol>
 
-      <p :if={@topics == []} id="topics-empty" class="mt-2 text-sm opacity-60">
+      <p :if={@topics == []} id="topics-empty" class="text-label text-base-content/60">
         {gettext("There is nothing on the board to discuss yet.")}
       </p>
     </section>
@@ -504,11 +589,11 @@ defmodule SprintLensWeb.BoardComponents do
     <section
       id={"mood-#{@kind}"}
       aria-label={@prompt}
-      class="rounded-box border border-base-300 p-3"
+      class="space-y-3 rounded-panel border border-base-200 bg-base-100 p-4"
     >
-      <h3 class="font-semibold">{@prompt}</h3>
+      <h3 class="text-heading font-semibold">{@prompt}</h3>
 
-      <div :if={@open} class="mt-2 flex gap-1" role="group" aria-label={@prompt}>
+      <div :if={@open} class="flex flex-wrap gap-2" role="group" aria-label={@prompt}>
         <.button
           :for={score <- 1..5}
           id={"#{@kind}-score-#{score}"}
@@ -516,7 +601,8 @@ defmodule SprintLensWeb.BoardComponents do
           phx-value-kind={@kind}
           phx-value-score={score}
           aria-pressed={to_string(@mine && @mine.score == score)}
-          class={["btn btn-sm", @mine && @mine.score == score && "btn-primary"]}
+          variant={if @mine && @mine.score == score, do: "primary", else: nil}
+          class="w-11 justify-center tabular-nums"
         >
           {score}
         </.button>
@@ -526,7 +612,7 @@ defmodule SprintLensWeb.BoardComponents do
         Only the aggregate is ever shown; the individual answers exist so a
         person can change their own (FR-211).
       --%>
-      <p class="mt-2 text-sm opacity-70" id={"mood-summary-#{@kind}"}>
+      <p class="text-label text-base-content/70" id={"mood-summary-#{@kind}"}>
         <span :if={@summary.count == 0}>{gettext("No answers yet.")}</span>
         <span :if={@summary.count > 0}>
           {gettext("Average %{average} from %{count} people",
@@ -536,8 +622,13 @@ defmodule SprintLensWeb.BoardComponents do
         </span>
       </p>
 
-      <ul :if={@summary.words != []} class="mt-1 flex flex-wrap gap-1">
-        <li :for={word <- @summary.words} class="badge badge-outline badge-sm">{word}</li>
+      <ul :if={@summary.words != []} class="flex flex-wrap gap-1.5">
+        <li
+          :for={word <- @summary.words}
+          class="rounded-control border border-base-300 px-2 py-0.5 text-caption"
+        >
+          {word}
+        </li>
       </ul>
     </section>
     """
@@ -553,10 +644,22 @@ defmodule SprintLensWeb.BoardComponents do
 
   def icebreaker(assigns) do
     ~H"""
-    <p id="icebreaker" class="rounded-box border border-base-300 p-3 text-sm">
-      <span class="font-semibold">{gettext("Icebreaker")}:</span>
-      {icebreaker_for(@session)}
-    </p>
+    <div
+      id="icebreaker"
+      class="flex items-start gap-3 rounded-panel border border-base-200 bg-base-200/60 p-4"
+    >
+      <.icon name="hero-chat-bubble-left-right" class="mt-0.5 size-5 shrink-0 text-base-content/50" />
+      <p class="min-w-0">
+        <span class="block text-caption font-semibold tracking-wide text-base-content/60 uppercase">
+          {gettext("Icebreaker")}
+        </span>
+        <%!--
+          The opening move rather than a footnote: it is the first thing the
+          room is asked, and it was set in small grey type under a border.
+        --%>
+        <span class="text-heading">{icebreaker_for(@session)}</span>
+      </p>
+    </div>
     """
   end
 

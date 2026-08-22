@@ -5,29 +5,66 @@
   theme={@theme}
   current_path={@conn.request_path}
 >
-  <div class="mx-auto max-w-2xl py-10 text-center">
-    <.header>
-      {gettext("Retrospectives your team actually acts on")}
-      <:subtitle>
+  <div class="mx-auto max-w-3xl space-y-10 py-10 text-center sm:py-16">
+    <div class="space-y-4">
+      <h1 class="text-display font-semibold text-balance">
+        {gettext("Retrospectives your team actually acts on")}
+      </h1>
+      <p class="mx-auto max-w-xl text-heading text-balance text-base-content/70">
         {gettext(
           "Collect reflections, agree on actions, and see whether they get done — session after session."
         )}
-      </:subtitle>
-    </.header>
+      </p>
+    </div>
 
-    <div class="mt-8 flex justify-center gap-3">
+    <div class="flex flex-wrap justify-center gap-3">
       <%= if @current_scope && @current_scope.user do %>
-        <.link navigate={~p"/home"} class="btn btn-primary">
+        <.button navigate={~p"/home"} variant="primary">
           {gettext("Go to your teams")}
-        </.link>
+        </.button>
       <% else %>
-        <.link navigate={~p"/users/register"} class="btn btn-primary">
+        <.button navigate={~p"/users/register"} variant="primary">
           {gettext("Create an account")}
-        </.link>
-        <.link navigate={~p"/users/log-in"} class="btn btn-ghost">
+        </.button>
+        <.button navigate={~p"/users/log-in"}>
           {gettext("Log in")}
-        </.link>
+        </.button>
       <% end %>
     </div>
+
+    <%!--
+      The six phases, in the order they happen, drawn the way the board draws
+      them. It is the one honest thing a landing page can show about this
+      product: a retrospective here is a sequence somebody walks a room
+      through, and this is the shape of it. Numbered because the order is the
+      information, not because numbers look considered.
+    --%>
+    <section aria-labelledby="how-heading" class="space-y-4 border-t border-base-200 pt-10">
+      <h2 id="how-heading" class="text-label font-medium text-base-content/70">
+        {gettext("An hour, in six steps")}
+      </h2>
+
+      <ol class="-mx-4 flex items-center justify-start gap-1 overflow-x-auto px-4 sm:justify-center">
+        <li
+          :for={{phase, index} <- Enum.with_index(SprintLens.Retro.Session.phases())}
+          class="flex shrink-0 items-center"
+        >
+          <span class="flex items-center gap-1.5 rounded-control px-2 py-1.5 text-label whitespace-nowrap">
+            <span
+              aria-hidden="true"
+              class="grid size-5 shrink-0 place-items-center rounded-full bg-base-200 text-caption font-semibold"
+            >
+              {index + 1}
+            </span>
+            {SprintLensWeb.RoomComponents.phase_label(phase)}
+          </span>
+          <span
+            :if={index < 5}
+            aria-hidden="true"
+            class="mx-1 h-px w-4 shrink-0 bg-base-300"
+          ></span>
+        </li>
+      </ol>
+    </section>
   </div>
 </Layouts.app>

@@ -2,6 +2,8 @@
    https://tailwindcss.com/docs/configuration */
 
 @import "tailwindcss" source(none);
+@import "./fonts.css";
+@import "./tokens.css";
 @import "phoenix-colocated/sprint_lens/colocated.css";
 @source "../css";
 @source "../js";
@@ -106,6 +108,45 @@
   --noise: 0;
 }
 
+/* Typography.
+ *
+ * There was no font in the project at all: every screen rendered in whatever
+ * the browser happened to have, which is the single largest reason the
+ * interface did not look designed.
+ *
+ * Thai needs more line height than Latin at the same size — the marks that sit
+ * above and below the line collide otherwise — so the body leading is set for
+ * Thai and Latin inherits it, rather than the other way round. This interface
+ * is Thai first and the type should be too.
+ */
+@theme {
+  --font-sans: "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Mitr", "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --leading-body: 1.75;
+  --leading-heading: 1.4;
+}
+
+body {
+  font-family: var(--font-sans);
+  line-height: var(--leading-body);
+  /* Thai has no lowercase and no italics; the shapes carry less contrast than
+   * Latin does, so the text benefits from the extra clarity. */
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  line-height: var(--leading-heading);
+  /* Mitr is a rounded face and reads a touch loose at display sizes. */
+  letter-spacing: -0.01em;
+}
+
 /* Add variants based on LiveView classes */
 @custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
 @custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
@@ -131,6 +172,17 @@
  * board is made of. Padding rather than height alone, so the label stays
  * centred and the target grows around it. */
 @media (pointer: coarse) {
+  /* The owned half of the rule. The components no longer carry library size
+   * classes, so the guarantee hangs off what a thing *is* — `data-slot` and
+   * the real elements — rather than off which utilities happen to be on it.
+   * The daisyUI half below stays until the last of it is gone; until then
+   * both halves are needed and neither is redundant. */
+  [data-slot="button"],
+  [data-slot="control"],
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  summary,
   .btn-xs,
   .btn-sm,
   .checkbox-xs,
@@ -144,6 +196,8 @@
   }
 
   /* A checkbox has no label inside it to keep it wide, so it grows square. */
+  input[type="checkbox"],
+  input[type="radio"],
   .checkbox-xs,
   .checkbox-sm {
     width: 44px;

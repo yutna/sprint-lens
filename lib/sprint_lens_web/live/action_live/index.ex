@@ -32,95 +32,87 @@ defmodule SprintLensWeb.ActionLive.Index do
       locale={@locale}
       theme={@theme}
       current_path={@current_path}
+      team={@team}
+      breadcrumbs={[
+        {gettext("Teams"), ~p"/teams"},
+        {@team.name, ~p"/teams/#{@team}"},
+        {gettext("Actions"), ~p"/teams/#{@team}/actions"}
+      ]}
     >
       <.header>
         {gettext("Actions")}
-        <:subtitle>{@team.name}</:subtitle>
-        <:actions>
-          <.link navigate={~p"/teams/#{@team}"} class="btn btn-ghost btn-sm">
-            {gettext("Back to team")}
-          </.link>
-        </:actions>
+        <:subtitle>{gettext("Everything this team has decided to do.")}</:subtitle>
       </.header>
 
-      <.form
-        for={@filter_form}
-        id="action-filters"
-        phx-change="filter"
-        class="grid gap-2 sm:grid-cols-3"
-      >
-        <.input
-          field={@filter_form[:status]}
-          type="select"
-          label={gettext("Status")}
-          options={[{gettext("Any status"), ""} | status_options()]}
-        />
-        <.input
-          field={@filter_form[:assignee_id]}
-          type="select"
-          label={gettext("Owner")}
-          options={[{gettext("Anyone"), ""} | member_options(@members)]}
-        />
-        <.input
-          field={@filter_form[:session_id]}
-          type="select"
-          label={gettext("From session")}
-          options={[{gettext("Any session"), ""} | session_options(@sessions)]}
-        />
-      </.form>
+      <.panel id="action-summary" title={gettext("How the team is doing")}>
+        <.stats>
+          <.stat id="stat-open" label={gettext("Still open")}>{@stats.open_count}</.stat>
+          <.stat id="stat-completion" label={gettext("Completed")}>
+            {gettext("%{rate}%", rate: @stats.completion_rate)}
+          </.stat>
+          <.stat id="stat-age" label={gettext("Average age")}>
+            {ngettext("%{count} day", "%{count} days", trunc(@stats.average_age_days),
+              count: @stats.average_age_days
+            )}
+          </.stat>
+          <.stat id="stat-overdue" label={gettext("Overdue")}>{@stats.overdue_count}</.stat>
+        </.stats>
+      </.panel>
 
-      <section aria-labelledby="action-summary-heading" class="rounded-box border border-base-300 p-3">
-        <h2 id="action-summary-heading" class="text-sm font-semibold uppercase opacity-70">
-          {gettext("How the team is doing")}
-        </h2>
+      <.panel id="action-list" title={gettext("The list")}>
+        <:subtitle>
+          {gettext("Including what a later session carried forward, which the record keeps.")}
+        </:subtitle>
 
-        <dl class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <div>
-            <dt class="text-xs opacity-70">{gettext("Still open")}</dt>
-            <dd id="stat-open" class="text-lg font-semibold">{@stats.open_count}</dd>
-          </div>
-          <div>
-            <dt class="text-xs opacity-70">{gettext("Completed")}</dt>
-            <dd id="stat-completion" class="text-lg font-semibold">
-              {gettext("%{rate}%", rate: @stats.completion_rate)}
-            </dd>
-          </div>
-          <div>
-            <dt class="text-xs opacity-70">{gettext("Average age")}</dt>
-            <dd id="stat-age" class="text-lg font-semibold">
-              {ngettext("%{count} day", "%{count} days", trunc(@stats.average_age_days),
-                count: @stats.average_age_days
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt class="text-xs opacity-70">{gettext("Overdue")}</dt>
-            <dd id="stat-overdue" class="text-lg font-semibold">{@stats.overdue_count}</dd>
-          </div>
-        </dl>
-      </section>
+        <%!--
+          No submit button on purpose: the filters apply on change, and a
+          button that does what the page already did is a control that has to
+          be explained.
+        --%>
+        <.form
+          for={@filter_form}
+          id="action-filters"
+          phx-change="filter"
+          class="grid gap-3 rounded-panel border border-base-200 bg-base-100 p-4 sm:grid-cols-3"
+        >
+          <.input
+            field={@filter_form[:status]}
+            type="select"
+            label={gettext("Status")}
+            options={[{gettext("Any status"), ""} | status_options()]}
+          />
+          <.input
+            field={@filter_form[:assignee_id]}
+            type="select"
+            label={gettext("Owner")}
+            options={[{gettext("Anyone"), ""} | member_options(@members)]}
+          />
+          <.input
+            field={@filter_form[:session_id]}
+            type="select"
+            label={gettext("From session")}
+            options={[{gettext("Any session"), ""} | session_options(@sessions)]}
+          />
+        </.form>
 
-      <ul :if={@actions != []} id="actions" class="space-y-2">
-        <.action_row :for={action <- @actions} action={action} editable={true} now={@now}>
-          <:controls :let={action}>
-            <span
-              :if={action.session}
-              id={"action-session-#{action.id}"}
-              class="badge badge-ghost badge-sm"
-            >
-              {action.session.title}
-            </span>
-          </:controls>
-        </.action_row>
-      </ul>
+        <ul :if={@actions != []} id="actions" class="space-y-2">
+          <.action_row :for={action <- @actions} action={action} editable={true} now={@now}>
+            <:controls :let={action}>
+              <.badge :if={action.session} id={"action-session-#{action.id}"}>
+                {action.session.title}
+              </.badge>
+            </:controls>
+          </.action_row>
+        </ul>
 
-      <p
-        :if={@actions == []}
-        id="actions-empty"
-        class="rounded-box border border-base-300 p-6 text-center"
-      >
-        {gettext("Nothing here. Actions come out of a retrospective's discussion.")}
-      </p>
+        <.empty_state
+          :if={@actions == []}
+          id="actions-empty"
+          title={gettext("Nothing here.")}
+        >
+          {gettext("Actions come out of a retrospective's discussion.")}
+        </.empty_state>
+      </.panel>
     </Layouts.app>
     """
   end

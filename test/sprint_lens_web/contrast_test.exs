@@ -26,6 +26,9 @@ defmodule SprintLensWeb.ContrastTest do
 
   @stylesheet "assets/css/app.css"
 
+  # The project's own layer, where the colours that are not daisyUI's live.
+  @tokens "assets/css/tokens.css"
+
   # WCAG 2.1 AA for body text (FR-913).
   @minimum 4.5
 
@@ -53,6 +56,21 @@ defmodule SprintLensWeb.ContrastTest do
 
         assert ratio >= @minimum,
                "#{theme}: #{role}-content on #{role} is #{Float.round(ratio, 2)}:1"
+      end
+    end
+
+    # The hole this test used to have. It checked `base-content` on surfaces
+    # and `{role}-content` on `{role}`, which is every pair a *filled* thing
+    # uses — and none of the pairs a coloured *word* uses. `text-primary` was
+    # 2.60:1 on the dark theme's own background, in six places including the
+    # sign-in page, and nothing here objected.
+    @tag req: ["FR-912", "FR-913"]
+    test "and so does a link, which is a colour on a surface rather than a fill" do
+      for {theme, colors} <- themes(), surface <- ~w(base-100 base-200 base-300) do
+        ratio = contrast(link_color(theme), colors[surface])
+
+        assert ratio >= @minimum,
+               "#{theme}: the link colour on #{surface} is #{Float.round(ratio, 2)}:1"
       end
     end
 
@@ -97,6 +115,20 @@ defmodule SprintLensWeb.ContrastTest do
     [[name]] = Regex.scan(~r/name:\s*"([^"]+)"/, body, capture: :all_but_first)
 
     name
+  end
+
+  # `--sl-color-link` at the top of `tokens.css` is the light theme, and the
+  # `[data-theme="dark"]` block below it overrides it. Read positionally, the
+  # same way the cascade reads it.
+  defp link_color(theme) do
+    source = File.read!(@tokens)
+
+    [light, dark] =
+      ~r/--sl-color-link:\s*(oklch\([^)]*\))/
+      |> Regex.scan(source, capture: :all_but_first)
+      |> Enum.map(fn [value] -> value end)
+
+    if theme == "dark", do: dark, else: light
   end
 
   defp colors(body) do

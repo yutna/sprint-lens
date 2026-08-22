@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { registerAndSignIn, waitForLiveView } from './support/auth'
+import { registerAndSignIn, settled, waitForLiveView } from './support/auth'
 
 /**
  * The live board, driven through real browsers.
@@ -68,6 +68,138 @@ async function twoPeopleOnABoard(page: Page, context: import('@playwright/test')
   return { participant, boardUrl }
 }
 
+test.describe('the lobby', () => {
+  /**
+   * The clipboard is the one thing here a LiveView test cannot reach: the
+   * hook runs in the browser, `navigator.clipboard` is a browser API, and a
+   * hook that silently fails looks exactly like a hook that works.
+   */
+  test('[FR-204] the code is on the screen and the link is one tap away', async ({
+    page,
+    context,
+    browserName,
+  }) => {
+    await registerAndSignIn(page)
+    await createTeam(page, 'Lobby')
+    await page.getByRole('link', { name: /Retrospective/i }).click()
+    await waitForLiveView(page)
+    await createSession(page, 'Sprint 20')
+
+    // Not started, so this is the room rather than the board.
+    await expect(page.locator('#lobby')).toBeVisible()
+    await expect(page.locator('#phase-bar')).toHaveCount(0)
+
+    const code = (await page.locator('#join-code').innerText()).trim()
+    expect(code).toMatch(/^[A-Z0-9]+$/)
+    await expect(page.locator('#join-link')).toContainText(`/join/${code}`)
+
+    // Only Chromium grants the clipboard without a user gesture prompt. The
+    // other engines take the hook's fallback path, which is a selection
+    // rather than a copy and has nothing to assert.
+    test.skip(browserName !== 'chromium', 'clipboard permissions are Chromium-only here')
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+
+    await page.locator('#copy-join-link').click()
+
+    await expect(page.locator('#copy-join-link')).toContainText('คัดลอกแล้ว')
+    const copied = await page.evaluate(() => navigator.clipboard.readText())
+    expect(copied).toContain(`/join/${code}`)
+  })
+
+  test('[FR-213] the room fills up, and starting it moves everyone on', async ({
+    page,
+    context,
+  }) => {
+    const participant = await context.browser()!.newPage()
+    const { email } = await registerAndSignIn(participant)
+
+    await registerAndSignIn(page)
+    await createTeam(page, 'Filling')
+    await inviteTeammate(page, email)
+    await page.getByRole('link', { name: /Retrospective/i }).click()
+    await waitForLiveView(page)
+    await createSession(page, 'Sprint 21')
+
+    const lobbyUrl = page.url()
+    await expect(page.locator('#lobby-waiting')).toBeVisible()
+
+    await participant.goto(lobbyUrl)
+    await waitForLiveView(participant)
+
+    // The room visibly fills: the facilitator's page changes without a reload.
+    await expect(page.locator('#lobby-waiting')).toHaveCount(0)
+    await expect(page.locator('#lobby-room')).toContainText('0 จาก 2')
+
+    await participant.locator('#toggle-ready').click()
+    await expect(page.locator('#lobby-room')).toContainText('1 จาก 2')
+
+    await page.locator('#start-session').click()
+
+    // Both of them are on the board now, not only the one who pressed it.
+    await expect(page.locator('#phase-bar')).toBeVisible()
+    await expect(participant.locator('#phase-bar')).toBeVisible()
+    await expect(participant.locator('#lobby')).toHaveCount(0)
+
+    await participant.close()
+  })
+})
+
+test.describe('sound', () => {
+  /**
+   * Both of the board's hooks, in one flow, because neither of them exists as
+   * far as a LiveView test is concerned. `Sounds` sets the source of an audio
+   * element and `Ticker` counts a number down; the server-side halves are
+   * covered in ExUnit, and a hook that never runs looks exactly like a hook
+   * that works.
+   *
+   * The assertion is on `src`, not on playback: a headless browser refuses to
+   * play audio without a user gesture, which the hook swallows on purpose. It
+   * sets the source first, so the source is the proof it ran.
+   */
+  test('[FR-921][FR-915] the reveal reaches a browser that asked for it, and the timer ticks', async ({
+    page,
+  }) => {
+    await registerAndSignIn(page)
+
+    await page.goto('/users/preferences')
+    await waitForLiveView(page)
+    // The checkbox ships with a hidden `false` beside it so an unchecked box
+    // still submits something, so the type has to be part of the selector.
+    await page
+      .locator('#preferences_form input[type="checkbox"][name="user[sound_enabled]"]')
+      .check()
+    await settled(page)
+    await page.locator('#preferences_form button').click()
+    await waitForLiveView(page)
+
+    await createTeam(page, 'Audible')
+    await page.getByRole('link', { name: /Retrospective/i }).click()
+    await waitForLiveView(page)
+
+    await page.locator('#session_form input[name="session[title]"]').fill('Sprint 30')
+    await page.locator('#session_form input[type="checkbox"][name="session[is_blind]"]').check()
+    await page.locator('#session_form button').click()
+    await expect(page.getByRole('heading', { name: 'Sprint 30' })).toBeVisible()
+
+    await page.locator('#start-session').click()
+    await expect(page.locator('#sound-player')).toBeAttached()
+
+    await page.locator('#phase-brainstorm').click()
+    const box = page.locator('[id^="card-text-"]').first()
+    await box.fill('อะไรบางอย่าง')
+    await page.locator('[id^="add-card-"]').first().click()
+
+    await page.locator('#reveal-cards').click()
+
+    await expect(page.locator('#sound-player')).toHaveAttribute('src', /reveal/)
+
+    // And the countdown moves on its own, which is what makes an expiry
+    // exist at all — before the ticker there was no moment to announce.
+    await page.locator('#timer-60').click()
+    await expect(page.locator('#timer-remaining')).toHaveText(/0:5\d/, { timeout: 5000 })
+  })
+})
+
 test.describe('the live board', () => {
   test('[FR-201] a member starts a retro and lands on its board', async ({ page }) => {
     await registerAndSignIn(page)
@@ -76,6 +208,11 @@ test.describe('the live board', () => {
     await page.getByRole('link', { name: /Retrospective/i }).click()
     await waitForLiveView(page)
     await createSession(page, 'Sprint 1')
+
+    // It has to be started first. This used to assert the board without
+    // pressing anything, which passed because a session that had not begun
+    // rendered the whole board anyway — the thing the lobby exists to fix.
+    await page.locator('#start-session').click()
 
     // เริ่ม-หยุด-ทำต่อ's three columns, and the six phases of section 4.3.
     await expect(page.locator('#board section[role="tabpanel"]')).toHaveCount(3)

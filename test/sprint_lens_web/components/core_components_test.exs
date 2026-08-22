@@ -33,7 +33,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
       html = render_component(&flash/1, kind: :info, flash: %{"info" => "Saved"})
 
       assert html =~ "Saved"
-      assert html =~ "alert-info"
+      assert html =~ ~s(data-tone="info")
       assert html =~ ~s(role="alert")
     end
 
@@ -42,7 +42,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
       html = render_component(&flash/1, kind: :error, flash: %{"error" => "Could not save"})
 
       assert html =~ "Could not save"
-      assert html =~ "alert-error"
+      assert html =~ ~s(data-tone="error")
     end
 
     @tag req: ["FR-919"]
@@ -79,7 +79,9 @@ defmodule SprintLensWeb.CoreComponentsTest do
 
       assert html =~ "<button"
       assert html =~ "Save"
-      assert html =~ "btn"
+      # The touch-target rule in the stylesheet hangs off this, not off a
+      # styling class, so that it cannot be lost in a restyle (FR-904).
+      assert html =~ ~s(data-slot="button")
     end
 
     @tag req: ["FR-914"]
@@ -108,15 +110,18 @@ defmodule SprintLensWeb.CoreComponentsTest do
     test "applies the primary variant" do
       html = render_component(&button/1, %{variant: "primary", inner_block: inner("Go")})
 
-      assert html =~ "btn-primary"
-      refute html =~ "btn-soft"
+      assert html =~ "bg-primary"
+      refute html =~ "bg-base-200"
     end
 
     @tag req: ["FR-914"]
-    test "a caller-supplied class replaces the defaults entirely" do
+    test "a caller-supplied class is added to the defaults, not swapped for them" do
       html = render_component(&button/1, %{class: "my-btn", inner_block: inner("Go")})
 
-      assert html =~ ~s(class="my-btn")
+      assert html =~ "my-btn"
+      # A caller asking for `w-full` wants a full-width button, not an
+      # unstyled one — and under the old contract two of them got exactly that.
+      assert html =~ "rounded-control"
     end
   end
 
@@ -136,14 +141,14 @@ defmodule SprintLensWeb.CoreComponentsTest do
       html = render_component(&input/1, field: field(:email, "", [{"can't be blank", []}]))
 
       assert html =~ "can&#39;t be blank" or html =~ "can't be blank"
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
     end
 
     @tag req: ["FR-919"]
     test "hides errors on a field the user has not touched yet" do
       html = render_component(&input/1, field: field(:email, "", [{"can't be blank", []}], false))
 
-      refute html =~ "input-error"
+      refute html =~ "aria-invalid"
     end
 
     @tag req: ["FR-919"]
@@ -226,7 +231,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
           errors: ["is required"]
         )
 
-      assert html =~ "select-error"
+      assert html =~ ~s(aria-invalid="true")
       assert html =~ "is required"
     end
 
@@ -248,7 +253,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
           errors: ["should be at most 500 character(s)"]
         )
 
-      assert html =~ "textarea-error"
+      assert html =~ ~s(aria-invalid="true")
       assert html =~ "500"
     end
 
@@ -257,7 +262,7 @@ defmodule SprintLensWeb.CoreComponentsTest do
       html = render_component(&input/1, name: "n", value: "", class: "custom-input")
 
       assert html =~ "custom-input"
-      refute html =~ ~s(class="w-full input")
+      refute html =~ "rounded-control"
     end
 
     @tag req: ["FR-919"]
@@ -266,7 +271,10 @@ defmodule SprintLensWeb.CoreComponentsTest do
         render_component(&input/1, name: "n", value: "", errors: ["bad"], error_class: "ring-red")
 
       assert html =~ "ring-red"
-      refute html =~ "input-error"
+      # The custom class replaces the default border, not the state: a field
+      # the server rejected is still announced as invalid.
+      refute html =~ "border-error"
+      assert html =~ ~s(aria-invalid="true")
     end
   end
 
@@ -290,6 +298,176 @@ defmodule SprintLensWeb.CoreComponentsTest do
 
       assert html =~ "6 members"
       assert html =~ "New session"
+    end
+  end
+
+  describe "badge/1" do
+    @tag req: ["FR-917"]
+    test "says what it is and which tone it carries" do
+      html = render_component(&badge/1, %{tone: "danger", inner_block: inner("Overdue")})
+
+      assert html =~ "Overdue"
+      assert html =~ ~s(data-slot="badge")
+      assert html =~ ~s(data-tone="danger")
+    end
+
+    # The tinted version of this component — coloured text on a wash of the
+    # same hue — reads better and fails WCAG at this size in both themes.
+    # Only the pairs `contrast_test.exs` proves are allowed.
+    @tag req: ["FR-913"]
+    test "every tone is a contrast pair the palette test checks" do
+      for tone <- ~w(neutral primary info success warning danger) do
+        html = render_component(&badge/1, %{tone: tone, inner_block: inner("x")})
+
+        assert html =~ ~s(data-tone="#{tone}")
+      end
+    end
+
+    @tag req: ["FR-917"]
+    test "takes an id, so a test can find the one it means" do
+      html = render_component(&badge/1, %{id: "action-overdue-7", inner_block: inner("Overdue")})
+
+      assert html =~ ~s(id="action-overdue-7")
+    end
+  end
+
+  describe "panel/1" do
+    @tag req: ["FR-918"]
+    test "names its region with the heading inside it" do
+      html =
+        render_component(&panel/1, %{id: "members", title: "Members", inner_block: inner("x")})
+
+      assert html =~ ~s(id="members" aria-labelledby="members-heading")
+      assert html =~ "<section"
+      assert html =~ ~s(<h2 id="members-heading")
+      assert html =~ "Members"
+    end
+
+    @tag req: ["FR-918"]
+    test "renders a subtitle and region-level actions when given" do
+      html =
+        render_component(&panel/1, %{
+          id: "members",
+          title: "Members",
+          subtitle: inner("6 people", :subtitle),
+          actions: inner("Invite", :actions),
+          inner_block: inner("x")
+        })
+
+      assert html =~ "6 people"
+      assert html =~ "Invite"
+    end
+
+    @tag req: ["FR-918"]
+    test "and neither when not" do
+      html =
+        render_component(&panel/1, %{id: "members", title: "Members", inner_block: inner("x")})
+
+      refute html =~ "6 people"
+      refute html =~ "Invite"
+    end
+  end
+
+  describe "stat/1 and stats/1" do
+    # Written out by hand in two places before this, with the same four
+    # utilities both times. A number and its label are a pair, and a pair of
+    # that kind is a definition list.
+    @tag req: ["FR-918"]
+    test "pairs a number with the question it answers" do
+      html =
+        render_component(&stat/1, %{id: "stat-open", label: "Still open", inner_block: inner("4")})
+
+      assert html =~ "<dt"
+      assert html =~ ~s(<dd id="stat-open")
+      assert html =~ "Still open"
+      assert html =~ "4"
+    end
+
+    # Two screens show four numbers each and they are not the same four, so
+    # the id is the caller's to choose.
+    @tag req: ["FR-918"]
+    test "takes its id from the caller, since two screens count different things" do
+      html =
+        render_component(&stat/1, %{
+          id: "insight-overdue",
+          label: "Overdue",
+          inner_block: inner("0")
+        })
+
+      assert html =~ ~s(id="insight-overdue")
+    end
+
+    @tag req: ["FR-918"]
+    test "and a row of them is the list they belong to" do
+      assert render_component(&stats/1, %{inner_block: inner("x")}) =~ "<dl"
+    end
+  end
+
+  describe "empty_state/1" do
+    @tag req: ["FR-917"]
+    test "says what would be here rather than leaving a gap" do
+      html =
+        render_component(&empty_state/1, %{
+          id: "home-actions-empty",
+          title: "Nothing assigned to you.",
+          inner_block: inner("Anything the team asks you to take on shows up here.")
+        })
+
+      assert html =~ ~s(id="home-actions-empty")
+      assert html =~ "Nothing assigned to you."
+      assert html =~ "shows up here"
+      # The picture says what the sentence says, so it is not said twice.
+      assert html =~ ~s(aria-hidden="true")
+    end
+
+    @tag req: ["FR-917"]
+    test "carries the one thing to do about it, when there is one" do
+      html =
+        render_component(&empty_state/1, %{
+          id: "teams-empty",
+          title: "You are not in a team yet.",
+          actions: inner("Create your first team", :actions)
+        })
+
+      assert html =~ "Create your first team"
+    end
+  end
+
+  describe "mascot/1" do
+    @tag req: ["FR-917"]
+    test "draws each of the four poses, and each is a different drawing" do
+      paths =
+        for pose <- ~w(waiting empty error done) do
+          html = render_component(&mascot/1, %{pose: pose})
+
+          assert html =~ "<svg"
+          assert html =~ ~s(fill="currentColor")
+          html
+        end
+
+      assert paths |> Enum.uniq() |> length() == 4
+    end
+  end
+
+  describe "avatar/1" do
+    @tag req: ["FR-918"]
+    test "takes the first letter of a display name, in upper case" do
+      html = render_component(&avatar/1, %{name: "somchai"})
+
+      assert html =~ ">\n  S\n</span>"
+      assert html =~ ~s(aria-hidden="true")
+    end
+
+    # The shape a bad data migration leaves behind. The page still renders.
+    @tag req: ["FR-919"]
+    test "and a question mark when the record has no name at all" do
+      assert render_component(&avatar/1, %{name: nil}) =~ "?"
+    end
+
+    @tag req: ["FR-913"]
+    test "is drawn in one of the two contrast pairs the palette test checks" do
+      assert render_component(&avatar/1, %{name: "A", tone: "primary"}) =~ "bg-primary"
+      assert render_component(&avatar/1, %{name: "A", tone: "neutral"}) =~ "bg-base-300"
     end
   end
 

@@ -27,18 +27,25 @@ defmodule SprintLensWeb.SearchLive.Index do
       locale={@locale}
       theme={@theme}
       current_path={@current_path}
+      team={@team}
+      breadcrumbs={[
+        {gettext("Teams"), ~p"/teams"},
+        {@team.name, ~p"/teams/#{@team}"},
+        {gettext("Search"), ~p"/teams/#{@team}/search"}
+      ]}
     >
       <.header>
         {gettext("Search")}
-        <:subtitle>{@team.name}</:subtitle>
-        <:actions>
-          <.link navigate={~p"/teams/#{@team}"} class="btn btn-ghost btn-sm">
-            {gettext("Back to team")}
-          </.link>
-        </:actions>
+        <:subtitle>{gettext("What this team has said, in retrospectives that are done.")}</:subtitle>
       </.header>
 
-      <.form for={@form} id="search-form" phx-change="search" phx-submit="search">
+      <.form
+        for={@form}
+        id="search-form"
+        phx-change="search"
+        phx-submit="search"
+        class="max-w-xl rounded-panel border border-base-200 bg-base-100 p-4 shadow-resting"
+      >
         <.input
           field={@form[:q]}
           type="search"
@@ -48,82 +55,88 @@ defmodule SprintLensWeb.SearchLive.Index do
         />
       </.form>
 
-      <p
+      <.empty_state
         :if={is_nil(@results)}
         id="search-prompt"
-        class="rounded-box border border-base-300 p-6 text-center"
+        title={gettext("Type something to search.")}
       >
         {gettext("Only finished retrospectives are searched.")}
-      </p>
+      </.empty_state>
 
       <div :if={@results} class="space-y-6">
-        <p
+        <.empty_state
           :if={empty?(@results)}
           id="search-empty"
-          class="rounded-box border border-base-300 p-6 text-center"
+          title={gettext("Nothing matched “%{query}”.", query: @results.query)}
         >
-          {gettext("Nothing matched “%{query}”.", query: @results.query)}
-        </p>
+          {gettext("A retrospective that is still running is not searched yet.")}
+        </.empty_state>
 
-        <section :if={@results.cards != []} aria-labelledby="search-cards-heading">
-          <h2 id="search-cards-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-            {ngettext("%{count} card", "%{count} cards", length(@results.cards),
+        <.panel
+          :if={@results.cards != []}
+          id="search-cards-panel"
+          title={
+            ngettext("%{count} card", "%{count} cards", length(@results.cards),
               count: length(@results.cards)
-            )}
-          </h2>
-
+            )
+          }
+        >
           <ul id="search-cards" class="space-y-2">
             <li
               :for={card <- @results.cards}
               id={"search-card-#{card.id}"}
-              class="rounded-box border border-base-200 p-2"
+              class="space-y-1 rounded-card border border-base-200 p-3"
             >
-              <p class="whitespace-pre-wrap break-words">{card.text}</p>
+              <p class="break-words whitespace-pre-wrap">{card.text}</p>
               <.link
                 navigate={~p"/sessions/#{card.column.session_id}/recap"}
-                class="text-xs opacity-70 hover:underline"
+                class="inline-block text-caption text-base-content/60 underline-offset-2 hover:underline"
               >
                 {card.column.session.title} · {TemplateText.column_name(card.column)}
               </.link>
             </li>
           </ul>
-        </section>
+        </.panel>
 
-        <section :if={@results.notes != []} aria-labelledby="search-notes-heading">
-          <h2 id="search-notes-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-            {ngettext("%{count} note", "%{count} notes", length(@results.notes),
+        <.panel
+          :if={@results.notes != []}
+          id="search-notes-panel"
+          title={
+            ngettext("%{count} note", "%{count} notes", length(@results.notes),
               count: length(@results.notes)
-            )}
-          </h2>
-
+            )
+          }
+        >
           <ul id="search-notes" class="space-y-2">
             <li
               :for={note <- @results.notes}
               id={"search-note-#{note.id}"}
-              class="rounded-box border border-base-200 p-2"
+              class="space-y-1 rounded-card border border-base-200 p-3"
             >
-              <p class="whitespace-pre-wrap break-words">{note.body}</p>
+              <p class="break-words whitespace-pre-wrap">{note.body}</p>
               <.link
                 navigate={~p"/sessions/#{note.session_id}/recap"}
-                class="text-xs opacity-70 hover:underline"
+                class="inline-block text-caption text-base-content/60 underline-offset-2 hover:underline"
               >
                 {note.session.title}
               </.link>
             </li>
           </ul>
-        </section>
+        </.panel>
 
-        <section :if={@results.actions != []} aria-labelledby="search-actions-heading">
-          <h2 id="search-actions-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-            {ngettext("%{count} action", "%{count} actions", length(@results.actions),
+        <.panel
+          :if={@results.actions != []}
+          id="search-actions-panel"
+          title={
+            ngettext("%{count} action", "%{count} actions", length(@results.actions),
               count: length(@results.actions)
-            )}
-          </h2>
-
+            )
+          }
+        >
           <ul id="search-actions" class="space-y-2">
             <.action_row :for={action <- @results.actions} action={action} now={@now} />
           </ul>
-        </section>
+        </.panel>
       </div>
     </Layouts.app>
     """

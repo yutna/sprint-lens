@@ -31,6 +31,25 @@ defmodule SprintLensWeb.UserLive.PreferencesTest do
       assert updated.avatar_url == "https://example.com/n.png"
     end
 
+    # Off for everybody, including everybody who already had an account: a
+    # retrospective is usually held on a call, and a sound the tool makes is a
+    # sound the whole room hears.
+    @tag req: ["FR-921"]
+    test "sound is off until it is asked for, and stays on once it is", %{
+      conn: conn,
+      user: user
+    } do
+      refute user.sound_enabled
+
+      {:ok, lv, _html} = live(conn, ~p"/users/preferences")
+
+      lv
+      |> form("#preferences_form", user: %{sound_enabled: "true"})
+      |> render_submit()
+
+      assert Accounts.get_user!(user.id).sound_enabled
+    end
+
     @tag req: ["FR-907"]
     test "switching to English re-renders in English by live navigation", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/preferences")
@@ -69,7 +88,7 @@ defmodule SprintLensWeb.UserLive.PreferencesTest do
 
       html = lv |> form("#preferences_form", user: %{display_name: ""}) |> render_submit()
 
-      assert html =~ "input-error" or html =~ "ต้องไม่เว้นว่าง"
+      assert html =~ ~s(aria-invalid="true") or html =~ "ต้องไม่เว้นว่าง"
       assert Accounts.get_user!(user.id).display_name == user.display_name
     end
 
@@ -79,7 +98,7 @@ defmodule SprintLensWeb.UserLive.PreferencesTest do
 
       html = lv |> form("#preferences_form", user: %{display_name: ""}) |> render_change()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
     end
 
     @tag req: ["FR-003"]

@@ -103,6 +103,28 @@ defmodule SprintLensWeb.InsightsLiveTest do
              )
     end
 
+    # They were four bare anchors carrying `variant` and `size` — attributes a
+    # button component understands and an `<a>` does not. Invalid markup, and
+    # four unstyled links where four buttons were meant.
+    @tag req: ["FR-701", "FR-702", "FR-703"]
+    test "the exports are real links, styled like the buttons they look like", ctx do
+      {:ok, lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{ctx.session}/recap")
+
+      for {id, query} <- [
+            {"export-markdown", "format=markdown"},
+            {"export-csv-cards", "format=csv&amp;of=cards"},
+            {"export-csv-actions", "format=csv&amp;of=actions"},
+            {"export-json", "format=json"}
+          ] do
+        link = lv |> element("##{id}") |> render()
+
+        assert link =~ "<a"
+        assert link =~ query
+        refute link =~ "variant="
+        refute link =~ "size="
+      end
+    end
+
     @tag req: ["FR-602"]
     test "a session that is still running has no recap", ctx do
       running = active_session(ctx.team, ctx.facilitator)
@@ -132,7 +154,12 @@ defmodule SprintLensWeb.InsightsLiveTest do
       for conn <- [ctx.conn, ctx.participant_conn, log_in_user(build_conn(), admin)] do
         {:ok, lv, _html} = live(conn, ~p"/sessions/#{ctx.session}/recap")
 
-        html = render(lv)
+        # Scoped to the content, the way the Playwright privacy specs already
+        # scope theirs. One of these viewers is Ploy, and the account menu
+        # shows a person their own name — which reveals nothing. What FR-210
+        # forbids is a card leading back to whoever wrote it, and that is a
+        # claim about the recap, not about the chrome around it.
+        html = lv |> element("main") |> render()
 
         assert html =~ "Deploys are slow"
         refute html =~ "Ploy"
@@ -216,14 +243,19 @@ defmodule SprintLensWeb.InsightsLiveTest do
       assert has_element?(lv, "#archive-empty")
     end
 
+    # It leads to the recap because it is in the archive rather than in the
+    # list of open rooms: a finished retrospective is read, not joined. The
+    # two lists are disjoint, which is also what stops it appearing twice.
     @tag req: ["FR-602"]
-    test "a closed session in the list leads to its recap, not its board", ctx do
+    test "a closed session leads to its recap, not its board", ctx do
       %{session: closed} = played(ctx)
 
       {:ok, lv, _html} = live(ctx.conn, ~p"/teams/#{ctx.team}/sessions")
 
+      refute has_element?(lv, "#session-#{closed.id}")
+
       assert lv
-             |> element("#session-#{closed.id} a")
+             |> element("#archive-#{closed.id} a")
              |> render()
              |> String.contains?("/sessions/#{closed.id}/recap")
     end

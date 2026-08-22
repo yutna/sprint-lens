@@ -85,7 +85,13 @@ defmodule SprintLens.Actions do
 
   @doc """
   The open items assigned to one person, across every team they belong to
-  (SCR-02).
+  (SCR-02), soonest due first.
+
+  The undated ones come last, and they are ordered that way explicitly because
+  the two databases disagree about where a `NULL` belongs: SQLite sorts it
+  first ascending and PostgreSQL sorts it last. Left to the default, the home
+  page would open on "no deadline" in development and on "due tomorrow" in
+  production. `is_nil` as the first sort key is the same answer on both.
   """
   @spec list_my_actions(User.t() | Scope.t() | nil) :: [ActionItem.t()]
   def list_my_actions(actor) do
@@ -99,7 +105,7 @@ defmodule SprintLens.Actions do
         team_ids
         |> open_query()
         |> where([a], a.assignee_id == ^user.id)
-        |> order_by([a], asc: a.due_date, asc: a.inserted_at)
+        |> order_by([a], asc: is_nil(a.due_date), asc: a.due_date, asc: a.inserted_at)
         |> preload(^@preloads)
         |> Repo.all()
     end

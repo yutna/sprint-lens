@@ -20,104 +20,123 @@ defmodule SprintLensWeb.TemplateLive.Index do
       locale={@locale}
       theme={@theme}
       current_path={@current_path}
+      team={@team}
+      breadcrumbs={[
+        {gettext("Teams"), ~p"/teams"},
+        {@team.name, ~p"/teams/#{@team}"},
+        {gettext("Templates"), ~p"/teams/#{@team}/templates"}
+      ]}
     >
       <.header>
         {gettext("Templates")}
-        <:subtitle>
-          {gettext("Column layouts for %{team}", team: @team.name)}
-        </:subtitle>
-        <:actions>
-          <.link navigate={~p"/teams/#{@team}"} class="btn btn-ghost btn-sm">
-            {gettext("Back to team")}
-          </.link>
-        </:actions>
+        <:subtitle>{gettext("The columns a board starts with.")}</:subtitle>
       </.header>
 
-      <.form
-        :if={not @team.is_archived}
-        for={@form}
-        id="template_form"
-        phx-change="validate"
-        phx-submit="save"
-        class="max-w-xl"
-      >
-        <.input field={@form[:name]} type="text" label={gettext("Template name")} required />
-
-        <fieldset class="fieldset">
-          <legend class="label">
-            {gettext("Columns (%{min} to %{max})",
-              min: elem(Template.column_bounds(), 0),
-              max: elem(Template.column_bounds(), 1)
-            )}
-          </legend>
-
-          <div :for={index <- 0..(elem(Template.column_bounds(), 1) - 1)} class="mb-2 flex gap-2">
-            <input
-              type="text"
-              name={"template[columns][#{index}][name]"}
-              value={column_value(@columns, index, "name")}
-              placeholder={gettext("Column %{number}", number: index + 1)}
-              class="w-1/2 input"
-              aria-label={gettext("Column %{number} name", number: index + 1)}
-            />
-            <input
-              type="text"
-              name={"template[columns][#{index}][hint]"}
-              value={column_value(@columns, index, "hint")}
-              placeholder={gettext("Hint (optional)")}
-              class="w-1/2 input"
-              aria-label={gettext("Column %{number} hint", number: index + 1)}
-            />
-          </div>
-
-          <p :for={message <- column_errors(@form)} class="text-sm text-error">{message}</p>
-        </fieldset>
-
-        <.button variant="primary" phx-disable-with={gettext("Saving...")}>
-          {gettext("Save template")}
-        </.button>
-      </.form>
-
-      <section aria-labelledby="templates-heading">
-        <h2 id="templates-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Available templates")}
-        </h2>
+      <.panel id="template-list" title={gettext("Available templates")}>
+        <:subtitle>
+          {gettext("Five come with the product. The rest are this team's own.")}
+        </:subtitle>
 
         <ul id="templates" class="grid gap-3 sm:grid-cols-2">
           <li
             :for={template <- @templates}
             id={"template-#{template.id}"}
-            class="rounded-box border border-base-300 p-4"
+            class="flex flex-col gap-3 rounded-card border border-base-200 p-4"
           >
             <div class="flex items-start justify-between gap-2">
-              <div>
+              <span class="flex min-w-0 flex-wrap items-center gap-2">
                 <span class="font-semibold">{TemplateText.template_name(template)}</span>
-                <span :if={template.is_builtin} class="badge badge-ghost badge-sm ml-2">
-                  {gettext("Built-in")}
-                </span>
-              </div>
+                <.badge :if={template.is_builtin}>{gettext("Built-in")}</.badge>
+              </span>
               <.button
                 :if={not template.is_builtin and not @team.is_archived}
                 id={"delete-template-#{template.id}"}
                 phx-click="delete"
                 phx-value-id={template.id}
                 data-confirm={gettext("Delete this template?")}
-                class="btn btn-ghost btn-xs"
+                variant="ghost"
+                size="sm"
               >
                 {gettext("Delete")}
               </.button>
             </div>
-            <ol class="mt-2 flex flex-wrap gap-1">
+
+            <%!--
+              An ordered list, because the order is the layout: these are the
+              columns of a board from left to right.
+            --%>
+            <ol class="flex flex-wrap gap-1.5">
               <li
                 :for={name <- TemplateText.template_column_names(template)}
-                class="badge badge-outline badge-sm"
+                class="rounded-control border border-base-300 px-2 py-0.5 text-caption"
               >
                 {name}
               </li>
             </ol>
           </li>
         </ul>
-      </section>
+      </.panel>
+
+      <.panel
+        :if={not @team.is_archived}
+        id="template-new"
+        title={gettext("Write your own")}
+        class="max-w-xl"
+      >
+        <.form
+          for={@form}
+          id="template_form"
+          phx-change="validate"
+          phx-submit="save"
+          class="rounded-panel border border-base-200 bg-base-100 p-4 shadow-resting sm:p-6"
+        >
+          <.input field={@form[:name]} type="text" label={gettext("Template name")} required />
+
+          <fieldset>
+            <legend class="mb-1.5 block text-label font-medium">
+              {gettext("Columns (%{min} to %{max})",
+                min: elem(Template.column_bounds(), 0),
+                max: elem(Template.column_bounds(), 1)
+              )}
+            </legend>
+
+            <div
+              :for={index <- 0..(elem(Template.column_bounds(), 1) - 1)}
+              class="grid gap-2 sm:grid-cols-2"
+            >
+              <.input
+                type="text"
+                id={"template-column-#{index}-name"}
+                name={"template[columns][#{index}][name]"}
+                value={column_value(@columns, index, "name")}
+                placeholder={gettext("Column %{number}", number: index + 1)}
+                aria-label={gettext("Column %{number} name", number: index + 1)}
+              />
+              <.input
+                type="text"
+                id={"template-column-#{index}-hint"}
+                name={"template[columns][#{index}][hint]"}
+                value={column_value(@columns, index, "hint")}
+                placeholder={gettext("Hint (optional)")}
+                aria-label={gettext("Column %{number} hint", number: index + 1)}
+              />
+            </div>
+
+            <%!--
+              `text-error` is load-bearing: a browser test finds the refusal
+              by that class rather than by its wording, which is what lets the
+              message be rewritten or retranslated without breaking the suite.
+            --%>
+            <p :for={message <- column_errors(@form)} class="text-label text-error">
+              {message}
+            </p>
+          </fieldset>
+
+          <.button variant="primary" phx-disable-with={gettext("Saving...")} class="mt-4">
+            {gettext("Save template")}
+          </.button>
+        </.form>
+      </.panel>
     </Layouts.app>
     """
   end

@@ -25,45 +25,21 @@ defmodule SprintLensWeb.TeamLive.Show do
       locale={@locale}
       theme={@theme}
       current_path={@current_path}
+      team={@team}
+      breadcrumbs={[{gettext("Teams"), ~p"/teams"}, {@team.name, ~p"/teams/#{@team}"}]}
     >
       <.header>
         {@team.name}
         <:subtitle>
-          <span :if={@team.is_archived} class="badge badge-ghost">{gettext("Archived")}</span>
           <span :if={@team.description}>{@team.description}</span>
         </:subtitle>
         <:actions>
-          <.link navigate={~p"/teams/#{@team}/sessions"} class="btn btn-primary btn-sm">
-            {gettext("Retrospectives")}
-          </.link>
-          <.link
-            navigate={~p"/teams/#{@team}/actions"}
-            id="team-actions-link"
-            class="btn btn-ghost btn-sm"
-          >
-            {gettext("Actions")}
-          </.link>
-          <.link
-            navigate={~p"/teams/#{@team}/insights"}
-            id="team-insights-link"
-            class="btn btn-ghost btn-sm"
-          >
-            {gettext("Insights")}
-          </.link>
-          <.link
-            navigate={~p"/teams/#{@team}/search"}
-            id="team-search-link"
-            class="btn btn-ghost btn-sm"
-          >
-            {gettext("Search")}
-          </.link>
-          <.link navigate={~p"/teams/#{@team}/templates"} class="btn btn-ghost btn-sm">
-            {gettext("Templates")}
-          </.link>
+          <.badge :if={@team.is_archived} tone="warning">{gettext("Archived")}</.badge>
           <.button
             :if={@can_toggle_archive and not @team.is_archived}
             id="archive-team"
             phx-click="archive"
+            size="sm"
             data-confirm={gettext("Archive this team? It becomes read-only.")}
           >
             {gettext("Archive")}
@@ -72,25 +48,31 @@ defmodule SprintLensWeb.TeamLive.Show do
             :if={@can_toggle_archive and @team.is_archived}
             id="restore-team"
             phx-click="restore"
+            variant="primary"
+            size="sm"
           >
             {gettext("Restore")}
           </.button>
         </:actions>
       </.header>
 
-      <section aria-labelledby="members-heading">
-        <h2 id="members-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Members")}
-        </h2>
+      <Layouts.notice :if={@team.is_archived} id="team-archived-notice">
+        {gettext("This team is archived. Its history stays readable and nothing new can be added.")}
+      </Layouts.notice>
+
+      <.panel id="team-members" title={gettext("Members")}>
+        <:subtitle>
+          {ngettext("%{count} person", "%{count} people", length(@members), count: length(@members))}
+        </:subtitle>
 
         <.form
           :if={@can_manage_members}
           for={@member_form}
           id="add_member_form"
           phx-submit="add_member"
-          class="mb-4 flex flex-wrap items-end gap-2"
+          class="flex flex-wrap items-end gap-3 rounded-panel border border-base-200 bg-base-100 p-4 shadow-resting"
         >
-          <div class="grow">
+          <div class="min-w-56 grow">
             <.input
               field={@member_form[:email]}
               type="email"
@@ -112,18 +94,27 @@ defmodule SprintLensWeb.TeamLive.Show do
           </.button>
         </.form>
 
-        <ul id="members" class="list rounded-box border border-base-300">
-          <li :for={membership <- @members} id={"member-#{membership.user_id}"} class="list-row">
-            <div class="list-col-grow">
-              <span class="font-semibold">{membership.user.display_name}</span>
-              <span class="badge badge-sm ml-2">{role_label(membership.role)}</span>
-            </div>
+        <ul
+          id="members"
+          class="divide-y divide-base-200 overflow-hidden rounded-panel border border-base-200 bg-base-100"
+        >
+          <li
+            :for={membership <- @members}
+            id={"member-#{membership.user_id}"}
+            class="flex flex-wrap items-center gap-3 p-3"
+          >
+            <.avatar name={membership.user.display_name} />
+            <span class="min-w-0 grow truncate font-medium">
+              {membership.user.display_name}
+            </span>
+            <.badge tone={role_tone(membership.role)}>{role_label(membership.role)}</.badge>
             <.button
               :if={@can_manage_members and membership.user_id != @current_scope.user.id}
               id={"remove-member-#{membership.user_id}"}
               phx-click="remove_member"
               phx-value-user-id={membership.user_id}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Remove")}
             </.button>
@@ -132,25 +123,29 @@ defmodule SprintLensWeb.TeamLive.Show do
               id="leave-team"
               phx-click="leave"
               data-confirm={gettext("Leave this team?")}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Leave")}
             </.button>
           </li>
         </ul>
-      </section>
+      </.panel>
 
-      <section :if={@can_manage_settings} aria-labelledby="settings-heading">
-        <h2 id="settings-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Settings")}
-        </h2>
+      <.panel
+        :if={@can_manage_settings}
+        id="team-settings"
+        title={gettext("Settings")}
+        class="max-w-md"
+      >
+        <:subtitle>{gettext("What a new retrospective starts with.")}</:subtitle>
 
         <.form
           for={@settings_form}
           id="team_settings_form"
           phx-change="validate_settings"
           phx-submit="save_settings"
-          class="max-w-md"
+          class="rounded-panel border border-base-200 bg-base-100 p-4 shadow-resting sm:p-6"
         >
           <.input field={@settings_form[:name]} type="text" label={gettext("Team name")} required />
           <.input
@@ -182,23 +177,21 @@ defmodule SprintLensWeb.TeamLive.Show do
             {gettext("Save settings")}
           </.button>
         </.form>
-      </section>
+      </.panel>
 
       <%!--
         SCR-04's webhook section (FR-704 to FR-706). Lead-only, because
         section 3.1 puts `manage_webhooks` there, and because the shared
         secret is the sort of thing a smaller audience is better for.
       --%>
-      <section :if={@can_manage_webhooks} aria-labelledby="webhook-heading">
-        <h2 id="webhook-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Webhook")}
-        </h2>
+      <.panel :if={@can_manage_webhooks} id="team-webhook" title={gettext("Webhook")}>
+        <:subtitle>{gettext("Tell another system when something happens here.")}</:subtitle>
 
         <.form
           for={@webhook_form}
           id="webhook_form"
           phx-submit="save_webhook"
-          class="max-w-md space-y-2"
+          class="max-w-md space-y-2 rounded-panel border border-base-200 bg-base-100 p-4 shadow-resting sm:p-6"
         >
           <.input
             field={@webhook_form[:url]}
@@ -221,8 +214,8 @@ defmodule SprintLensWeb.TeamLive.Show do
             autocomplete="off"
           />
 
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">{gettext("Send these events")}</legend>
+          <fieldset class="space-y-1.5 pt-1">
+            <legend class="pb-1 text-label font-medium">{gettext("Send these events")}</legend>
             <label :for={event <- Subscription.events()} class="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -230,9 +223,9 @@ defmodule SprintLensWeb.TeamLive.Show do
                 name="webhook[events][]"
                 value={event}
                 checked={event in @webhook_events}
-                class="checkbox checkbox-sm"
+                class="size-4 rounded-sm border-base-300 accent-primary"
               />
-              <span class="font-mono text-sm">{event}</span>
+              <span class="font-mono text-label">{event}</span>
             </label>
           </fieldset>
 
@@ -250,45 +243,40 @@ defmodule SprintLensWeb.TeamLive.Show do
               :if={@webhook}
               id="delete-webhook"
               phx-click="delete_webhook"
+              variant="ghost"
               data-confirm={gettext("Remove this webhook?")}
-              class="btn btn-ghost"
             >
               {gettext("Remove")}
             </.button>
           </div>
         </.form>
 
-        <h3 class="mt-4 text-sm font-semibold uppercase opacity-70">
-          {gettext("Recent deliveries")}
-        </h3>
+        <h3 class="pt-2 text-label font-semibold">{gettext("Recent deliveries")}</h3>
 
-        <p :if={@deliveries == []} id="deliveries-empty" class="text-sm opacity-60">
+        <p :if={@deliveries == []} id="deliveries-empty" class="text-label text-base-content/60">
           {gettext("Nothing has been sent yet.")}
         </p>
 
-        <ul :if={@deliveries != []} id="deliveries" class="mt-2 space-y-1">
+        <ul :if={@deliveries != []} id="deliveries" class="space-y-1">
           <li
             :for={delivery <- @deliveries}
             id={"delivery-#{delivery.id}"}
-            class="flex flex-wrap items-center gap-2 rounded-box border border-base-200 p-2 text-sm"
+            class="flex flex-wrap items-center gap-2 rounded-card border border-base-200 p-2 text-label"
           >
-            <span class={[
-              "badge badge-sm",
-              if(Delivery.status(delivery) == :delivered, do: "badge-success", else: "badge-error")
-            ]}>
+            <.badge tone={if(Delivery.status(delivery) == :delivered, do: "success", else: "danger")}>
               {delivery.status}
-            </span>
+            </.badge>
             <span class="font-mono">{delivery.event}</span>
-            <span class="opacity-70">
+            <span class="text-base-content/70">
               {gettext("attempt %{n}", n: delivery.attempt)}
             </span>
-            <span :if={delivery.error} class="opacity-70">{delivery.error}</span>
-            <span class="ml-auto opacity-60">
+            <span :if={delivery.error} class="text-base-content/70">{delivery.error}</span>
+            <span class="ml-auto text-base-content/60">
               {SprintLensWeb.Locale.format_datetime(delivery.inserted_at)}
             </span>
           </li>
         </ul>
-      </section>
+      </.panel>
     </Layouts.app>
     """
   end
@@ -511,6 +499,11 @@ defmodule SprintLensWeb.TeamLive.Show do
 
   defp role_label("lead"), do: gettext("Lead")
   defp role_label("member"), do: gettext("Member")
+
+  # A lead is the one role that changes what you can do here, so it is the one
+  # that gets a colour. Marking everybody would mean marking nobody.
+  defp role_tone("lead"), do: "primary"
+  defp role_tone("member"), do: "neutral"
 
   defp template_options(templates), do: Enum.map(templates, &{&1.name, &1.id})
 end

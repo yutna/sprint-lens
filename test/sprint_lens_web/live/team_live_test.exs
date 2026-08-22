@@ -6,6 +6,7 @@ defmodule SprintLensWeb.TeamLiveTest do
   # Asserts on English copy, so pin the language (FR-906 makes Thai default).
   @moduletag locale: "en"
 
+  alias SprintLens.Actions
   alias SprintLens.Teams
 
   setup :register_and_log_in_user
@@ -46,6 +47,134 @@ defmodule SprintLensWeb.TeamLiveTest do
       refute html =~ other.name
     end
 
+    # The old page told a running session from a scheduled one by asking
+    # whether a date was set, which is a proxy: a retrospective that was
+    # scheduled *and* is under way filed itself under "coming up".
+    @tag req: ["FR-203"]
+    test "a room that is open right now leads the page, and is not also in the list", %{
+      conn: conn,
+      user: user
+    } do
+      team = team_with_lead(user)
+      running = active_session(team, user, %{scheduled_at: DateTime.utc_now(:second)})
+
+      {:ok, lv, _html} = live(conn, ~p"/home")
+
+      assert has_element?(lv, "#home-live #home-session-#{running.id}")
+      refute has_element?(lv, "#home-sessions #home-session-#{running.id}")
+    end
+
+    @tag req: ["FR-203"]
+    test "one nobody has started yet waits under coming up", %{conn: conn, user: user} do
+      team = team_with_lead(user)
+      waiting = insert(:session, team: team, facilitator: user, state: "created")
+
+      {:ok, lv, _html} = live(conn, ~p"/home")
+
+      assert has_element?(lv, "#home-sessions #home-session-#{waiting.id}")
+      refute has_element?(lv, "#home-live")
+    end
+
+    # Across every team, not within each: someone in three teams wants the
+    # soonest of all of them first, and `list_open_sessions/1` only sorts one
+    # team's own. A session with no date is not urgent.
+    @tag req: ["FR-203"]
+    test "coming up is ordered by when, with the undated ones last", %{conn: conn, user: user} do
+      team = team_with_lead(user)
+      later = DateTime.add(DateTime.utc_now(:second), 5, :day)
+      sooner = DateTime.add(DateTime.utc_now(:second), 1, :day)
+
+      insert(:session, team: team, facilitator: user, state: "created", title: "Undated")
+
+      insert(:session,
+        team: team,
+        facilitator: user,
+        state: "created",
+        scheduled_at: later,
+        title: "Later"
+      )
+
+      insert(:session,
+        team: team,
+        facilitator: user,
+        state: "created",
+        scheduled_at: sooner,
+        title: "Sooner"
+      )
+
+      {:ok, _lv, html} = live(conn, ~p"/home")
+
+      assert [_, _, _] = order = for(t <- ["Sooner", "Later", "Undated"], do: index_of(html, t))
+      assert order == Enum.sort(order)
+      assert html =~ "No date yet"
+    end
+
+    # The page is a list of what is waiting, and the teams are the context it
+    # is waiting in — so they sit under it, except on the one day when getting
+    # into a team is the whole job.
+    @tag req: ["FR-917"]
+    test "leads with the work and closes with the teams", %{conn: conn, user: user} do
+      team_with_lead(user)
+
+      {:ok, _lv, html} = live(conn, ~p"/home")
+
+      assert index_of(html, ~s(id="home-actions-panel")) <
+               index_of(html, ~s(id="home-teams-panel"))
+    end
+
+    @tag req: ["FR-917"]
+    test "and puts them first for someone who has none", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/home")
+
+      assert index_of(html, ~s(id="home-teams-panel")) <
+               index_of(html, ~s(id="home-actions-panel"))
+
+      assert html =~ "Start by creating a team."
+    end
+
+    @tag req: ["FR-505"]
+    test "says how much is waiting, and how much of it is late", %{conn: conn, user: user} do
+      user
+      |> last_weeks_retro()
+      |> owes(user, "Late", DateTime.add(DateTime.utc_now(:second), -2, :day))
+      |> owes(user, "Open", nil)
+      |> close(user)
+
+      {:ok, _lv, html} = live(conn, ~p"/home")
+
+      assert html =~ "2 things are waiting for you."
+      assert html =~ "2 open, 1 past due"
+    end
+
+    @tag req: ["FR-505"]
+    test "counts them plainly when none of them is late", %{conn: conn, user: user} do
+      user |> last_weeks_retro() |> owes(user, "Open", nil) |> close(user)
+
+      {:ok, _lv, html} = live(conn, ~p"/home")
+
+      assert html =~ "1 open item"
+      refute html =~ "past due"
+    end
+
+    @tag req: ["FR-917"]
+    test "and says nothing needs you when nothing does", %{conn: conn, user: user} do
+      team_with_lead(user)
+
+      {:ok, _lv, html} = live(conn, ~p"/home")
+
+      assert html =~ "Nothing needs you at the moment."
+    end
+
+    @tag req: ["FR-203"]
+    test "an open room is announced in the subtitle too", %{conn: conn, user: user} do
+      team = team_with_lead(user)
+      active_session(team, user)
+
+      {:ok, _lv, html} = live(conn, ~p"/home")
+
+      assert html =~ "A room is open right now."
+    end
+
     @tag req: ["NFR-201"]
     test "requires a session" do
       assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(build_conn(), ~p"/home")
@@ -74,7 +203,7 @@ defmodule SprintLensWeb.TeamLiveTest do
 
       html = lv |> form("#team_form", team: %{name: "  "}) |> render_submit()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
       assert Teams.list_teams(user) == []
     end
 
@@ -82,7 +211,8 @@ defmodule SprintLensWeb.TeamLiveTest do
     test "validates as you type", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/teams")
 
-      assert lv |> form("#team_form", team: %{name: ""}) |> render_change() =~ "input-error"
+      assert lv |> form("#team_form", team: %{name: ""}) |> render_change() =~
+               ~s(aria-invalid="true")
     end
 
     @tag req: ["FR-103"]
@@ -103,6 +233,15 @@ defmodule SprintLensWeb.TeamLiveTest do
       {:ok, _lv, html} = live(conn, ~p"/teams")
 
       assert html =~ "Archived"
+    end
+
+    @tag req: ["FR-103"]
+    test "a team that wrote down what it is says so in the list", %{conn: conn, user: user} do
+      team_with_lead(user, %{description: "Platform and infrastructure"})
+
+      {:ok, _lv, html} = live(conn, ~p"/teams")
+
+      assert html =~ "Platform and infrastructure"
     end
 
     @tag req: ["FR-917"]
@@ -217,7 +356,7 @@ defmodule SprintLensWeb.TeamLiveTest do
         |> form("#team_settings_form", team: %{name: team.name, default_vote_budget: "0"})
         |> render_submit()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
       {:ok, reloaded} = Teams.fetch_team(user, team.id)
       assert reloaded.default_vote_budget == 5
     end
@@ -231,7 +370,7 @@ defmodule SprintLensWeb.TeamLiveTest do
         |> form("#team_settings_form", team: %{name: "", default_vote_budget: "5"})
         |> render_change()
 
-      assert html =~ "input-error"
+      assert html =~ ~s(aria-invalid="true")
     end
 
     @tag req: ["NFR-201"]
@@ -268,6 +407,45 @@ defmodule SprintLensWeb.TeamLiveTest do
       refute has_element?(lv, "#add_member_form")
       refute has_element?(lv, "#team_settings_form")
       assert has_element?(lv, "#restore-team")
+    end
+
+    # They used to be six buttons in this page's own header slot, which is why
+    # they existed on this page and nowhere else.
+    @tag req: ["FR-901"]
+    test "the team's sections are navigation, not buttons on one page", %{conn: conn, team: team} do
+      {:ok, lv, _html} = live(conn, ~p"/teams/#{team}")
+
+      assert has_element?(lv, "#team-nav")
+
+      for section <- ~w(overview sessions actions insights search templates) do
+        assert has_element?(lv, "#team-#{section}-link")
+      end
+
+      refute has_element?(lv, "header .flex-none #team-actions-link")
+    end
+
+    @tag req: ["FR-901"]
+    test "and the strip stays put when you follow one of them", %{conn: conn, team: team} do
+      {:ok, lv, _html} = live(conn, ~p"/teams/#{team}/actions")
+
+      assert has_element?(lv, "#team-nav")
+      assert has_element?(lv, "#team-overview-link")
+    end
+
+    @tag req: ["FR-901"]
+    test "says where you are in the hierarchy", %{conn: conn, team: team} do
+      {:ok, lv, _html} = live(conn, ~p"/teams/#{team}")
+
+      assert has_element?(lv, ~s(nav[aria-label="Breadcrumb"]), "Teams")
+    end
+
+    @tag req: ["FR-106"]
+    test "an archived team says so, and says what that means", %{conn: conn, user: user} do
+      archived = team_with_lead(user, %{is_archived: true})
+
+      {:ok, lv, _html} = live(conn, ~p"/teams/#{archived}")
+
+      assert has_element?(lv, "#team-archived-notice", "history stays readable")
     end
 
     @tag req: ["FR-103"]
@@ -554,6 +732,40 @@ defmodule SprintLensWeb.TeamLiveTest do
       {:ok, _lv, html} = live(conn, ~p"/home")
 
       assert html =~ "Archived"
+    end
+  end
+
+  # A retrospective that has been and gone, which is where an outstanding
+  # commitment comes from. Actions can only be written while a room is open,
+  # so the room is opened, used, and closed again.
+  defp last_weeks_retro(user) do
+    team = team_with_lead(user)
+
+    active_session(team, user, %{phase: "discuss"})
+  end
+
+  defp owes(session, user, title, due_date) do
+    {:ok, _item} =
+      Actions.create_action(user, session, %{
+        title: title,
+        assignee_id: user.id,
+        due_date: due_date
+      })
+
+    session
+  end
+
+  defp close(session, user) do
+    {:ok, closed} = SprintLens.Retro.close_session(user, session)
+
+    closed
+  end
+
+  # Document order, which is the whole point of several of these assertions.
+  defp index_of(html, needle) do
+    case :binary.match(html, needle) do
+      {at, _length} -> at
+      :nomatch -> flunk("#{needle} is not on the page")
     end
   end
 end

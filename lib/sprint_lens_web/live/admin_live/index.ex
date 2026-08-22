@@ -45,16 +45,14 @@ defmodule SprintLensWeb.AdminLive.Index do
         <:subtitle>{gettext("People, settings, retention and the audit log.")}</:subtitle>
       </.header>
 
-      <section aria-labelledby="org-settings-heading">
-        <h2 id="org-settings-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Organisation settings")}
-        </h2>
+      <.panel id="org-settings" title={gettext("Organisation settings")} class="max-w-md">
+        <:subtitle>{gettext("What every team starts from.")}</:subtitle>
 
         <.form
           for={@settings_form}
           id="org_settings_form"
           phx-submit="save_settings"
-          class="max-w-md space-y-2"
+          class="rounded-panel border border-base-200 bg-base-100 p-4 shadow-resting sm:p-6"
         >
           <.input
             field={@settings_form[:default_language]}
@@ -96,33 +94,36 @@ defmodule SprintLensWeb.AdminLive.Index do
             {gettext("Save settings")}
           </.button>
         </.form>
-      </section>
+      </.panel>
 
-      <section aria-labelledby="users-heading">
-        <h2 id="users-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("People")}
-        </h2>
+      <.panel id="people" title={gettext("People")}>
+        <:subtitle>
+          {ngettext("%{count} account", "%{count} accounts", length(@users), count: length(@users))}
+        </:subtitle>
 
-        <ul id="admin-users" class="space-y-2">
+        <ul
+          id="admin-users"
+          class="divide-y divide-base-200 overflow-hidden rounded-panel border border-base-200 bg-base-100"
+        >
           <li
             :for={user <- @users}
             id={"admin-user-#{user.id}"}
-            class="flex flex-wrap items-center gap-2 rounded-box border border-base-200 p-2"
+            class="flex flex-wrap items-center gap-3 p-3"
           >
-            <div class="min-w-0 grow">
-              <p class="font-medium">{user.display_name}</p>
-              <p class="text-xs opacity-70">{user.email}</p>
-            </div>
+            <.avatar name={user.display_name} />
 
-            <span :if={user.is_org_admin} class="badge badge-sm badge-primary">
-              {gettext("Org Admin")}
+            <span class="min-w-0 grow">
+              <span class="block truncate font-medium">{user.display_name}</span>
+              <span class="block truncate text-caption text-base-content/70">{user.email}</span>
             </span>
-            <span :if={not user.is_active} id={"admin-inactive-#{user.id}"} class="badge badge-sm">
+
+            <.badge :if={user.is_org_admin} tone="primary">{gettext("Org Admin")}</.badge>
+            <.badge :if={not user.is_active} id={"admin-inactive-#{user.id}"} tone="warning">
               {gettext("Deactivated")}
-            </span>
-            <span :if={User.erased?(user)} id={"admin-erased-#{user.id}"} class="badge badge-sm">
+            </.badge>
+            <.badge :if={User.erased?(user)} id={"admin-erased-#{user.id}"}>
               {gettext("Erased")}
-            </span>
+            </.badge>
 
             <.button
               :if={user.is_active}
@@ -130,7 +131,8 @@ defmodule SprintLensWeb.AdminLive.Index do
               phx-click="deactivate"
               phx-value-id={user.id}
               data-confirm={gettext("Deactivate this person? They will be signed out.")}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Deactivate")}
             </.button>
@@ -140,7 +142,8 @@ defmodule SprintLensWeb.AdminLive.Index do
               id={"reactivate-#{user.id}"}
               phx-click="reactivate"
               phx-value-id={user.id}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Reactivate")}
             </.button>
@@ -151,26 +154,25 @@ defmodule SprintLensWeb.AdminLive.Index do
               phx-click="erase"
               phx-value-id={user.id}
               data-confirm={gettext("Erase this person's personal data? This cannot be undone.")}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Erase")}
             </.button>
           </li>
         </ul>
-      </section>
+      </.panel>
 
-      <section aria-labelledby="leadership-heading">
-        <h2 id="leadership-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Team leadership")}
-        </h2>
+      <.panel id="leadership" title={gettext("Team leadership")}>
+        <:subtitle>{gettext("For a team whose lead has gone.")}</:subtitle>
 
         <.form
           for={@leadership_form}
           id="leadership_form"
           phx-submit="reassign"
-          class="flex max-w-2xl flex-wrap items-end gap-2"
+          class="flex max-w-2xl flex-wrap items-end gap-3 rounded-panel border border-base-200 bg-base-100 p-4"
         >
-          <div class="grow">
+          <div class="min-w-48 grow">
             <.input
               field={@leadership_form[:team_id]}
               type="select"
@@ -178,7 +180,7 @@ defmodule SprintLensWeb.AdminLive.Index do
               options={team_options(@teams)}
             />
           </div>
-          <div class="grow">
+          <div class="min-w-48 grow">
             <.input
               field={@leadership_form[:user_id]}
               type="select"
@@ -186,48 +188,43 @@ defmodule SprintLensWeb.AdminLive.Index do
               options={user_options(@users)}
             />
           </div>
-          <.button id="reassign-lead" variant="primary" class="mb-2">
+          <.button id="reassign-lead" variant="primary" class="mb-4">
             {gettext("Make lead")}
           </.button>
         </.form>
-      </section>
+      </.panel>
 
-      <section aria-labelledby="retention-heading">
-        <h2 id="retention-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Purge on demand")}
-        </h2>
+      <.panel id="retention" title={gettext("Purge on demand")}>
+        <:subtitle>{gettext("Removing data before its retention period is up.")}</:subtitle>
 
-        <p :if={@teams == []} id="purge-empty" class="text-sm opacity-60">
-          {gettext("There is nothing to purge.")}
-        </p>
-
-        <ul :if={@teams != []} id="admin-teams" class="space-y-2">
+        <ul :if={@teams != []} id="admin-teams" class="space-y-3">
           <li
             :for={team <- @teams}
             id={"admin-team-#{team.id}"}
-            class="rounded-box border border-base-200 p-2"
+            class="rounded-card border border-base-200 p-3"
           >
             <div class="flex flex-wrap items-center gap-2">
-              <span class="grow font-medium">{team.name}</span>
+              <span class="min-w-0 grow truncate font-medium">{team.name}</span>
               <.button
                 id={"purge-team-#{team.id}"}
                 phx-click="purge_team"
                 phx-value-id={team.id}
                 data-confirm={gettext("Purge this team and everything in it? This cannot be undone.")}
-                class="btn btn-ghost btn-xs"
+                variant="ghost"
+                size="sm"
               >
                 {gettext("Purge team")}
               </.button>
             </div>
 
-            <ul class="mt-1 space-y-1 pl-3">
+            <ul class="mt-1 divide-y divide-base-200">
               <li
                 :for={session <- closed_sessions(@sessions, team)}
                 id={"admin-session-#{session.id}"}
-                class="flex flex-wrap items-center gap-2 text-sm"
+                class="flex flex-wrap items-center gap-2 py-1.5 text-label"
               >
-                <span class="grow">{session.title}</span>
-                <span class="opacity-60">
+                <span class="min-w-0 grow truncate">{session.title}</span>
+                <span class="text-base-content/60">
                   {SprintLensWeb.Locale.format_datetime(session.closed_at)}
                 </span>
                 <.button
@@ -235,7 +232,8 @@ defmodule SprintLensWeb.AdminLive.Index do
                   phx-click="purge_session"
                   phx-value-id={session.id}
                   data-confirm={gettext("Purge this retrospective? This cannot be undone.")}
-                  class="btn btn-ghost btn-xs"
+                  variant="ghost"
+                  size="sm"
                 >
                   {gettext("Purge")}
                 </.button>
@@ -243,35 +241,52 @@ defmodule SprintLensWeb.AdminLive.Index do
             </ul>
           </li>
         </ul>
-      </section>
 
-      <section aria-labelledby="audit-heading">
-        <h2 id="audit-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Audit log")}
-        </h2>
+        <.empty_state
+          :if={@teams == []}
+          id="purge-empty"
+          title={gettext("There is nothing to purge.")}
+        >
+          {gettext("No team has been created yet.")}
+        </.empty_state>
+      </.panel>
 
-        <p :if={@events == []} id="audit-empty" class="text-sm opacity-60">
-          {gettext("Nothing has been done yet.")}
-        </p>
+      <.panel id="audit" title={gettext("Audit log")}>
+        <:subtitle>{gettext("Every administrative action, most recent first.")}</:subtitle>
 
-        <ul :if={@events != []} id="audit-events" class="space-y-1">
+        <ul
+          :if={@events != []}
+          id="audit-events"
+          class="divide-y divide-base-200 overflow-hidden rounded-panel border border-base-200 bg-base-100"
+        >
           <li
             :for={event <- @events}
             id={"audit-#{event.id}"}
-            class="flex flex-wrap items-center gap-2 rounded-box border border-base-200 p-2 text-sm"
+            class="flex flex-wrap items-center gap-2 p-2.5 text-label"
           >
             <span class="font-mono">{event.action}</span>
-            <span class="opacity-70">{event.target}</span>
-            <span class="opacity-70">{actor_name(event)}</span>
-            <span :if={AuditEvent.detail(event) != %{}} class="font-mono text-xs opacity-60">
+            <span class="text-base-content/70">{event.target}</span>
+            <span class="text-base-content/70">{actor_name(event)}</span>
+            <span
+              :if={AuditEvent.detail(event) != %{}}
+              class="font-mono text-caption text-base-content/60"
+            >
               {inspect(AuditEvent.detail(event))}
             </span>
-            <span class="ml-auto opacity-60">
+            <span class="ml-auto text-base-content/60">
               {SprintLensWeb.Locale.format_datetime(event.inserted_at)}
             </span>
           </li>
         </ul>
-      </section>
+
+        <.empty_state
+          :if={@events == []}
+          id="audit-empty"
+          title={gettext("Nothing has been done yet.")}
+        >
+          {gettext("Deactivating, erasing and purging are recorded here.")}
+        </.empty_state>
+      </.panel>
     </Layouts.app>
     """
   end

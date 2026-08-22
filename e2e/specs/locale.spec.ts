@@ -43,6 +43,14 @@ test.describe('the language switcher', () => {
     await registerAndSignIn(page)
     await waitForLiveView(page)
 
+    // Signed in, the switcher is no longer in the navigation bar: preferences
+    // are about the person rather than the product, so they live in the
+    // account menu. It is a real <details>, so the summary is what opens it —
+    // and a link inside a closed one is not in the accessibility tree, which
+    // is exactly what this line proves has been accounted for.
+    await expect(page.locator('#account-menu')).toBeVisible()
+    await page.locator('#account-menu summary').click()
+
     await page.getByRole('link', { name: 'EN', exact: true }).click()
 
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
