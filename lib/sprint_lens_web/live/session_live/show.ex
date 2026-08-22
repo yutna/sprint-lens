@@ -31,6 +31,8 @@ defmodule SprintLensWeb.SessionLive.Show do
   alias SprintLens.Teams
   alias SprintLensWeb.Presence
 
+  import SprintLensWeb.LobbyComponents
+
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
@@ -44,28 +46,21 @@ defmodule SprintLensWeb.SessionLive.Show do
       <.header>
         {@session.title}
         <:subtitle>
-          <span class={["badge badge-sm", state_class(@session)]}>
-            {state_label(Session.state(@session))}
-          </span>
-          <span :if={@session.is_anonymous} class="badge badge-ghost badge-sm">
-            {gettext("Anonymous")}
-          </span>
-          <span :if={@session.is_blind} class="badge badge-ghost badge-sm">
-            {gettext("Cards hidden until revealed")}
+          <span :if={waiting?(@session)}>{@session.team.name}</span>
+          <span :if={not waiting?(@session)} class="flex flex-wrap items-center gap-2">
+            <.badge tone={state_tone(@session)}>{state_label(Session.state(@session))}</.badge>
+            <.badge :if={@session.is_anonymous}>{gettext("Anonymous")}</.badge>
+            <.badge :if={@session.is_blind}>{gettext("Cards hidden until revealed")}</.badge>
           </span>
         </:subtitle>
         <:actions>
-          <span id="join-code" class="badge badge-outline font-mono">
+          <span
+            :if={not waiting?(@session)}
+            id="join-code"
+            class="rounded-control border border-base-300 px-2 py-1 font-mono text-caption"
+          >
             {@session.join_code}
           </span>
-          <.button
-            :if={@is_facilitator and Session.state(@session) == :created}
-            id="start-session"
-            variant="primary"
-            phx-click="start"
-          >
-            {gettext("Start")}
-          </.button>
           <.button
             :if={@is_facilitator and Session.state(@session) == :active}
             id="close-session"
@@ -78,11 +73,31 @@ defmodule SprintLensWeb.SessionLive.Show do
       </.header>
 
       <%!--
+        Before it starts there is no board to show — only empty columns, a
+        phase bar pointing at a phase nobody is in, and timer controls for a
+        timer nobody is running. So the room gets the screen instead, and
+        everything below waits for the session to begin (see
+        `SprintLensWeb.LobbyComponents`).
+      --%>
+      <.lobby
+        :if={waiting?(@session)}
+        session={@session}
+        columns={@columns}
+        participants={@participants}
+        present_count={@present_count}
+        ready_count={@ready_count}
+        ready={@ready}
+        is_facilitator={@is_facilitator}
+        join_url={@join_url}
+      />
+
+      <%!--
         The phase is announced to assistive technology as it changes, which is
         what FR-915 asks for; the region is polite so it does not interrupt
         someone mid-sentence.
       --%>
       <section
+        :if={not waiting?(@session)}
         id="phase-bar"
         aria-live="polite"
         aria-label={gettext("Phase")}
@@ -121,12 +136,12 @@ defmodule SprintLensWeb.SessionLive.Show do
         </div>
       </section>
 
-      <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
+      <div :if={not waiting?(@session)} class="grid gap-4 sm:grid-cols-[2fr_1fr]">
         <div id="board" aria-label={gettext("Board")}>
           <%!--
-            The check-in opens with what the team still owes from last time
-            (FR-505), before anything new is written.
-          --%>
+          The check-in opens with what the team still owes from last time
+          (FR-505), before anything new is written.
+        --%>
           <.carry_over_review
             :if={@phase == :checkin}
             actions={@open_actions}
@@ -350,6 +365,11 @@ defmodule SprintLensWeb.SessionLive.Show do
     """
   end
 
+  # The board and the lobby are the two halves of this screen, and exactly one
+  # of them renders — which is what lets both use `join-code`, `participant-*`
+  # and `toggle-ready` for the same things rather than two sets of names.
+  defp waiting?(session), do: Session.state(session) == :created
+
   @impl Phoenix.LiveView
   def mount(%{"id" => id}, _session, socket) do
     case Retro.fetch_session(socket.assigns.current_scope, id) do
@@ -382,6 +402,7 @@ defmodule SprintLensWeb.SessionLive.Show do
 
     socket
     |> assign(:page_title, session.title)
+    |> assign(:join_url, SprintLensWeb.Endpoint.url() <> ~p"/join/#{session.join_code}")
     |> assign(:ready, false)
     |> assign(:editing, nil)
     |> assign(:editing_note, nil)
@@ -889,15 +910,16 @@ defmodule SprintLensWeb.SessionLive.Show do
   defp phase_label(:discuss), do: gettext("Discuss")
   defp phase_label(:wrapup), do: gettext("Wrap-up")
 
-  defp state_label(:created), do: gettext("Not started")
+  # No `:created` clause: a session that has not started is the lobby, and the
+  # lobby's whole subject is the room rather than the session's state. If one
+  # ever reaches the board header there is nothing to render it, which is the
+  # loud failure rather than a badge contradicting the screen around it.
   defp state_label(:active), do: gettext("Running")
   defp state_label(:closed), do: gettext("Closed")
 
-  defp state_class(session) do
-    case Session.state(session) do
-      :active -> "badge-primary"
-      :closed -> "badge-ghost"
-      _created -> "badge-outline"
-    end
+  # Only ever asked about a session that has started: before that, the whole
+  # screen is the lobby and its state is the one thing it does not have to say.
+  defp state_tone(session) do
+    if Session.state(session) == :active, do: "primary", else: "neutral"
   end
 end

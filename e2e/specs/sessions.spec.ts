@@ -68,6 +68,82 @@ async function twoPeopleOnABoard(page: Page, context: import('@playwright/test')
   return { participant, boardUrl }
 }
 
+test.describe('the lobby', () => {
+  /**
+   * The clipboard is the one thing here a LiveView test cannot reach: the
+   * hook runs in the browser, `navigator.clipboard` is a browser API, and a
+   * hook that silently fails looks exactly like a hook that works.
+   */
+  test('[FR-204] the code is on the screen and the link is one tap away', async ({
+    page,
+    context,
+    browserName,
+  }) => {
+    await registerAndSignIn(page)
+    await createTeam(page, 'Lobby')
+    await page.getByRole('link', { name: /Retrospective/i }).click()
+    await waitForLiveView(page)
+    await createSession(page, 'Sprint 20')
+
+    // Not started, so this is the room rather than the board.
+    await expect(page.locator('#lobby')).toBeVisible()
+    await expect(page.locator('#phase-bar')).toHaveCount(0)
+
+    const code = (await page.locator('#join-code').innerText()).trim()
+    expect(code).toMatch(/^[A-Z0-9]+$/)
+    await expect(page.locator('#join-link')).toContainText(`/join/${code}`)
+
+    // Only Chromium grants the clipboard without a user gesture prompt. The
+    // other engines take the hook's fallback path, which is a selection
+    // rather than a copy and has nothing to assert.
+    test.skip(browserName !== 'chromium', 'clipboard permissions are Chromium-only here')
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+
+    await page.locator('#copy-join-link').click()
+
+    await expect(page.locator('#copy-join-link')).toContainText('คัดลอกแล้ว')
+    const copied = await page.evaluate(() => navigator.clipboard.readText())
+    expect(copied).toContain(`/join/${code}`)
+  })
+
+  test('[FR-213] the room fills up, and starting it moves everyone on', async ({
+    page,
+    context,
+  }) => {
+    const participant = await context.browser()!.newPage()
+    const { email } = await registerAndSignIn(participant)
+
+    await registerAndSignIn(page)
+    await createTeam(page, 'Filling')
+    await inviteTeammate(page, email)
+    await page.getByRole('link', { name: /Retrospective/i }).click()
+    await waitForLiveView(page)
+    await createSession(page, 'Sprint 21')
+
+    const lobbyUrl = page.url()
+    await expect(page.locator('#lobby-waiting')).toBeVisible()
+
+    await participant.goto(lobbyUrl)
+    await waitForLiveView(participant)
+
+    // The room visibly fills: the facilitator's page changes without a reload.
+    await expect(page.locator('#lobby-waiting')).toHaveCount(0)
+    await expect(page.locator('#lobby-room')).toContainText('0 จาก 2')
+
+    await participant.locator('#toggle-ready').click()
+    await expect(page.locator('#lobby-room')).toContainText('1 จาก 2')
+
+    await page.locator('#start-session').click()
+
+    // Both of them are on the board now, not only the one who pressed it.
+    await expect(page.locator('#phase-bar')).toBeVisible()
+    await expect(participant.locator('#phase-bar')).toBeVisible()
+    await expect(participant.locator('#lobby')).toHaveCount(0)
+
+    await participant.close()
+  })
+})
+
 test.describe('the live board', () => {
   test('[FR-201] a member starts a retro and lands on its board', async ({ page }) => {
     await registerAndSignIn(page)
@@ -76,6 +152,11 @@ test.describe('the live board', () => {
     await page.getByRole('link', { name: /Retrospective/i }).click()
     await waitForLiveView(page)
     await createSession(page, 'Sprint 1')
+
+    // It has to be started first. This used to assert the board without
+    // pressing anything, which passed because a session that had not begun
+    // rendered the whole board anyway — the thing the lobby exists to fix.
+    await page.locator('#start-session').click()
 
     // เริ่ม-หยุด-ทำต่อ's three columns, and the six phases of section 4.3.
     await expect(page.locator('#board section[role="tabpanel"]')).toHaveCount(3)

@@ -176,6 +176,136 @@ defmodule SprintLensWeb.SessionLiveTest do
     end
   end
 
+  describe "the lobby, before it starts (FR-204, FR-213)" do
+    # The board used to render in full before the session existed: six phase
+    # badges pointing at a phase nobody was in, and every column empty.
+    @tag req: ["FR-213"]
+    test "a session that has not started is a room, not an empty board", ctx do
+      session = create_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert has_element?(lv, "#lobby")
+      refute has_element?(lv, "#phase-bar")
+      refute has_element?(lv, "#board")
+      refute has_element?(lv, "#timer")
+    end
+
+    @tag req: ["FR-204"]
+    test "the code is big enough to read out, and spelled out for a reader", ctx do
+      session = create_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      code = lv |> element("#join-code") |> render()
+
+      # The text stays exactly the code: it is compared against what somebody
+      # types, so the spacing is letter-spacing rather than actual spaces.
+      assert code =~ ">\n    #{session.join_code}\n  <"
+      assert code =~ session.join_code |> String.graphemes() |> Enum.join(" ")
+    end
+
+    @tag req: ["FR-204"]
+    test "and the whole link is on the page, for the people in the chat", ctx do
+      session = create_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      url = SprintLensWeb.Endpoint.url() <> "/join/#{session.join_code}"
+
+      assert lv |> element("#copy-join-link") |> render() =~ url
+      assert lv |> element("#join-link") |> render() =~ url
+    end
+
+    @tag req: ["FR-213"]
+    test "the room fills up as people arrive", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert has_element?(facilitator_lv, "#lobby-waiting")
+
+      {:ok, _participant_lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      assert has_element?(facilitator_lv, "#participant-#{ctx.participant.id}")
+      refute has_element?(facilitator_lv, "#lobby-waiting")
+    end
+
+    # The one useful thing a person can do while waiting, and it used to be
+    # unavailable until after the thing they were waiting for had happened.
+    @tag req: ["FR-213"]
+    test "someone waiting can say they are ready before it starts", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+      {:ok, participant_lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      participant_lv |> element("#toggle-ready") |> render_click()
+
+      assert render(facilitator_lv) =~ "1 of 2 ready"
+      assert has_element?(facilitator_lv, "#participant-#{ctx.participant.id}", "Ready")
+    end
+
+    @tag req: ["FR-213"]
+    test "and the facilitator is told when the room is ready", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      # Alone in the room, "everyone is ready" would be a statement about
+      # nobody, so it says the other true thing instead.
+      assert facilitator_lv |> element("#lobby-cue") |> render() =~ "start whenever you like"
+
+      {:ok, participant_lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      assert facilitator_lv |> element("#lobby-cue") |> render() =~ "waiting on a few"
+
+      participant_lv |> element("#toggle-ready") |> render_click()
+      facilitator_lv |> element("#toggle-ready") |> render_click()
+
+      assert facilitator_lv |> element("#lobby-cue") |> render() =~ "Everyone is ready"
+      assert has_element?(facilitator_lv, ~s(#start-session[data-room-ready="true"]))
+    end
+
+    @tag req: ["NFR-201"]
+    test "a participant is offered no way to start it", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      refute has_element?(lv, "#start-session")
+      refute has_element?(lv, "#lobby-cue")
+      assert has_element?(lv, "#toggle-ready")
+    end
+
+    @tag req: ["FR-201"]
+    test "the columns say what the room is about to be asked for", ctx do
+      session = create_session(ctx)
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "Went well"
+      assert html =~ "To improve"
+    end
+
+    @tag req: ["FR-205"]
+    test "starting it puts the board in the lobby's place", ctx do
+      session = create_session(ctx)
+      on_exit(fn -> SessionServer.stop(session.id) end)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      lv |> element("#start-session") |> render_click()
+
+      refute has_element?(lv, "#lobby")
+      assert has_element?(lv, "#phase-bar")
+    end
+  end
+
   describe "SCR-07 — the board" do
     @tag req: ["FR-205"]
     test "the facilitator starts the session", ctx do
@@ -196,6 +326,19 @@ defmodule SprintLensWeb.SessionLiveTest do
 
       assert html =~ "Went well"
       assert html =~ "To improve"
+    end
+
+    # The hint is the column's question, and it is the only thing on the board
+    # that tells somebody who has not done this before what to write there.
+    @tag req: ["FR-201"]
+    test "and the question each column is asking", ctx do
+      template = Enum.find(SprintLens.Teams.list_templates(ctx.team), &(&1.name == "KPT"))
+      session = start_session(ctx, %{template_id: template.id})
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "Keep"
+      assert html =~ "What is worth keeping?"
     end
 
     @tag req: ["FR-204"]

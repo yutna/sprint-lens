@@ -39,7 +39,7 @@ msgstr "ตั้งค่าบัญชี"
 #: lib/sprint_lens_web/live/action_live/index.ex:43
 #: lib/sprint_lens_web/live/action_live/index.ex:126
 #: lib/sprint_lens_web/live/insights_live/index.ex:80
-#: lib/sprint_lens_web/live/session_live/show.ex:173
+#: lib/sprint_lens_web/live/session_live/show.ex:187
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "การดำเนินการ"
@@ -332,7 +332,7 @@ msgstr "อีเมลที่ส่งออกจะปรากฏใน"
 
 #: lib/sprint_lens_web/api_error.ex:77
 #: lib/sprint_lens_web/live/action_live/index.ex:155
-#: lib/sprint_lens_web/live/session_live/show.ex:835
+#: lib/sprint_lens_web/live/session_live/show.ex:856
 #, elixir-autogen, elixir-format
 msgid "Some fields need attention."
 msgstr "มีบางช่องที่ต้องแก้ไข"
@@ -353,7 +353,7 @@ msgid "System theme"
 msgstr "ธีมตามระบบ"
 
 #: lib/sprint_lens_web/api_error.ex:81
-#: lib/sprint_lens_web/live/session_live/show.ex:843
+#: lib/sprint_lens_web/live/session_live/show.ex:864
 #, elixir-autogen, elixir-format
 msgid "That action is not available in this phase."
 msgstr "ทำสิ่งนี้ไม่ได้ในเฟสปัจจุบัน"
@@ -391,8 +391,8 @@ msgstr "ลิงก์ไม่ถูกต้องหรือหมดอา
 #: lib/sprint_lens_web/live/session_live/index.ex:236
 #: lib/sprint_lens_web/live/session_live/recap.ex:245
 #: lib/sprint_lens_web/live/session_live/recap.ex:337
-#: lib/sprint_lens_web/live/session_live/show.ex:362
-#: lib/sprint_lens_web/live/session_live/show.ex:845
+#: lib/sprint_lens_web/live/session_live/show.ex:382
+#: lib/sprint_lens_web/live/session_live/show.ex:866
 #: lib/sprint_lens_web/live/team_live/show.ex:329
 #: lib/sprint_lens_web/live/team_live/show.ex:463
 #: lib/sprint_lens_web/live/template_live/index.ex:159
@@ -408,9 +408,9 @@ msgid "Theme"
 msgstr "ธีม"
 
 #: lib/sprint_lens_web/api_error.ex:83
-#: lib/sprint_lens_web/live/session_live/join.ex:75
-#: lib/sprint_lens_web/live/session_live/show.ex:486
-#: lib/sprint_lens_web/live/session_live/show.ex:846
+#: lib/sprint_lens_web/live/session_live/join.ex:79
+#: lib/sprint_lens_web/live/session_live/show.ex:507
+#: lib/sprint_lens_web/live/session_live/show.ex:867
 #, elixir-autogen, elixir-format
 msgid "This session is closed."
 msgstr "Session นี้ปิดแล้ว"
@@ -474,7 +474,7 @@ msgstr "คุณกำลังใช้ mail adapter แบบ local"
 #: lib/sprint_lens_web/live/admin_live/index.ex:301
 #: lib/sprint_lens_web/live/admin_live/index.ex:411
 #: lib/sprint_lens_web/live/session_live/index.ex:237
-#: lib/sprint_lens_web/live/session_live/show.ex:842
+#: lib/sprint_lens_web/live/session_live/show.ex:863
 #: lib/sprint_lens_web/live/team_live/show.ex:464
 #: lib/sprint_lens_web/live/team_live/show.ex:467
 #: lib/sprint_lens_web/live/template_live/index.ex:191
@@ -834,22 +834,23 @@ msgstr "คุณยังไม่ได้อยู่ในทีมใด"
 msgid "You have left the team."
 msgstr "คุณออกจากทีมแล้ว"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:314
+#: lib/sprint_lens_web/components/lobby_components.ex:55
+#: lib/sprint_lens_web/live/session_live/show.ex:328
 #, elixir-autogen, elixir-format
 msgid "%{ready} of %{total} ready"
 msgstr "พร้อมแล้ว %{ready} จาก %{total}"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:873
+#: lib/sprint_lens_web/live/session_live/show.ex:894
 #, elixir-autogen, elixir-format
 msgid "1 min"
 msgstr "1 นาที"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:873
+#: lib/sprint_lens_web/live/session_live/show.ex:894
 #, elixir-autogen, elixir-format
 msgid "10 min"
 msgstr "10 นาที"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:873
+#: lib/sprint_lens_web/live/session_live/show.ex:894
 #, elixir-autogen, elixir-format
 msgid "5 min"
 msgstr "5 นาที"
@@ -860,10 +861,11 @@ msgid "Allow more than one vote on the same card"
 msgstr "อนุญาตให้โหวตการ์ดเดียวกันได้มากกว่าหนึ่งครั้ง"
 
 #: lib/sprint_lens_web/components/board_components.ex:248
+#: lib/sprint_lens_web/components/lobby_components.ex:130
 #: lib/sprint_lens_web/live/session_live/index.ex:62
 #: lib/sprint_lens_web/live/session_live/index.ex:97
 #: lib/sprint_lens_web/live/session_live/recap.ex:42
-#: lib/sprint_lens_web/live/session_live/show.ex:51
+#: lib/sprint_lens_web/live/session_live/show.ex:52
 #, elixir-autogen, elixir-format
 msgid "Anonymous"
 msgstr "ไม่ระบุตัวตน"
@@ -873,43 +875,44 @@ msgstr "ไม่ระบุตัวตน"
 msgid "Anonymous — authorship is hidden from everyone, permanently"
 msgstr "ไม่ระบุตัวตน — ซ่อนว่าใครเขียนจากทุกคนอย่างถาวร"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:116
+#: lib/sprint_lens_web/live/session_live/show.ex:130
 #, elixir-autogen, elixir-format
 msgid "Back"
 msgstr "ย้อนกลับ"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:125
+#: lib/sprint_lens_web/live/session_live/show.ex:139
 #, elixir-autogen, elixir-format
 msgid "Board"
 msgstr "บอร์ด"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:886
+#: lib/sprint_lens_web/live/session_live/show.ex:907
 #, elixir-autogen, elixir-format
 msgid "Brainstorm"
 msgstr "ระดมความคิด"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:54
+#: lib/sprint_lens_web/components/lobby_components.ex:131
+#: lib/sprint_lens_web/live/session_live/show.ex:53
 #, elixir-autogen, elixir-format
 msgid "Cards hidden until revealed"
 msgstr "ซ่อนการ์ดจนกว่าจะเปิดเผย"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:885
+#: lib/sprint_lens_web/live/session_live/show.ex:906
 #, elixir-autogen, elixir-format
 msgid "Check-in"
 msgstr "เช็กอิน"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:75
+#: lib/sprint_lens_web/live/session_live/show.ex:70
 #, elixir-autogen, elixir-format
 msgid "Close"
 msgstr "ปิด"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:73
+#: lib/sprint_lens_web/live/session_live/show.ex:68
 #, elixir-autogen, elixir-format
 msgid "Close this session? It becomes read-only."
 msgstr "ปิด session นี้? จะกลายเป็นอ่านอย่างเดียว"
 
 #: lib/sprint_lens_web/live/session_live/recap.ex:37
-#: lib/sprint_lens_web/live/session_live/show.ex:894
+#: lib/sprint_lens_web/live/session_live/show.ex:918
 #, elixir-autogen, elixir-format
 msgid "Closed"
 msgstr "ปิดแล้ว"
@@ -924,28 +927,25 @@ msgstr "สร้าง session"
 msgid "Created %{at}"
 msgstr "สร้างเมื่อ %{at}"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:889
+#: lib/sprint_lens_web/live/session_live/show.ex:910
 #, elixir-autogen, elixir-format
 msgid "Discuss"
 msgstr "อภิปราย"
 
-#: lib/sprint_lens_web/live/session_live/join.ex:26
-#, elixir-autogen, elixir-format
-msgid "Enter the code the facilitator shared."
-msgstr "กรอกรหัสที่ Facilitator แจ้งไว้"
-
-#: lib/sprint_lens_web/live/session_live/show.ex:322
+#: lib/sprint_lens_web/components/lobby_components.ex:73
+#: lib/sprint_lens_web/live/session_live/show.ex:336
 #, elixir-autogen, elixir-format
 msgid "Facilitator"
 msgstr "Facilitator"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:238
-#: lib/sprint_lens_web/live/session_live/show.ex:887
+#: lib/sprint_lens_web/live/session_live/show.ex:252
+#: lib/sprint_lens_web/live/session_live/show.ex:908
 #, elixir-autogen, elixir-format
 msgid "Group"
 msgstr "จัดกลุ่ม"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:332
+#: lib/sprint_lens_web/components/lobby_components.ex:84
+#: lib/sprint_lens_web/live/session_live/show.ex:346
 #, elixir-autogen, elixir-format
 msgid "Hand over"
 msgstr "โอนบทบาท"
@@ -955,65 +955,67 @@ msgstr "โอนบทบาท"
 msgid "Hide cards until the facilitator reveals them"
 msgstr "ซ่อนการ์ดจนกว่า Facilitator จะเปิดเผย"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:344
+#: lib/sprint_lens_web/components/lobby_components.ex:161
+#: lib/sprint_lens_web/live/session_live/show.ex:358
 #, elixir-autogen, elixir-format
 msgid "I am ready"
 msgstr "ฉันพร้อมแล้ว"
 
 #: lib/sprint_lens_web/components/layouts.ex:152
 #: lib/sprint_lens_web/live/home_live.ex:92
-#: lib/sprint_lens_web/live/session_live/join.ex:41
+#: lib/sprint_lens_web/live/session_live/join.ex:45
 #, elixir-autogen, elixir-format
 msgid "Join"
 msgstr "เข้าร่วม"
 
-#: lib/sprint_lens_web/live/session_live/join.ex:25
+#: lib/sprint_lens_web/live/session_live/join.ex:24
 #, elixir-autogen, elixir-format
 msgid "Join a retrospective"
 msgstr "เข้าร่วม retrospective"
 
-#: lib/sprint_lens_web/live/session_live/join.ex:33
+#: lib/sprint_lens_web/components/lobby_components.ex:190
+#: lib/sprint_lens_web/live/session_live/join.ex:36
 #, elixir-autogen, elixir-format
 msgid "Join code"
 msgstr "รหัสเข้าร่วม"
 
-#: lib/sprint_lens_web/live/session_live/join.ex:40
+#: lib/sprint_lens_web/live/session_live/join.ex:44
 #, elixir-autogen, elixir-format
 msgid "Joining..."
 msgstr "กำลังเข้าร่วม..."
 
-#: lib/sprint_lens_web/live/session_live/show.ex:119
+#: lib/sprint_lens_web/live/session_live/show.ex:133
 #, elixir-autogen, elixir-format
 msgid "Next"
 msgstr "ถัดไป"
 
-#: lib/sprint_lens_web/live/session_live/join.ex:78
+#: lib/sprint_lens_web/live/session_live/join.ex:82
 #, elixir-autogen, elixir-format
 msgid "No session with that code."
 msgstr "ไม่พบ session ที่ใช้รหัสนี้"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:344
+#: lib/sprint_lens_web/components/lobby_components.ex:161
+#: lib/sprint_lens_web/live/session_live/show.ex:358
 #, elixir-autogen, elixir-format
 msgid "Not ready"
 msgstr "ยังไม่พร้อม"
 
 #: lib/sprint_lens_web/live/session_live/index.ex:266
-#: lib/sprint_lens_web/live/session_live/show.ex:892
 #, elixir-autogen, elixir-format
 msgid "Not started"
 msgstr "ยังไม่เริ่ม"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:300
+#: lib/sprint_lens_web/live/session_live/show.ex:314
 #, elixir-autogen, elixir-format
 msgid "Pause"
 msgstr "หยุดชั่วคราว"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:88
+#: lib/sprint_lens_web/live/session_live/show.ex:102
 #, elixir-autogen, elixir-format
 msgid "Phase"
 msgstr "เฟส"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:303
+#: lib/sprint_lens_web/live/session_live/show.ex:317
 #, elixir-autogen, elixir-format
 msgid "Reset"
 msgstr "รีเซ็ต"
@@ -1028,7 +1030,7 @@ msgid "Retrospectives"
 msgstr "Retrospective"
 
 #: lib/sprint_lens_web/live/session_live/index.ex:267
-#: lib/sprint_lens_web/live/session_live/show.ex:893
+#: lib/sprint_lens_web/live/session_live/show.ex:917
 #, elixir-autogen, elixir-format
 msgid "Running"
 msgstr "กำลังดำเนินการ"
@@ -1048,23 +1050,18 @@ msgstr "นัดเวลาไว้ (ไม่บังคับ)"
 msgid "Session created."
 msgstr "สร้าง session แล้ว"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:67
-#, elixir-autogen, elixir-format
-msgid "Start"
-msgstr "เริ่ม"
-
 #: lib/sprint_lens_web/live/session_live/index.ex:153
 #, elixir-autogen, elixir-format
 msgid "Template"
 msgstr "Template"
 
 #: lib/sprint_lens_web/api_error.ex:82
-#: lib/sprint_lens_web/live/session_live/show.ex:844
+#: lib/sprint_lens_web/live/session_live/show.ex:865
 #, elixir-autogen, elixir-format
 msgid "That action is not available right now."
 msgstr "ทำสิ่งนี้ไม่ได้ในตอนนี้"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:282
+#: lib/sprint_lens_web/live/session_live/show.ex:296
 #, elixir-autogen, elixir-format
 msgid "Timer"
 msgstr "จับเวลา"
@@ -1075,7 +1072,7 @@ msgid "Title"
 msgstr "หัวข้อ"
 
 #: lib/sprint_lens_web/components/board_components.ex:411
-#: lib/sprint_lens_web/live/session_live/show.ex:888
+#: lib/sprint_lens_web/live/session_live/show.ex:909
 #, elixir-autogen, elixir-format
 msgid "Vote"
 msgstr "โหวต"
@@ -1085,19 +1082,20 @@ msgstr "โหวต"
 msgid "Vote budget"
 msgstr "โควตาโหวต"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:310
+#: lib/sprint_lens_web/components/lobby_components.ex:53
+#: lib/sprint_lens_web/live/session_live/show.ex:324
 #, elixir-autogen, elixir-format
 msgid "Who is here"
 msgstr "ใครอยู่ในห้อง"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:890
+#: lib/sprint_lens_web/live/session_live/show.ex:911
 #, elixir-autogen, elixir-format
 msgid "Wrap-up"
 msgstr "สรุปปิดท้าย"
 
 #: lib/sprint_lens_web/live/search_live/index.ex:79
 #: lib/sprint_lens_web/live/session_live/index.ex:110
-#: lib/sprint_lens_web/live/session_live/show.ex:245
+#: lib/sprint_lens_web/live/session_live/show.ex:259
 #, elixir-autogen, elixir-format
 msgid "%{count} card"
 msgid_plural "%{count} cards"
@@ -1115,7 +1113,7 @@ msgstr "เฉลี่ย %{average} จาก %{count} คน"
 msgid "Cancel"
 msgstr "ยกเลิก"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:264
+#: lib/sprint_lens_web/live/session_live/show.ex:278
 #, elixir-autogen, elixir-format
 msgid "Cards are hidden until the facilitator reveals them."
 msgstr "การ์ดถูกซ่อนไว้จนกว่า Facilitator จะเปิดเผย"
@@ -1135,7 +1133,7 @@ msgstr "ลบการ์ดนี้?"
 msgid "Edit"
 msgstr "แก้ไข"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:142
+#: lib/sprint_lens_web/live/session_live/show.ex:156
 #, elixir-autogen, elixir-format
 msgid "How are you feeling?"
 msgstr "ตอนนี้รู้สึกอย่างไร?"
@@ -1150,7 +1148,7 @@ msgstr "คำถามละลายพฤติกรรม"
 msgid "If this sprint were weather, what would it be?"
 msgstr "ถ้า sprint นี้เป็นสภาพอากาศ จะเป็นแบบไหน?"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:234
+#: lib/sprint_lens_web/live/session_live/show.ex:248
 #, elixir-autogen, elixir-format
 msgid "Merge the selected cards into a group named"
 msgstr "รวมการ์ดที่เห็นเป็นกลุ่มชื่อ"
@@ -1166,7 +1164,7 @@ msgstr "ยังไม่มีคำตอบ"
 msgid "Nothing here yet."
 msgstr "ยังไม่มีอะไรที่นี่"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:273
+#: lib/sprint_lens_web/live/session_live/show.ex:287
 #, elixir-autogen, elixir-format
 msgid "Reveal all cards"
 msgstr "เปิดเผยการ์ดทั้งหมด"
@@ -1177,12 +1175,12 @@ msgstr "เปิดเผยการ์ดทั้งหมด"
 msgid "Save"
 msgstr "บันทึก"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:256
+#: lib/sprint_lens_web/live/session_live/show.ex:270
 #, elixir-autogen, elixir-format
 msgid "Ungroup"
 msgstr "ยกเลิกกลุ่ม"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:151
+#: lib/sprint_lens_web/live/session_live/show.ex:165
 #, elixir-autogen, elixir-format
 msgid "Was this time well spent?"
 msgstr "เวลาที่ใช้ไปคุ้มค่าไหม?"
@@ -1281,12 +1279,12 @@ msgid "Totals are hidden until the facilitator reveals them."
 msgstr "คะแนนรวมถูกซ่อนไว้จนกว่า Facilitator จะเปิดเผย"
 
 #: lib/sprint_lens_web/api_error.ex:80
-#: lib/sprint_lens_web/live/session_live/show.ex:847
+#: lib/sprint_lens_web/live/session_live/show.ex:868
 #, elixir-autogen, elixir-format
 msgid "You have already voted on this topic."
 msgstr "คุณโหวตหัวข้อนี้ไปแล้ว"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:788
+#: lib/sprint_lens_web/live/session_live/show.ex:809
 #, elixir-autogen, elixir-format
 msgid "You have spent all %{budget} of your votes."
 msgstr "คุณใช้คะแนนครบทั้ง %{budget} แล้ว"
@@ -1296,7 +1294,7 @@ msgstr "คุณใช้คะแนนครบทั้ง %{budget} แล�
 msgid "you: %{count}"
 msgstr "คุณ: %{count}"
 
-#: lib/sprint_lens_web/live/session_live/show.ex:643
+#: lib/sprint_lens_web/live/session_live/show.ex:664
 #, elixir-autogen, elixir-format
 msgid "Choose the cards to merge first."
 msgstr "เลือกการ์ดที่จะรวมก่อน"
@@ -1404,7 +1402,7 @@ msgid "Nobody yet"
 msgstr "ยังไม่มีใคร"
 
 #: lib/sprint_lens_web/live/session_live/recap.ex:223
-#: lib/sprint_lens_web/live/session_live/show.ex:192
+#: lib/sprint_lens_web/live/session_live/show.ex:206
 #, elixir-autogen, elixir-format
 msgid "Nothing agreed yet."
 msgstr "ยังไม่ได้ตกลงอะไรกัน"
@@ -2304,3 +2302,64 @@ msgstr "ลบข้อมูลก่อนครบกำหนดเก็บ
 #, elixir-autogen, elixir-format
 msgid "What every team starts from."
 msgstr "ค่าตั้งต้นของทุกทีม"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:126
+#, elixir-autogen, elixir-format
+msgid "%{count} vote each"
+msgid_plural "%{count} votes each"
+msgstr[0] "คนละ %{count} คะแนน"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:221
+#, elixir-autogen, elixir-format
+msgid "Copied"
+msgstr "คัดลอกแล้ว"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:220
+#, elixir-autogen, elixir-format
+msgid "Copy the link"
+msgstr "คัดลอกลิงก์"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:285
+#, elixir-autogen, elixir-format
+msgid "Everyone is ready."
+msgstr "ทุกคนพร้อมแล้ว"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:97
+#, elixir-autogen, elixir-format
+msgid "Nobody else yet."
+msgstr "ยังไม่มีใครมา"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:100
+#, elixir-autogen, elixir-format
+msgid "Read the code out, or send the link. People appear here as they arrive."
+msgstr "อ่านรหัสให้ฟัง หรือส่งลิงก์ไปให้ คนที่เข้ามาจะโผล่ตรงนี้"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:71
+#, elixir-autogen, elixir-format
+msgid "Ready"
+msgstr "พร้อม"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:172
+#, elixir-autogen, elixir-format
+msgid "Start the retrospective"
+msgstr "เริ่ม retrospective"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:291
+#, elixir-autogen, elixir-format
+msgid "Still waiting on a few."
+msgstr "ยังรออีกสองสามคน"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:104
+#, elixir-autogen, elixir-format
+msgid "What this one is"
+msgstr "ครั้งนี้เป็นแบบไหน"
+
+#: lib/sprint_lens_web/components/lobby_components.ex:288
+#, elixir-autogen, elixir-format
+msgid "You can start whenever you like — people can join after it begins."
+msgstr "เริ่มเมื่อไหร่ก็ได้ คนอื่นเข้ามาทีหลังได้"
+
+#: lib/sprint_lens_web/live/session_live/join.ex:25
+#, elixir-autogen, elixir-format
+msgid "The facilitator has the code on their screen."
+msgstr "ผู้ดำเนินรายการมีรหัสอยู่บนหน้าจอ"

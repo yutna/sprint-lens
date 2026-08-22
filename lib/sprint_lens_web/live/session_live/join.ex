@@ -20,20 +20,24 @@ defmodule SprintLensWeb.SessionLive.Join do
       theme={@theme}
       current_path={@current_path}
     >
-      <div class="mx-auto max-w-sm">
-        <.header>
-          {gettext("Join a retrospective")}
-          <:subtitle>{gettext("Enter the code the facilitator shared.")}</:subtitle>
-        </.header>
+      <Layouts.auth_card>
+        <:title>{gettext("Join a retrospective")}</:title>
+        <:subtitle>{gettext("The facilitator has the code on their screen.")}</:subtitle>
 
         <.form for={@form} id="join_form" phx-submit="join">
+          <%!--
+            Typed at the size it is read at. The code arrives spoken aloud or
+            pasted from a chat, and a six-character field in body text invites
+            the sort of typo nobody can see afterwards.
+          --%>
           <.input
             field={@form[:code]}
             type="text"
             label={gettext("Join code")}
             autocomplete="off"
             spellcheck="false"
-            class="w-full input font-mono uppercase"
+            maxlength="12"
+            class="w-full rounded-control border border-base-300 bg-base-100 px-3 py-3 text-center font-mono text-title tracking-[0.25em] uppercase"
             required
             phx-mounted={JS.focus()}
           />
@@ -41,7 +45,7 @@ defmodule SprintLensWeb.SessionLive.Join do
             {gettext("Join")}
           </.button>
         </.form>
-      </div>
+      </Layouts.auth_card>
     </Layouts.app>
     """
   end
