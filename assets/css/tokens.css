@@ -121,9 +121,14 @@
  * whatever daisyUI provides, which is inconsistent between control types and
  * disappears entirely when daisyUI does. FR-914 asks for every action to be
  * keyboard operable, and an operable control nobody can see the focus on is
- * only half of that. */
+ * only half of that.
+ *
+ * Outline and nothing else. A first version set `border-radius` here too, on
+ * the theory that the ring should be rounded — but that rounds the *element*,
+ * and a square-cornered control visibly changed shape the moment it was
+ * tabbed onto. Browsers follow the element's own curve with the outline
+ * anyway, so there was nothing to fix and something to break. */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: var(--sl-focus-width) solid var(--color-primary);
   outline-offset: var(--sl-focus-offset);
-  border-radius: var(--sl-radius-control);
 }
