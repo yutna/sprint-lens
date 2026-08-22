@@ -54,6 +54,9 @@
   --sl-focus-width: 2px;
   --sl-focus-offset: 2px;
 
+  /* How far apart the cards land when a blind board is revealed. */
+  --sl-stagger-step: 45ms;
+
   /* The colour text is allowed to be when it is a link.
    *
    * Not `--color-primary`. A fill colour and a text colour are different
@@ -70,6 +73,35 @@
   --sl-color-link: oklch(48% 0.2 340);
 }
 
+/* The one moment the product stages rather than reports.
+ *
+ * Blind mode hides every card until the facilitator reveals them, and the
+ * reveal was a badge disappearing. It is the most dramatic thing that happens
+ * in a retrospective: everybody's cards arrive at once. So they arrive — each
+ * one a beat behind the last, close enough to read as one movement.
+ *
+ * The step is a variable rather than a hard-coded delay so the reduced-motion
+ * query below can flatten it. Collapsing the duration alone is not enough: a
+ * stack of forty cards would still appear one at a time over two seconds,
+ * which is exactly the effect somebody asking for less motion is asking not
+ * to have. */
+@keyframes sl-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-arrive] {
+  animation: sl-arrive var(--sl-duration-slow) var(--sl-ease-out) both;
+  animation-delay: calc(var(--sl-arrive-index, 0) * var(--sl-stagger-step));
+}
+
 /* Reduced motion, handled once here rather than at every animation.
  *
  * Durations collapse; they do not vanish. FR-916's reduced variant is an
@@ -82,6 +114,7 @@
     --sl-duration-quick: 1ms;
     --sl-duration-base: 1ms;
     --sl-duration-slow: 1ms;
+    --sl-stagger-step: 0ms;
   }
 }
 

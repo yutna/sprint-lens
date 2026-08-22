@@ -40,11 +40,16 @@ defmodule SprintLensWeb.AIComponents do
       assign(assigns, :status, assigns.suggestion && Suggestion.status(assigns.suggestion))
 
     ~H"""
-    <section id={@id} class="rounded-box border border-base-300 p-3">
+    <section id={@id} class="space-y-2 rounded-panel border border-base-200 bg-base-100 p-4">
       <div class="flex flex-wrap items-center gap-2">
         <h3 class="grow font-semibold">{@title}</h3>
 
-        <span :if={@status in [:queued, :running]} id={"#{@id}-working"} class="badge badge-sm">
+        <span
+          :if={@status in [:queued, :running]}
+          id={"#{@id}-working"}
+          data-slot="badge"
+          class="rounded-control border border-base-300 bg-base-200 px-2 py-0.5 text-caption"
+        >
           {gettext("Thinking...")}
         </span>
 
@@ -76,9 +81,9 @@ defmodule SprintLensWeb.AIComponents do
         </.button>
       </div>
 
-      <p :if={@hint} class="text-sm opacity-70">{@hint}</p>
+      <p :if={@hint} class="text-label text-base-content/70">{@hint}</p>
 
-      <p :if={@status == :failed} id={"#{@id}-failed"} class="mt-2 text-sm opacity-70">
+      <p :if={@status == :failed} id={"#{@id}-failed"} class="text-label text-base-content/70">
         {gettext("The assistant did not answer. Everything else still works.")}
       </p>
 
@@ -91,7 +96,7 @@ defmodule SprintLensWeb.AIComponents do
         <pre
           :if={not @editing}
           id={"#{@id}-draft"}
-          class="whitespace-pre-wrap break-words rounded-box bg-base-200 p-2 text-sm"
+          class="rounded-card bg-base-200 p-3 text-label break-words whitespace-pre-wrap"
         >{@suggestion.output}</pre>
 
         <.form
@@ -105,7 +110,7 @@ defmodule SprintLensWeb.AIComponents do
             id={"#{@id}-editor"}
             name="suggestion[output]"
             rows="8"
-            class="w-full textarea"
+            class="w-full rounded-control border border-base-300 bg-base-100 px-3 py-2 text-body transition-colors placeholder:text-base-content/40 hover:border-base-content/30"
             aria-label={gettext("Edit the suggestion before accepting it")}
           >{@suggestion.output}</textarea>
 
@@ -150,11 +155,11 @@ defmodule SprintLensWeb.AIComponents do
         </div>
       </div>
 
-      <p :if={@status == :accepted} id={"#{@id}-accepted"} class="mt-2 text-sm opacity-70">
+      <p :if={@status == :accepted} id={"#{@id}-accepted"} class="text-label text-base-content/70">
         {gettext("Accepted.")}
       </p>
 
-      <p :if={@status == :rejected} id={"#{@id}-rejected"} class="mt-2 text-sm opacity-70">
+      <p :if={@status == :rejected} id={"#{@id}-rejected"} class="text-label text-base-content/70">
         {gettext("Rejected.")}
       </p>
     </section>

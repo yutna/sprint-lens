@@ -176,6 +176,168 @@ defmodule SprintLensWeb.SessionLiveTest do
     end
   end
 
+  describe "the column grid Tailwind has to be able to see" do
+    @tag req: ["FR-902"]
+    test "a board lays out one grid column per board column", ctx do
+      template =
+        Enum.find(SprintLens.Teams.list_templates(ctx.team), &(&1.name == "Start-Stop-Continue"))
+
+      session = start_session(ctx, %{template_id: template.id})
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "sm:grid-cols-3"
+    end
+
+    @tag req: ["FR-902"]
+    test "down to the two a template is allowed to have", ctx do
+      {:ok, pair} =
+        SprintLens.Teams.create_template(ctx.facilitator, ctx.team, %{
+          name: "Two",
+          columns: [%{"name" => "Good"}, %{"name" => "Bad"}]
+        })
+
+      session = start_session(ctx, %{template_id: pair.id})
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "sm:grid-cols-2"
+    end
+
+    @tag req: ["FR-902"]
+    test "and wraps rather than shrinking past four", ctx do
+      {:ok, wide} =
+        SprintLens.Teams.create_template(ctx.facilitator, ctx.team, %{
+          name: "Six",
+          columns: Enum.map(1..6, &%{"name" => "C#{&1}"})
+        })
+
+      session = start_session(ctx, %{template_id: wide.id})
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "sm:grid-cols-4"
+      refute html =~ "sm:grid-cols-6"
+    end
+
+    # This one reads the source rather than the output, because the defect it
+    # guards against is invisible in the output.
+    #
+    # Tailwind generates a utility only if it finds the class name written out
+    # somewhere it scans. The board built its grid class by interpolation, so
+    # `sm:grid-cols-3` never appeared in any file — the rule existed only
+    # because an unrelated screen happened to use the same literal, and
+    # deleting that screen's would have collapsed every three-column board to
+    # a single stack with nothing failing anywhere.
+    @tag req: ["FR-902"]
+    test "and every one of those class names is written out, not assembled" do
+      source = File.read!("lib/sprint_lens_web/live/session_live/show.ex")
+
+      refute source =~ ~r/grid-cols-#\{/,
+             "a grid class built by interpolation is a class Tailwind cannot see"
+
+      for columns <- 2..4 do
+        assert source =~ "sm:grid-cols-#{columns}"
+      end
+    end
+  end
+
+  describe "the phase stepper (FR-206)" do
+    # It was six equal badges with one filled in, which is the shape of a
+    # filter. A retrospective is a sequence, and the sequence is the point.
+    @tag req: ["FR-206"]
+    test "says which phases are behind, which is now, and which are ahead", ctx do
+      session = start_session(ctx)
+      {:ok, session} = Retro.set_phase(ctx.facilitator, session, :vote)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      bar = lv |> element("#phase-bar") |> render()
+
+      # Four of the six are numbered; the three behind carry a tick instead,
+      # and the current one is the fourth.
+      assert bar =~ ~s(aria-current="true")
+      assert bar =~ "hero-check-micro"
+      assert bar =~ ">5<"
+      assert bar =~ ">6<"
+      refute bar =~ ">1<"
+    end
+
+    # "Group" tells somebody who has run a retrospective what to do. It tells
+    # a first-timer nothing at all.
+    @tag req: ["FR-918"]
+    test "and says what the phase is for, in a sentence", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert lv |> element("#phase-goal") |> render() =~ "Arrive, say how the sprint felt"
+
+      {:ok, _moved} = Retro.set_phase(ctx.facilitator, session, :group)
+
+      assert render(lv) =~ "Put the cards that are about the same thing together"
+    end
+
+    @tag req: ["NFR-201"]
+    test "a participant reads it and cannot steer it", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{session}")
+
+      assert has_element?(lv, "#phase-bar")
+      refute has_element?(lv, "#phase-vote")
+      refute has_element?(lv, "#advance-phase")
+    end
+  end
+
+  describe "the reveal, on a blind board (FR-209)" do
+    @tag req: ["FR-209"]
+    test "cards land one beat after another once they are shown", ctx do
+      session = start_session(ctx, %{is_blind: true})
+      {:ok, session} = Retro.set_phase(ctx.facilitator, session, :brainstorm)
+      column = hd(session.columns)
+
+      for text <- ["First", "Second"] do
+        {:ok, _card} =
+          SprintLens.Retro.Board.create_card(ctx.facilitator, session, %{
+            "column_id" => to_string(column.id),
+            "text" => text
+          })
+      end
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      # Hidden: nothing to stage yet.
+      refute render(lv) =~ "data-arrive"
+
+      lv |> element("#reveal-cards") |> render_click()
+
+      html = render(lv)
+      assert html =~ "data-arrive"
+      assert html =~ "--sl-arrive-index: 0"
+      assert html =~ "--sl-arrive-index: 1"
+    end
+
+    # A board that was never hidden has nothing to reveal, and a card somebody
+    # has just written should not fade in as though it were a secret.
+    @tag req: ["FR-209"]
+    test "and an ordinary board does not stage anything", ctx do
+      session = start_session(ctx)
+      {:ok, session} = Retro.set_phase(ctx.facilitator, session, :brainstorm)
+
+      {:ok, _card} =
+        SprintLens.Retro.Board.create_card(ctx.facilitator, session, %{
+          "column_id" => to_string(hd(session.columns).id),
+          "text" => "Plain"
+        })
+
+      {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      assert html =~ "Plain"
+      refute html =~ "data-arrive"
+    end
+  end
+
   describe "the lobby, before it starts (FR-204, FR-213)" do
     # The board used to render in full before the session existed: six phase
     # badges pointing at a phase nobody was in, and every column empty.

@@ -32,6 +32,7 @@ defmodule SprintLensWeb.SessionLive.Show do
   alias SprintLensWeb.Presence
 
   import SprintLensWeb.LobbyComponents
+  import SprintLensWeb.RoomComponents
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -91,57 +92,19 @@ defmodule SprintLensWeb.SessionLive.Show do
         join_url={@join_url}
       />
 
-      <%!--
-        The phase is announced to assistive technology as it changes, which is
-        what FR-915 asks for; the region is polite so it does not interrupt
-        someone mid-sentence.
-      --%>
-      <section
+      <.phase_stepper
         :if={not waiting?(@session)}
-        id="phase-bar"
-        aria-live="polite"
-        aria-label={gettext("Phase")}
-        class="flex flex-wrap items-center gap-2 rounded-box border border-base-300 p-3"
-      >
-        <ol class="flex flex-wrap gap-1">
-          <li :for={phase <- Session.phases()}>
-            <button
-              :if={@is_facilitator and Session.state(@session) == :active}
-              type="button"
-              id={"phase-#{phase}"}
-              class={["btn btn-xs", phase == @phase && "btn-primary"]}
-              aria-current={to_string(phase == @phase)}
-              phx-click="set_phase"
-              phx-value-phase={phase}
-            >
-              {phase_label(phase)}
-            </button>
-            <span
-              :if={not (@is_facilitator and Session.state(@session) == :active)}
-              class={["badge badge-sm", phase == @phase && "badge-primary"]}
-              aria-current={to_string(phase == @phase)}
-            >
-              {phase_label(phase)}
-            </span>
-          </li>
-        </ol>
-
-        <div :if={@is_facilitator and Session.state(@session) == :active} class="ml-auto flex gap-1">
-          <.button id="revert-phase" phx-click="revert_phase" variant="ghost" size="sm">
-            {gettext("Back")}
-          </.button>
-          <.button id="advance-phase" phx-click="advance_phase" variant="ghost" size="sm">
-            {gettext("Next")}
-          </.button>
-        </div>
-      </section>
+        phase={@phase}
+        session={@session}
+        is_facilitator={@is_facilitator}
+      />
 
       <div :if={not waiting?(@session)} class="grid gap-4 sm:grid-cols-[2fr_1fr]">
-        <div id="board" aria-label={gettext("Board")}>
+        <div id="board" aria-label={gettext("Board")} class="space-y-4">
           <%!--
-          The check-in opens with what the team still owes from last time
-          (FR-505), before anything new is written.
-        --%>
+            The check-in opens with what the team still owes from last time
+            (FR-505), before anything new is written.
+          --%>
           <.carry_over_review
             :if={@phase == :checkin}
             actions={@open_actions}
@@ -183,9 +146,11 @@ defmodule SprintLensWeb.SessionLive.Show do
             :if={@phase in [:discuss, :wrapup]}
             id="actions-panel"
             aria-labelledby="actions-heading"
-            class="rounded-box border border-base-300 p-3"
+            class="space-y-3 rounded-panel border border-base-200 bg-base-100 p-4"
           >
-            <h3 id="actions-heading" class="font-semibold">{gettext("Actions")}</h3>
+            <h3 id="actions-heading" class="text-heading font-semibold">
+              {gettext("What the team will do")}
+            </h3>
 
             <.action_form
               :if={@can_write_action}
@@ -194,7 +159,7 @@ defmodule SprintLensWeb.SessionLive.Show do
               topic={@focused_topic}
             />
 
-            <ul id="action-list" class="mt-3 space-y-2">
+            <ul id="action-list" class="space-y-2">
               <.action_row
                 :for={action <- @session_actions}
                 action={action}
@@ -203,21 +168,14 @@ defmodule SprintLensWeb.SessionLive.Show do
               />
             </ul>
 
-            <p :if={@session_actions == []} id="actions-empty" class="mt-2 text-sm opacity-60">
+            <p :if={@session_actions == []} id="actions-empty" class="text-label text-base-content/60">
               {gettext("Nothing agreed yet.")}
             </p>
           </section>
 
           <.column_tabs columns={@columns} active={@active_column} />
 
-          <div class={
-            [
-              "grid gap-3",
-              # One column at a time below the small breakpoint (FR-902); the
-              # page itself never scrolls sideways (FR-905).
-              "sm:grid-cols-#{min(length(@columns), 4)}"
-            ]
-          }>
+          <div class={["grid gap-3", column_grid(length(@columns))]}>
             <.board_column
               :for={column <- @columns}
               column={column}
@@ -235,7 +193,10 @@ defmodule SprintLensWeb.SessionLive.Show do
             />
           </div>
 
-          <div :if={@phase == :group} class="mt-3">
+          <div
+            :if={@phase == :group}
+            class="space-y-3 rounded-panel border border-base-200 bg-base-100 p-4"
+          >
             <.form
               for={to_form(%{}, as: :group)}
               id="group_form"
@@ -250,13 +211,17 @@ defmodule SprintLensWeb.SessionLive.Show do
                   required
                 />
               </div>
-              <.button variant="primary" class="mb-2">{gettext("Group")}</.button>
+              <.button variant="primary" class="mb-4">{gettext("Group")}</.button>
             </.form>
 
-            <ul id="groups" class="mt-2 space-y-1">
-              <li :for={group <- @groups} id={"group-#{group.id}"} class="flex items-center gap-2">
-                <span class="badge badge-outline">{group.label}</span>
-                <span class="text-sm opacity-60">
+            <ul id="groups" class="space-y-1">
+              <li
+                :for={group <- @groups}
+                id={"group-#{group.id}"}
+                class="flex flex-wrap items-center gap-2"
+              >
+                <.badge>{group.label}</.badge>
+                <span class="text-label text-base-content/60">
                   {ngettext("%{count} card", "%{count} cards", length(group.cards),
                     count: length(group.cards)
                   )}
@@ -274,8 +239,16 @@ defmodule SprintLensWeb.SessionLive.Show do
             </ul>
           </div>
 
-          <div :if={@session.is_blind and not @session.cards_revealed} class="mt-3">
-            <p class="text-sm opacity-70" id="blind-notice">
+          <%!--
+            The one dramatic moment the product has: everybody's cards arrive
+            at once. It is worth saying what is about to happen rather than
+            leaving a note in small grey text under the board.
+          --%>
+          <div
+            :if={@session.is_blind and not @session.cards_revealed}
+            class="flex flex-wrap items-center gap-3 rounded-panel border border-primary/30 bg-primary/5 p-4"
+          >
+            <p id="blind-notice" class="min-w-0 grow text-label">
               {gettext("Cards are hidden until the facilitator reveals them.")}
             </p>
             <.button
@@ -283,87 +256,52 @@ defmodule SprintLensWeb.SessionLive.Show do
               id="reveal-cards"
               variant="primary"
               phx-click="reveal_cards"
-              class="btn btn-primary btn-sm mt-1"
             >
               {gettext("Reveal all cards")}
             </.button>
           </div>
         </div>
 
-        <aside class="space-y-4">
-          <section
-            id="timer"
-            aria-live="polite"
-            aria-label={gettext("Timer")}
-            class="rounded-box border border-base-300 p-3"
-          >
-            <p class="font-mono text-2xl" id="timer-remaining">
-              {format_remaining(@timer.remaining_s)}
-            </p>
-            <div :if={@is_facilitator} class="mt-2 flex flex-wrap gap-1">
-              <.button
-                :for={{label, seconds} <- timer_presets()}
-                id={"timer-#{seconds}"}
-                phx-click="start_timer"
-                phx-value-seconds={seconds}
-                variant="ghost"
-                size="sm"
-              >
-                {label}
-              </.button>
-              <.button id="pause-timer" phx-click="pause_timer" variant="ghost" size="sm">
-                {gettext("Pause")}
-              </.button>
-              <.button id="reset-timer" phx-click="reset_timer" variant="ghost" size="sm">
-                {gettext("Reset")}
-              </.button>
-            </div>
-          </section>
+        <%!--
+          The timer and who is ready are what the room is watching, so they
+          stay on screen while the board scrolls under them (plan 02).
+        --%>
+        <aside class="space-y-4 sm:sticky sm:top-4 sm:self-start">
+          <.timer_panel timer={@timer} is_facilitator={@is_facilitator} />
 
-          <section
-            id="presence"
-            aria-label={gettext("Who is here")}
-            class="rounded-box border border-base-300 p-3"
-          >
-            <p class="mb-2 text-sm opacity-70" id="ready-count">
-              {gettext("%{ready} of %{total} ready", ready: @ready_count, total: @present_count)}
-            </p>
-
-            <ul class="space-y-1">
-              <li :for={{user_id, meta} <- @participants} id={"participant-#{user_id}"}>
-                <span class={["badge badge-xs", meta[:ready] && "badge-success"]} />
-                <span>{meta[:display_name]}</span>
-                <span :if={user_id == @session.facilitator_id} class="badge badge-xs badge-primary">
-                  {gettext("Facilitator")}
-                </span>
-                <.button
-                  :if={@is_facilitator and user_id != @session.facilitator_id}
-                  id={"hand-over-#{user_id}"}
-                  phx-click="transfer_facilitator"
-                  phx-value-user-id={user_id}
-                  variant="ghost"
-                  size="sm"
-                >
-                  {gettext("Hand over")}
-                </.button>
-              </li>
-            </ul>
-
-            <.button
-              :if={Session.state(@session) == :active}
-              id="toggle-ready"
-              phx-click="toggle_ready"
-              class="btn btn-soft btn-sm mt-3 w-full"
-              aria-pressed={to_string(@ready)}
-            >
-              {if @ready, do: gettext("Not ready"), else: gettext("I am ready")}
-            </.button>
-          </section>
+          <.presence_panel
+            session={@session}
+            participants={@participants}
+            present_count={@present_count}
+            ready_count={@ready_count}
+            ready={@ready}
+            is_facilitator={@is_facilitator}
+          />
         </aside>
       </div>
     </Layouts.app>
     """
   end
+
+  # A lookup table of literal class names, and it has to stay one.
+  #
+  # This used to build the class by interpolating the column count into it,
+  # which Tailwind cannot see: it scans the source for class strings, and a
+  # name assembled at runtime never appears in one. Three of the four survived
+  # only because other files happened to use `sm:grid-cols-2`, `-3` and `-4`
+  # as literals — and
+  # `sm:grid-cols-1` was already missing from the stylesheet, which nobody
+  # noticed because one column falls back to one column anyway. Deleting an
+  # unrelated `sm:grid-cols-3` somewhere else would have silently collapsed
+  # every three-column board into a single stack.
+  #
+  # Capped at four: a six-column template wraps onto a second row rather than
+  # shrinking every column past the width of a card. There is no clause for
+  # one column because there cannot be one — `Template.column_bounds/0` starts
+  # at two and the fallback board has three.
+  defp column_grid(2), do: "sm:grid-cols-2"
+  defp column_grid(3), do: "sm:grid-cols-3"
+  defp column_grid(_four_or_more), do: "sm:grid-cols-4"
 
   # The board and the lobby are the two halves of this screen, and exactly one
   # of them renders — which is what lets both use `join-code`, `participant-*`
@@ -889,26 +827,6 @@ defmodule SprintLensWeb.SessionLive.Show do
   defp to_phase(phase) do
     Enum.find(Session.phases(), &(Atom.to_string(&1) == phase))
   end
-
-  defp timer_presets do
-    [{gettext("1 min"), 60}, {gettext("5 min"), 300}, {gettext("10 min"), 600}]
-  end
-
-  defp format_remaining(nil), do: "—"
-
-  defp format_remaining(seconds) do
-    minutes = div(seconds, 60)
-    rest = rem(seconds, 60)
-
-    "#{minutes}:#{String.pad_leading(Integer.to_string(rest), 2, "0")}"
-  end
-
-  defp phase_label(:checkin), do: gettext("Check-in")
-  defp phase_label(:brainstorm), do: gettext("Brainstorm")
-  defp phase_label(:group), do: gettext("Group")
-  defp phase_label(:vote), do: gettext("Vote")
-  defp phase_label(:discuss), do: gettext("Discuss")
-  defp phase_label(:wrapup), do: gettext("Wrap-up")
 
   # No `:created` clause: a session that has not started is the lobby, and the
   # lobby's whole subject is the room rather than the session's state. If one
