@@ -132,7 +132,12 @@ defmodule SprintLensWeb.InsightsLiveTest do
       for conn <- [ctx.conn, ctx.participant_conn, log_in_user(build_conn(), admin)] do
         {:ok, lv, _html} = live(conn, ~p"/sessions/#{ctx.session}/recap")
 
-        html = render(lv)
+        # Scoped to the content, the way the Playwright privacy specs already
+        # scope theirs. One of these viewers is Ploy, and the account menu
+        # shows a person their own name — which reveals nothing. What FR-210
+        # forbids is a card leading back to whoever wrote it, and that is a
+        # claim about the recap, not about the chrome around it.
+        html = lv |> element("main") |> render()
 
         assert html =~ "Deploys are slow"
         refute html =~ "Ploy"

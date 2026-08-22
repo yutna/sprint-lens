@@ -69,6 +69,19 @@ defmodule SprintLensWeb.Layouts do
 
   @doc """
   The application shell every page renders inside.
+
+  ## What it is for
+
+  Navigation used to be five flat buttons and two switchers in one wrapping
+  row, and everything below the team level was reached from buttons individual
+  pages added to their own headers — one screen put six of them there. Nothing
+  told you where you were, and nothing kept the team you were working in
+  visible as you moved between its retrospectives, actions and insights.
+
+  So: one persistent shell. The mark, the places a person actually goes, and
+  an account menu holding the things that are about *you* rather than about
+  the product — preferences, language, theme, signing out. Preferences belong
+  behind a menu; they were taking up two thirds of the navigation bar.
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
 
@@ -83,6 +96,10 @@ defmodule SprintLensWeb.Layouts do
     default: "/",
     doc: "where the preference switchers should send the visitor back to"
 
+  attr :breadcrumbs, :list,
+    default: [],
+    doc: "`{label, path}` pairs from the top of the hierarchy down to this page"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -93,52 +110,73 @@ defmodule SprintLensWeb.Layouts do
       assigns
       |> assign(:locale, assigns[:locale] || locale(assigns))
       |> assign(:theme, theme(assigns))
+      |> assign(:user, user(assigns))
 
     ~H"""
     <%!--
-      The nav wraps rather than holding its row: five buttons plus two
-      switchers do not fit across a phone, and FR-905 forbids the page
-      scrolling sideways to make room.
+      The first focusable thing on every page. Without it a keyboard reaches
+      the content by walking the whole navigation, on every single page.
     --%>
-    <header class="navbar flex-wrap gap-2 border-b border-base-200 px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
+    <.link
+      href="#main"
+      class="sr-only rounded-control bg-primary px-4 py-2 text-primary-content focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
+    >
+      {gettext("Skip to content")}
+    </.link>
+
+    <header class="border-b border-base-200 bg-base-100">
+      <div class="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
         <%!--
           The mark is decorative: the wordmark beside it is real text, so
           describing the image would make a screen reader say the name twice.
         --%>
-        <.link navigate={~p"/"} class="flex w-fit items-center gap-2 text-base font-semibold">
+        <.link
+          navigate={~p"/"}
+          class="flex w-fit shrink-0 items-center gap-2 text-heading font-semibold"
+        >
           <.logo class="size-7 text-primary" />
           <span>SprintLens</span>
         </.link>
+
+        <nav
+          :if={@user}
+          class="flex flex-1 items-center gap-1"
+          aria-label={gettext("Main navigation")}
+        >
+          <.nav_link navigate={~p"/home"} current_path={@current_path}>{gettext("Home")}</.nav_link>
+          <.nav_link navigate={~p"/teams"} current_path={@current_path}>{gettext("Teams")}</.nav_link>
+          <.nav_link navigate={~p"/join"} current_path={@current_path}>{gettext("Join")}</.nav_link>
+        </nav>
+
+        <div class={["flex items-center gap-2", !@user && "flex-1 justify-end"]}>
+          <%= if @user do %>
+            <.account_menu user={@user} locale={@locale} theme={@theme} current_path={@current_path} />
+          <% else %>
+            <.language_switcher locale={@locale} current_path={@current_path} />
+            <.theme_toggle theme={@theme} current_path={@current_path} />
+            <.link
+              navigate={~p"/users/register"}
+              data-slot="button"
+              class="rounded-control px-3 py-2 text-label font-medium hover:bg-base-200"
+            >
+              {gettext("Register")}
+            </.link>
+            <.link
+              navigate={~p"/users/log-in"}
+              data-slot="button"
+              class="rounded-control bg-primary px-3 py-2 text-label font-medium text-primary-content shadow-resting hover:opacity-90"
+            >
+              {gettext("Log in")}
+            </.link>
+          <% end %>
+        </div>
       </div>
 
-      <nav class="flex flex-wrap items-center justify-end gap-1" aria-label={gettext("Main")}>
-        <.language_switcher locale={@locale} current_path={@current_path} />
-        <.theme_toggle theme={@theme} current_path={@current_path} />
-
-        <%= if @current_scope && @current_scope.user do %>
-          <.link navigate={~p"/home"} class="btn btn-ghost btn-sm">{gettext("Home")}</.link>
-          <.link navigate={~p"/teams"} class="btn btn-ghost btn-sm">{gettext("Teams")}</.link>
-          <.link navigate={~p"/join"} class="btn btn-ghost btn-sm">{gettext("Join")}</.link>
-          <.link navigate={~p"/users/preferences"} class="btn btn-ghost btn-sm">
-            {gettext("Preferences")}
-          </.link>
-          <.link href={~p"/users/log-out"} method="delete" class="btn btn-ghost btn-sm">
-            {gettext("Log out")}
-          </.link>
-        <% else %>
-          <.link navigate={~p"/users/register"} class="btn btn-ghost btn-sm">
-            {gettext("Register")}
-          </.link>
-          <.link navigate={~p"/users/log-in"} class="btn btn-primary btn-sm">
-            {gettext("Log in")}
-          </.link>
-        <% end %>
-      </nav>
+      <.breadcrumbs :if={@breadcrumbs != []} trail={@breadcrumbs} />
     </header>
 
-    <main class="px-4 py-8 sm:px-6 lg:px-8">
-      <div class="mx-auto w-full max-w-5xl space-y-6">
+    <main id="main" class="px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mx-auto w-full max-w-6xl space-y-6">
         {render_slot(@inner_block)}
       </div>
     </main>
@@ -146,6 +184,151 @@ defmodule SprintLensWeb.Layouts do
     <.flash_group flash={@flash} />
     """
   end
+
+  defp user(assigns) do
+    case assigns[:current_scope] do
+      %{user: %{} = user} -> user
+      _no_user -> nil
+    end
+  end
+
+  @doc """
+  One item of the primary navigation, which knows whether it is where you are.
+
+  `aria-current="page"` rather than `"true"`: the phase bar and the discussion
+  focus both use `[aria-current="true"]`, and two suites find the active phase
+  by taking the first one in the document. This sits above them.
+  """
+  attr :navigate, :string, required: true
+  attr :current_path, :string, required: true
+  slot :inner_block, required: true
+
+  def nav_link(assigns) do
+    assigns = assign(assigns, :here?, assigns.current_path == assigns.navigate)
+
+    ~H"""
+    <.link
+      navigate={@navigate}
+      data-slot="button"
+      aria-current={@here? && "page"}
+      class={[
+        "rounded-control px-3 py-2 text-label font-medium transition-colors",
+        "duration-(--sl-duration-quick)",
+        if(@here?,
+          do: "bg-base-200 text-base-content",
+          else: "text-base-content/70 hover:bg-base-200"
+        )
+      ]}
+    >
+      {render_slot(@inner_block)}
+    </.link>
+    """
+  end
+
+  @doc """
+  Where you are in the hierarchy, from the top down.
+
+  The last entry is the page itself and is not a link — there is nowhere for
+  it to go, and offering one is a keyboard stop that does nothing.
+  """
+  attr :trail, :list, required: true
+
+  def breadcrumbs(assigns) do
+    ~H"""
+    <nav aria-label={gettext("Breadcrumb")} class="border-t border-base-200 bg-base-200/40">
+      <ol class="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-1 px-4 py-2 text-label sm:px-6 lg:px-8">
+        <li :for={{{label, path}, index} <- Enum.with_index(@trail)} class="flex items-center gap-1">
+          <.icon
+            :if={index > 0}
+            name="hero-chevron-right-micro"
+            class="size-4 shrink-0 opacity-40"
+          />
+          <.link
+            :if={index < length(@trail) - 1}
+            navigate={path}
+            class="truncate text-base-content/70 hover:text-base-content"
+          >
+            {label}
+          </.link>
+          <span :if={index == length(@trail) - 1} aria-current="page" class="truncate font-medium">
+            {label}
+          </span>
+        </li>
+      </ol>
+    </nav>
+    """
+  end
+
+  @doc """
+  The account menu: everything that is about the person rather than the
+  product.
+
+  A `<details>` element, not a scripted dropdown. It opens with a keyboard,
+  closes with Escape, and works with JavaScript switched off — all of which a
+  hand-rolled menu would have to be given, and would eventually be given
+  wrongly.
+  """
+  attr :user, :map, required: true
+  attr :locale, :string, required: true
+  attr :theme, :string, required: true
+  attr :current_path, :string, required: true
+
+  def account_menu(assigns) do
+    ~H"""
+    <details class="relative" id="account-menu">
+      <summary
+        data-slot="button"
+        class="flex cursor-pointer list-none items-center gap-2 rounded-control px-3 py-2 text-label font-medium hover:bg-base-200"
+      >
+        <span
+          class="grid size-7 shrink-0 place-items-center rounded-full bg-primary text-caption font-semibold text-primary-content"
+          aria-hidden="true"
+        >
+          {initial(@user)}
+        </span>
+        <span class="hidden max-w-40 truncate sm:inline">{@user.display_name}</span>
+        <.icon name="hero-chevron-down-micro" class="size-4 opacity-60" />
+      </summary>
+
+      <div class="absolute right-0 z-40 mt-2 w-64 rounded-panel border border-base-300 bg-base-100 p-3 shadow-over">
+        <p class="truncate px-1 pb-2 text-caption text-base-content/60">{@user.email}</p>
+
+        <.link
+          navigate={~p"/users/preferences"}
+          data-slot="button"
+          class="block rounded-control px-2 py-2 text-label hover:bg-base-200"
+        >
+          {gettext("Preferences")}
+        </.link>
+
+        <div class="my-2 border-t border-base-200" />
+
+        <p class="px-2 pb-1.5 text-caption text-base-content/60">{gettext("Language")}</p>
+        <.language_switcher locale={@locale} current_path={@current_path} />
+
+        <p class="px-2 pt-3 pb-1.5 text-caption text-base-content/60">{gettext("Theme")}</p>
+        <.theme_toggle theme={@theme} current_path={@current_path} />
+
+        <div class="my-2 border-t border-base-200" />
+
+        <.link
+          href={~p"/users/log-out"}
+          method="delete"
+          data-slot="button"
+          class="block rounded-control px-2 py-2 text-label hover:bg-base-200"
+        >
+          {gettext("Log out")}
+        </.link>
+      </div>
+    </details>
+    """
+  end
+
+  defp initial(%{display_name: name}) when is_binary(name) do
+    name |> String.trim() |> String.first() |> to_string() |> String.upcase()
+  end
+
+  defp initial(_user), do: "?"
 
   @doc """
   The product's mark, in the colour of whatever it sits next to (FR-911).
@@ -229,11 +412,23 @@ defmodule SprintLensWeb.Layouts do
 
   def language_switcher(assigns) do
     ~H"""
-    <div class="join" role="group" aria-label={gettext("Language")}>
+    <div
+      class="inline-flex rounded-control border border-base-300 p-0.5"
+      role="group"
+      aria-label={gettext("Language")}
+    >
       <.link
         :for={language <- SprintLensWeb.Locale.supported()}
         href={~p"/locale/#{language}?#{[return_to: @current_path]}"}
-        class={["btn btn-ghost btn-xs join-item", @locale == language && "btn-active"]}
+        data-slot="button"
+        class={[
+          "rounded-control px-2.5 py-1 text-caption font-medium transition-colors",
+          "duration-(--sl-duration-quick)",
+          if(@locale == language,
+            do: "bg-base-content/10 text-base-content",
+            else: "text-base-content/60 hover:text-base-content"
+          )
+        ]}
       >
         {language_label(language)}
         <span :if={@locale == language} class="sr-only">{gettext("current")}</span>
@@ -264,20 +459,25 @@ defmodule SprintLensWeb.Layouts do
   def theme_toggle(assigns) do
     ~H"""
     <div
-      class="card relative flex flex-row items-center rounded-full border-2 border-base-300 bg-base-300"
+      class="inline-flex rounded-control border border-base-300 p-0.5"
       role="group"
       aria-label={gettext("Theme")}
     >
-      <div class="absolute left-0 h-full w-1/3 rounded-full border-1 border-base-200 bg-base-100 brightness-200 transition-[left] [[data-theme-source=system]_&]:!left-0 [[data-theme=dark]_&]:left-2/3 [[data-theme=light]_&]:left-1/3" />
-
       <.link
         :for={{value, icon, label} <- theme_options()}
         href={~p"/theme/#{value}?#{[return_to: @current_path]}"}
-        class="flex w-1/3 cursor-pointer p-2"
+        data-slot="button"
         data-phx-theme={value}
         aria-label={theme_label(label, @theme == value)}
+        class={[
+          "rounded-control px-2 py-1.5 transition-colors duration-(--sl-duration-quick)",
+          if(@theme == value,
+            do: "bg-base-content/10 text-base-content",
+            else: "text-base-content/60 hover:text-base-content"
+          )
+        ]}
       >
-        <.icon name={icon} class="size-4 opacity-75 hover:opacity-100" />
+        <.icon name={icon} class="size-4" />
       </.link>
     </div>
     """
