@@ -144,10 +144,68 @@ defmodule SprintLensWeb.RoomComponents do
   end
 
   @doc """
+  The four sounds, and the one element that plays them (FR-921).
+
+  ## What decides whether anything is heard
+
+  The server does. A person who has not turned sound on is never sent the
+  event, so there is nothing for the browser to suppress and no way for a
+  preference to be out of date on a page that has been open all afternoon.
+
+  Rendered only when the preference is on, which is also why there is no
+  `muted` state to get wrong: if the element is on the page, the person asked
+  for it.
+
+  ## Never two at once
+
+  The plan's rule, and the reason this is one `<audio>` element rather than
+  four. Playing a new sound rewinds and repoints the same element, so a vote
+  landing while the reveal is still ringing cuts the reveal off rather than
+  stacking on top of it.
+  """
+  attr :enabled, :boolean, required: true
+
+  def sound_player(assigns) do
+    ~H"""
+    <audio
+      :if={@enabled}
+      id="sound-player"
+      phx-hook=".Sounds"
+      preload="auto"
+      aria-hidden="true"
+      class="hidden"
+    ></audio>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".Sounds">
+      export default {
+        mounted() {
+          this.handleEvent("sound", ({name}) => {
+            if (!name) return
+
+            // One element, so a second sound replaces the first rather than
+            // playing over it. `pause` before repointing, or Safari keeps
+            // decoding the old source.
+            this.el.pause()
+            this.el.src = `/sounds/${name}.mp3`
+            this.el.currentTime = 0
+
+            // A browser that has not seen a user gesture yet refuses to play,
+            // and says so by rejecting. That is not an error worth reporting:
+            // the person has lost a chime, not their work.
+            this.el.play().catch(() => {})
+          })
+        }
+      }
+    </script>
+    """
+  end
+
+  @doc """
   The countdown the whole room is watching (FR-208).
   """
   attr :timer, :map, required: true
   attr :is_facilitator, :boolean, required: true
+  attr :expired, :boolean, default: false
 
   def timer_panel(assigns) do
     ~H"""
@@ -164,8 +222,31 @@ defmodule SprintLensWeb.RoomComponents do
       <p class="text-caption font-medium tracking-wide text-base-content/60 uppercase">
         {gettext("Timer")}
       </p>
-      <p id="timer-remaining" class="font-mono text-title tabular-nums">
+      <%!--
+        The number counts down in the browser.
+        
+        It did not before: `remaining_s` is worked out on the server when the
+        board renders, and the board renders when something happens — so a
+        five-minute timer showed "5:00" until somebody wrote a card. Nobody
+        noticed because the value is right every time anything checks it.
+
+        Which also means there was no moment of expiry, so FR-915's promise
+        that expiry is announced had nothing to announce and the sound this
+        commit adds would have had nothing to play on. The ticker is what
+        makes both true.
+      --%>
+      <p
+        id="timer-remaining"
+        phx-hook=".Ticker"
+        data-remaining={@timer.remaining_s}
+        data-running={to_string(@timer.running)}
+        class="font-mono text-title tabular-nums"
+      >
         {format_remaining(@timer.remaining_s)}
+      </p>
+
+      <p :if={@expired} id="timer-expired" class="text-label font-medium text-error">
+        {gettext("Time is up.")}
       </p>
 
       <div :if={@is_facilitator} class="flex flex-wrap gap-1">
@@ -187,6 +268,39 @@ defmodule SprintLensWeb.RoomComponents do
         </.button>
       </div>
     </section>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".Ticker">
+      export default {
+        mounted() { this.restart() },
+        updated() { this.restart() },
+        destroyed() { clearInterval(this.handle) },
+
+        restart() {
+          clearInterval(this.handle)
+
+          this.left = parseInt(this.el.dataset.remaining, 10)
+          if (this.el.dataset.running !== "true" || !(this.left > 0)) return
+
+          this.handle = setInterval(() => {
+            this.left -= 1
+            this.el.textContent = this.clock(this.left)
+
+            if (this.left <= 0) {
+              clearInterval(this.handle)
+              // Told once, by each browser for its own person: the sound and
+              // the announcement both belong to whoever is watching, not to
+              // whoever happened to start it.
+              this.pushEvent("timer_expired", {})
+            }
+          }, 1000)
+        },
+
+        clock(seconds) {
+          const rest = seconds % 60
+          return `${Math.floor(seconds / 60)}:${String(rest).padStart(2, "0")}`
+        }
+      }
+    </script>
     """
   end
 

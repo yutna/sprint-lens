@@ -1,6 +1,7 @@
 defmodule SprintLensWeb.UserLive.Preferences do
   @moduledoc """
-  SCR-13 Preferences: display name, avatar, language and theme (FR-003).
+  SCR-13 Preferences: display name, avatar, language, theme and sound
+  (FR-003, FR-921).
 
   Separate from `/users/settings`, which changes the email address and the
   password and therefore demands a recent authentication. Changing your theme
@@ -63,6 +64,17 @@ defmodule SprintLensWeb.UserLive.Preferences do
           type="select"
           label={gettext("Theme")}
           options={Layouts.theme_choices()}
+        />
+
+        <%!--
+          FR-921. Named for what it does rather than as "sound effects": the
+          question a person is answering is whether this laptop is about to
+          make a noise in a meeting.
+        --%>
+        <.input
+          field={@form[:sound_enabled]}
+          type="checkbox"
+          label={gettext("Play a short sound on the reveal, the timer and the close")}
         />
 
         <.button variant="primary" phx-disable-with={gettext("Saving...")}>

@@ -15,9 +15,11 @@ defmodule SprintLensWeb.SessionLiveTest do
   @moduletag locale: "en"
 
   alias SprintLens.Retro
+  alias SprintLens.Retro.Board
   alias SprintLens.Retro.Events
   alias SprintLens.Retro.Session
   alias SprintLens.Retro.SessionServer
+  alias SprintLens.Teams
 
   setup :register_and_log_in_user
 
@@ -155,7 +157,7 @@ defmodule SprintLensWeb.SessionLiveTest do
       other_team = team_with_lead(other_lead)
 
       {:ok, theirs} =
-        SprintLens.Teams.create_template(other_lead, other_team, %{
+        Teams.create_template(other_lead, other_team, %{
           name: "Theirs",
           columns: [%{"name" => "A"}, %{"name" => "B"}]
         })
@@ -180,7 +182,7 @@ defmodule SprintLensWeb.SessionLiveTest do
     @tag req: ["FR-902"]
     test "a board lays out one grid column per board column", ctx do
       template =
-        Enum.find(SprintLens.Teams.list_templates(ctx.team), &(&1.name == "Start-Stop-Continue"))
+        Enum.find(Teams.list_templates(ctx.team), &(&1.name == "Start-Stop-Continue"))
 
       session = start_session(ctx, %{template_id: template.id})
 
@@ -192,7 +194,7 @@ defmodule SprintLensWeb.SessionLiveTest do
     @tag req: ["FR-902"]
     test "down to the two a template is allowed to have", ctx do
       {:ok, pair} =
-        SprintLens.Teams.create_template(ctx.facilitator, ctx.team, %{
+        Teams.create_template(ctx.facilitator, ctx.team, %{
           name: "Two",
           columns: [%{"name" => "Good"}, %{"name" => "Bad"}]
         })
@@ -207,7 +209,7 @@ defmodule SprintLensWeb.SessionLiveTest do
     @tag req: ["FR-902"]
     test "and wraps rather than shrinking past four", ctx do
       {:ok, wide} =
-        SprintLens.Teams.create_template(ctx.facilitator, ctx.team, %{
+        Teams.create_template(ctx.facilitator, ctx.team, %{
           name: "Six",
           columns: Enum.map(1..6, &%{"name" => "C#{&1}"})
         })
@@ -290,6 +292,129 @@ defmodule SprintLensWeb.SessionLiveTest do
     end
   end
 
+  describe "sound, which is off unless it is asked for (FR-921)" do
+    setup ctx do
+      loud = insert(:user, language: "en", sound_enabled: true)
+      join_team(loud, ctx.team)
+
+      Map.merge(ctx, %{loud: loud, loud_conn: log_in_user(build_conn(), loud)})
+    end
+
+    # The server decides, not the browser. Somebody who has not asked for
+    # sound is never sent the event, so there is nothing to suppress and no
+    # muted state to fall out of date on a page left open all afternoon.
+    @tag req: ["FR-921"]
+    test "a person who has not asked for it is sent no sound and given no player", ctx do
+      session = start_session(ctx, %{is_blind: true})
+
+      {:ok, lv, html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      refute html =~ ~s(id="sound-player")
+
+      lv |> element("#reveal-cards") |> render_click()
+
+      refute_push_event(lv, "sound", %{})
+    end
+
+    @tag req: ["FR-921"]
+    test "and somebody who has hears the reveal", ctx do
+      session = start_session(ctx, %{is_blind: true})
+
+      {:ok, lv, html} = live(ctx.loud_conn, ~p"/sessions/#{session}")
+
+      assert html =~ ~s(id="sound-player")
+
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+      facilitator_lv |> element("#reveal-cards") |> render_click()
+
+      assert_push_event(lv, "sound", %{name: :reveal})
+    end
+
+    @tag req: ["FR-921"]
+    test "the close reaches everyone in the room", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.loud_conn, ~p"/sessions/#{session}")
+      {:ok, facilitator_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      facilitator_lv |> element("#close-session") |> render_click()
+
+      assert_push_event(lv, "sound", %{name: :close})
+    end
+
+    # A vote is the only one of the four that is personal: it is the sound of
+    # your own token going down.
+    @tag req: ["FR-921"]
+    test "a vote is heard by the person who spent it and by nobody else", ctx do
+      session = start_session(ctx)
+      {:ok, session} = Retro.set_phase(ctx.facilitator, session, :brainstorm)
+
+      {:ok, card} =
+        Board.create_card(ctx.loud, session, %{
+          "column_id" => to_string(hd(session.columns).id),
+          "text" => "Worth voting on"
+        })
+
+      {:ok, _voting} = Retro.set_phase(ctx.facilitator, session, :vote)
+
+      {:ok, lv, _html} = live(ctx.loud_conn, ~p"/sessions/#{session}")
+      {:ok, other_lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      lv |> element("#vote-up-card-#{card.id}") |> render_click()
+
+      assert_push_event(lv, "sound", %{name: :vote})
+      refute_push_event(other_lv, "sound", %{})
+    end
+
+    @tag req: ["FR-915", "FR-921"]
+    test "the timer running out is said out loud and written down", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.loud_conn, ~p"/sessions/#{session}")
+
+      refute has_element?(lv, "#timer-expired")
+
+      render_hook(lv, "timer_expired", %{})
+
+      assert has_element?(lv, "#timer-expired", "Time is up")
+      assert_push_event(lv, "sound", %{name: :timer})
+    end
+
+    # Setting a new one has to clear the notice, or the room is told the time
+    # is up for the rest of the session.
+    @tag req: ["FR-915"]
+    test "and starting another one takes the notice back down", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      render_hook(lv, "timer_expired", %{})
+      assert has_element?(lv, "#timer-expired")
+
+      lv |> element("#timer-300") |> render_click()
+
+      refute has_element?(lv, "#timer-expired")
+    end
+
+    # The number was worked out on the server when the board rendered, and the
+    # board renders when something happens — so a five-minute timer read
+    # "5:00" until somebody wrote a card, and there was never a moment of
+    # expiry for FR-915 to announce.
+    @tag req: ["FR-208"]
+    test "the countdown carries what it needs to keep counting in the browser", ctx do
+      session = start_session(ctx)
+
+      {:ok, lv, _html} = live(ctx.conn, ~p"/sessions/#{session}")
+
+      lv |> element("#timer-300") |> render_click()
+
+      remaining = lv |> element("#timer-remaining") |> render()
+
+      assert remaining =~ ~s(data-running="true")
+      assert remaining =~ ~s(data-remaining="300")
+    end
+  end
+
   describe "the reveal, on a blind board (FR-209)" do
     @tag req: ["FR-209"]
     test "cards land one beat after another once they are shown", ctx do
@@ -299,7 +424,7 @@ defmodule SprintLensWeb.SessionLiveTest do
 
       for text <- ["First", "Second"] do
         {:ok, _card} =
-          SprintLens.Retro.Board.create_card(ctx.facilitator, session, %{
+          Board.create_card(ctx.facilitator, session, %{
             "column_id" => to_string(column.id),
             "text" => text
           })
@@ -326,7 +451,7 @@ defmodule SprintLensWeb.SessionLiveTest do
       {:ok, session} = Retro.set_phase(ctx.facilitator, session, :brainstorm)
 
       {:ok, _card} =
-        SprintLens.Retro.Board.create_card(ctx.facilitator, session, %{
+        Board.create_card(ctx.facilitator, session, %{
           "column_id" => to_string(hd(session.columns).id),
           "text" => "Plain"
         })
@@ -494,7 +619,7 @@ defmodule SprintLensWeb.SessionLiveTest do
     # that tells somebody who has not done this before what to write there.
     @tag req: ["FR-201"]
     test "and the question each column is asking", ctx do
-      template = Enum.find(SprintLens.Teams.list_templates(ctx.team), &(&1.name == "KPT"))
+      template = Enum.find(Teams.list_templates(ctx.team), &(&1.name == "KPT"))
       session = start_session(ctx, %{template_id: template.id})
 
       {:ok, _lv, html} = live(ctx.conn, ~p"/sessions/#{session}")

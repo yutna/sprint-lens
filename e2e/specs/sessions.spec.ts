@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { registerAndSignIn, waitForLiveView } from './support/auth'
+import { registerAndSignIn, settled, waitForLiveView } from './support/auth'
 
 /**
  * The live board, driven through real browsers.
@@ -141,6 +141,62 @@ test.describe('the lobby', () => {
     await expect(participant.locator('#lobby')).toHaveCount(0)
 
     await participant.close()
+  })
+})
+
+test.describe('sound', () => {
+  /**
+   * Both of the board's hooks, in one flow, because neither of them exists as
+   * far as a LiveView test is concerned. `Sounds` sets the source of an audio
+   * element and `Ticker` counts a number down; the server-side halves are
+   * covered in ExUnit, and a hook that never runs looks exactly like a hook
+   * that works.
+   *
+   * The assertion is on `src`, not on playback: a headless browser refuses to
+   * play audio without a user gesture, which the hook swallows on purpose. It
+   * sets the source first, so the source is the proof it ran.
+   */
+  test('[FR-921][FR-915] the reveal reaches a browser that asked for it, and the timer ticks', async ({
+    page,
+  }) => {
+    await registerAndSignIn(page)
+
+    await page.goto('/users/preferences')
+    await waitForLiveView(page)
+    // The checkbox ships with a hidden `false` beside it so an unchecked box
+    // still submits something, so the type has to be part of the selector.
+    await page
+      .locator('#preferences_form input[type="checkbox"][name="user[sound_enabled]"]')
+      .check()
+    await settled(page)
+    await page.locator('#preferences_form button').click()
+    await waitForLiveView(page)
+
+    await createTeam(page, 'Audible')
+    await page.getByRole('link', { name: /Retrospective/i }).click()
+    await waitForLiveView(page)
+
+    await page.locator('#session_form input[name="session[title]"]').fill('Sprint 30')
+    await page.locator('#session_form input[type="checkbox"][name="session[is_blind]"]').check()
+    await page.locator('#session_form button').click()
+    await expect(page.getByRole('heading', { name: 'Sprint 30' })).toBeVisible()
+
+    await page.locator('#start-session').click()
+    await expect(page.locator('#sound-player')).toBeAttached()
+
+    await page.locator('#phase-brainstorm').click()
+    const box = page.locator('[id^="card-text-"]').first()
+    await box.fill('อะไรบางอย่าง')
+    await page.locator('[id^="add-card-"]').first().click()
+
+    await page.locator('#reveal-cards').click()
+
+    await expect(page.locator('#sound-player')).toHaveAttribute('src', /reveal/)
+
+    // And the countdown moves on its own, which is what makes an expiry
+    // exist at all — before the ticker there was no moment to announce.
+    await page.locator('#timer-60').click()
+    await expect(page.locator('#timer-remaining')).toHaveText(/0:5\d/, { timeout: 5000 })
   })
 })
 

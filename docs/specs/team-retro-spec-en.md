@@ -767,6 +767,14 @@ GET    /api/v1/health                     liveness and readiness
 - **FR-920**: Mutations render optimistically and roll back with a
   notice if the server rejects them (see FR-308).
 
+### 8.7 Sound
+
+- **FR-921**: The UI MAY play a short sound when cards are revealed,
+  when the timer runs out, when a vote is cast, and when the session
+  closes. Sound MUST be off by default and MUST be enabled per person
+  in the profile (FR-003). At most one sound plays at a time, and no
+  sound is longer than one second.
+
 ## 9. Non-Functional Requirements
 
 ### 9.1 Performance and Capacity

@@ -92,6 +92,8 @@ defmodule SprintLensWeb.SessionLive.Show do
         join_url={@join_url}
       />
 
+      <.sound_player enabled={@current_scope.user.sound_enabled} />
+
       <.phase_stepper
         :if={not waiting?(@session)}
         phase={@phase}
@@ -267,7 +269,11 @@ defmodule SprintLensWeb.SessionLive.Show do
           stay on screen while the board scrolls under them (plan 02).
         --%>
         <aside class="space-y-4 sm:sticky sm:top-4 sm:self-start">
-          <.timer_panel timer={@timer} is_facilitator={@is_facilitator} />
+          <.timer_panel
+            timer={@timer}
+            is_facilitator={@is_facilitator}
+            expired={@timer_expired}
+          />
 
           <.presence_panel
             session={@session}
@@ -322,6 +328,7 @@ defmodule SprintLensWeb.SessionLive.Show do
     |> assign(:page_title, session.title)
     |> assign(:join_url, SprintLensWeb.Endpoint.url() <> ~p"/join/#{session.join_code}")
     |> assign(:ready, false)
+    |> assign(:timer_expired, false)
     |> assign(:editing, nil)
     |> assign(:editing_note, nil)
     |> assign(:selected, MapSet.new())
@@ -412,7 +419,14 @@ defmodule SprintLensWeb.SessionLive.Show do
     do: {:noreply, reload(socket)}
 
   def handle_info({:retro_event, "timer.updated", _payload}, socket),
-    do: {:noreply, reload(socket)}
+    do: {:noreply, socket |> assign(:timer_expired, false) |> reload()}
+
+  # The reveal is the one card event that is an occasion (FR-209), so it is
+  # the one that makes a noise. It reaches everybody, not only whoever pressed
+  # it — that is the point of it.
+  def handle_info({:retro_event, "card.updated", %{revealed: true}}, socket) do
+    {:noreply, socket |> reload() |> play(:reveal)}
+  end
 
   def handle_info({:retro_event, "presence.updated", _payload}, socket) do
     {:noreply, socket |> reload() |> assign_presence()}
@@ -421,6 +435,7 @@ defmodule SprintLensWeb.SessionLive.Show do
   def handle_info({:retro_event, "session.closed", _payload}, socket) do
     {:noreply,
      socket
+     |> play(:close)
      |> reload()
      |> put_flash(:info, gettext("This session is closed."))}
   end
@@ -615,9 +630,14 @@ defmodule SprintLensWeb.SessionLive.Show do
   end
 
   def handle_event("cast_vote", %{"topic" => topic}, socket) do
-    socket.assigns.current_scope
-    |> Board.cast_vote(socket.assigns.session, topic)
-    |> board_result(socket)
+    case Board.cast_vote(socket.assigns.current_scope, socket.assigns.session, topic) do
+      {:ok, _vote} = ok -> ok |> board_result(socket) |> sounded(:vote)
+      error -> board_result(error, socket)
+    end
+  end
+
+  def handle_event("timer_expired", _params, socket) do
+    {:noreply, socket |> assign(:timer_expired, true) |> play(:timer)}
   end
 
   def handle_event("retract_vote", %{"topic" => topic}, socket) do
@@ -702,6 +722,22 @@ defmodule SprintLensWeb.SessionLive.Show do
     )
 
     {:noreply, socket |> assign(:ready, ready) |> assign_presence()}
+  end
+
+  # A vote is the one of the four that is personal: it is the sound of your own
+  # token going down, so only the person who spent it hears it.
+  defp sounded({:noreply, socket}, name), do: {:noreply, play(socket, name)}
+
+  # Sound is off unless the person turned it on (FR-921), and the server is
+  # what knows that. Not sending the event is a stronger guarantee than
+  # sending it and asking the browser to ignore it: there is no muted state
+  # to get out of date on a page that has been open all afternoon.
+  defp play(socket, name) do
+    if socket.assigns.current_scope.user.sound_enabled do
+      push_event(socket, "sound", %{name: name})
+    else
+      socket
+    end
   end
 
   defp focus(socket, topic) do

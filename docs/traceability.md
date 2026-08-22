@@ -114,6 +114,7 @@ test title.
 | FR-918 | covered | |
 | FR-919 | covered | |
 | FR-920 | covered | |
+| FR-921 | covered | |
 | NFR-101 | covered | |
 | NFR-102 | covered | |
 | NFR-103 | covered | |

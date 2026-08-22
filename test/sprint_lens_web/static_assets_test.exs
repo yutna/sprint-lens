@@ -25,7 +25,48 @@ defmodule SprintLensWeb.StaticAssetsTest do
     /images/mascot-empty.svg
     /images/mascot-error.svg
     /images/mascot-done.svg
+    /sounds/reveal.mp3
+    /sounds/timer.mp3
+    /sounds/vote.mp3
+    /sounds/close.mp3
   )
+
+  describe "the four sounds (FR-921)" do
+    # The specification says no sound is longer than a second, which is a
+    # claim about the files rather than about the code. They are 64 kbps
+    # constant-bitrate mono, so a second of audio is eight thousand bytes —
+    # the size is the duration, and checking it needs no decoder.
+    @tag req: ["FR-921"]
+    test "are all shorter than the second the specification allows them" do
+      for name <- ~w(reveal timer vote close) do
+        path = "priv/static/sounds/#{name}.mp3"
+        %{size: bytes} = File.stat!(path)
+
+        assert bytes < 8_000,
+               "#{path} is #{bytes} bytes, which at 64 kbps is over a second"
+      end
+    end
+
+    @tag req: ["FR-921"]
+    test "and there is one player, so two of them cannot overlap" do
+      html =
+        Phoenix.LiveViewTest.render_component(&SprintLensWeb.RoomComponents.sound_player/1,
+          enabled: true
+        )
+
+      assert html |> String.split("<audio") |> length() == 2
+    end
+
+    @tag req: ["FR-921"]
+    test "and no player at all for somebody who has not asked for one" do
+      html =
+        Phoenix.LiveViewTest.render_component(&SprintLensWeb.RoomComponents.sound_player/1,
+          enabled: false
+        )
+
+      refute html =~ "<audio"
+    end
+  end
 
   describe "the static allowlist" do
     @tag req: ["FR-911"]

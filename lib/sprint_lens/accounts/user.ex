@@ -39,6 +39,10 @@ defmodule SprintLens.Accounts.User do
     field :language, :string, default: "th"
     field :theme, :string, default: "system"
 
+    # Off unless asked for (FR-921). A retrospective is usually held on a
+    # video call, and a sound the tool makes is a sound the whole room hears.
+    field :sound_enabled, :boolean, default: false
+
     field :is_org_admin, :boolean, default: false
     field :is_active, :boolean, default: true
 
@@ -112,7 +116,7 @@ defmodule SprintLens.Accounts.User do
   """
   def profile_changeset(user, attrs) do
     user
-    |> cast(attrs, [:display_name, :avatar_url, :language, :theme])
+    |> cast(attrs, [:display_name, :avatar_url, :language, :theme, :sound_enabled])
     |> validate_display_name()
     |> validate_inclusion(:language, @languages)
     |> validate_inclusion(:theme, @themes)
