@@ -33,33 +33,36 @@ defmodule SprintLensWeb.TeamLive.Show do
           <span :if={@team.description}>{@team.description}</span>
         </:subtitle>
         <:actions>
-          <.link navigate={~p"/teams/#{@team}/sessions"} class="btn btn-primary btn-sm">
+          <.button navigate={~p"/teams/#{@team}/sessions"} variant="primary" size="sm">
             {gettext("Retrospectives")}
-          </.link>
-          <.link
+          </.button>
+          <.button
             navigate={~p"/teams/#{@team}/actions"}
             id="team-actions-link"
-            class="btn btn-ghost btn-sm"
+            variant="ghost"
+            size="sm"
           >
             {gettext("Actions")}
-          </.link>
-          <.link
+          </.button>
+          <.button
             navigate={~p"/teams/#{@team}/insights"}
             id="team-insights-link"
-            class="btn btn-ghost btn-sm"
+            variant="ghost"
+            size="sm"
           >
             {gettext("Insights")}
-          </.link>
-          <.link
+          </.button>
+          <.button
             navigate={~p"/teams/#{@team}/search"}
             id="team-search-link"
-            class="btn btn-ghost btn-sm"
+            variant="ghost"
+            size="sm"
           >
             {gettext("Search")}
-          </.link>
-          <.link navigate={~p"/teams/#{@team}/templates"} class="btn btn-ghost btn-sm">
+          </.button>
+          <.button navigate={~p"/teams/#{@team}/templates"} variant="ghost" size="sm">
             {gettext("Templates")}
-          </.link>
+          </.button>
           <.button
             :if={@can_toggle_archive and not @team.is_archived}
             id="archive-team"
@@ -123,7 +126,8 @@ defmodule SprintLensWeb.TeamLive.Show do
               id={"remove-member-#{membership.user_id}"}
               phx-click="remove_member"
               phx-value-user-id={membership.user_id}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Remove")}
             </.button>
@@ -132,7 +136,8 @@ defmodule SprintLensWeb.TeamLive.Show do
               id="leave-team"
               phx-click="leave"
               data-confirm={gettext("Leave this team?")}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Leave")}
             </.button>

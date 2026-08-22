@@ -346,6 +346,55 @@ defmodule SprintLensWeb.Layouts do
   end
 
   @doc """
+  The frame the sign-in, registration and account screens sit in.
+
+  These are the first pages anybody sees, and they were a form floating in the
+  middle of an empty page. A card gives the form somewhere to be: it says the
+  page has one job, and it stops the eye hunting for where to start.
+
+  Shared rather than repeated on five screens, because five copies of a layout
+  are five chances for four of them to fall behind.
+  """
+  attr :class, :any, default: nil
+  slot :title, required: true
+  slot :subtitle
+  slot :inner_block, required: true
+
+  def auth_card(assigns) do
+    ~H"""
+    <div class={["mx-auto w-full max-w-md space-y-6 py-4", @class]}>
+      <div class="space-y-1 text-center">
+        <h1 class="text-title font-semibold">{render_slot(@title)}</h1>
+        <p :if={@subtitle != []} class="text-label text-base-content/70">
+          {render_slot(@subtitle)}
+        </p>
+      </div>
+
+      <div class="rounded-panel border border-base-200 bg-base-100 p-6 shadow-resting sm:p-8">
+        {render_slot(@inner_block)}
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  A quiet aside: something true about the situation that is not a problem.
+
+  Distinct from a flash, which is about something that just happened, and from
+  an error, which is about something being wrong.
+  """
+  slot :inner_block, required: true
+
+  def notice(assigns) do
+    ~H"""
+    <div class="flex items-start gap-3 rounded-card border border-info/30 bg-info/10 p-4 text-label">
+      <.icon name="hero-information-circle" class="mt-0.5 size-5 shrink-0 text-info" />
+      <div class="min-w-0 space-y-0.5">{render_slot(@inner_block)}</div>
+    </div>
+    """
+  end
+
+  @doc """
   Shows the flash group with standard titles and content.
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"

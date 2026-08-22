@@ -21,9 +21,9 @@ defmodule SprintLensWeb.UserLive.Settings do
           {gettext("Account settings")}
           <:subtitle>{gettext("Your email address and password.")}</:subtitle>
           <:actions>
-            <.link navigate={~p"/users/preferences"} class="btn btn-ghost btn-sm">
+            <.button navigate={~p"/users/preferences"} variant="ghost" size="sm">
               {gettext("Preferences")}
-            </.link>
+            </.button>
           </:actions>
         </.header>
       </div>
@@ -42,7 +42,7 @@ defmodule SprintLensWeb.UserLive.Settings do
         </.button>
       </.form>
 
-      <div class="divider" />
+      <div class="my-8 h-px bg-base-200" aria-hidden="true" />
 
       <.form
         for={@password_form}

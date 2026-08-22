@@ -26,9 +26,9 @@ defmodule SprintLensWeb.UserLive.Preferences do
         {gettext("Preferences")}
         <:subtitle>{gettext("How you appear, and how the app appears to you.")}</:subtitle>
         <:actions>
-          <.link navigate={~p"/users/settings"} class="btn btn-ghost btn-sm">
+          <.button navigate={~p"/users/settings"} variant="ghost" size="sm">
             {gettext("Account settings")}
-          </.link>
+          </.button>
         </:actions>
       </.header>
 

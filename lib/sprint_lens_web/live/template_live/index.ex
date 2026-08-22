@@ -27,9 +27,9 @@ defmodule SprintLensWeb.TemplateLive.Index do
           {gettext("Column layouts for %{team}", team: @team.name)}
         </:subtitle>
         <:actions>
-          <.link navigate={~p"/teams/#{@team}"} class="btn btn-ghost btn-sm">
+          <.button navigate={~p"/teams/#{@team}"} variant="ghost" size="sm">
             {gettext("Back to team")}
-          </.link>
+          </.button>
         </:actions>
       </.header>
 
@@ -102,7 +102,8 @@ defmodule SprintLensWeb.TemplateLive.Index do
                 phx-click="delete"
                 phx-value-id={template.id}
                 data-confirm={gettext("Delete this template?")}
-                class="btn btn-ghost btn-xs"
+                variant="ghost"
+                size="sm"
               >
                 {gettext("Delete")}
               </.button>

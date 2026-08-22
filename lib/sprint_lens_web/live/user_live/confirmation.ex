@@ -12,10 +12,8 @@ defmodule SprintLensWeb.UserLive.Confirmation do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope} current_path={@current_path}>
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>{gettext("Welcome, %{name}", name: @user.display_name)}</.header>
-        </div>
+      <Layouts.auth_card>
+        <:title>{gettext("Welcome, %{name}", name: @user.display_name)}</:title>
 
         <.form
           :if={!@user.confirmed_at}
@@ -31,13 +29,14 @@ defmodule SprintLensWeb.UserLive.Confirmation do
             name={@form[:remember_me].name}
             value="true"
             phx-disable-with={gettext("Confirming...")}
-            class="btn btn-primary w-full"
+            variant="primary"
+            class="w-full"
           >
             {gettext("Confirm and stay logged in")}
           </.button>
           <.button
             phx-disable-with={gettext("Confirming...")}
-            class="btn btn-primary btn-soft w-full mt-2"
+            class="w-full mt-2"
           >
             {gettext("Confirm and log in only this time")}
           </.button>
@@ -54,7 +53,7 @@ defmodule SprintLensWeb.UserLive.Confirmation do
         >
           <input type="hidden" name={@form[:token].name} value={@form[:token].value} />
           <%= if @current_scope do %>
-            <.button phx-disable-with={gettext("Logging in...")} class="btn btn-primary w-full">
+            <.button phx-disable-with={gettext("Logging in...")} variant="primary" class="w-full">
               {gettext("Log in")}
             </.button>
           <% else %>
@@ -62,13 +61,14 @@ defmodule SprintLensWeb.UserLive.Confirmation do
               name={@form[:remember_me].name}
               value="true"
               phx-disable-with={gettext("Logging in...")}
-              class="btn btn-primary w-full"
+              variant="primary"
+              class="w-full"
             >
               {gettext("Keep me logged in on this device")}
             </.button>
             <.button
               phx-disable-with={gettext("Logging in...")}
-              class="btn btn-primary btn-soft w-full mt-2"
+              class="w-full mt-2"
             >
               {gettext("Log me in only this time")}
             </.button>
@@ -78,7 +78,7 @@ defmodule SprintLensWeb.UserLive.Confirmation do
         <p :if={!@user.confirmed_at} class="alert alert-outline mt-8">
           {gettext("Tip: you can set a password in your account settings.")}
         </p>
-      </div>
+      </Layouts.auth_card>
     </Layouts.app>
     """
   end

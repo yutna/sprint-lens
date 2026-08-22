@@ -13,33 +13,26 @@ defmodule SprintLensWeb.UserLive.Login do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope} current_path={@current_path}>
-      <div class="mx-auto max-w-sm space-y-4">
-        <div class="text-center">
-          <.header>
-            <p>{gettext("Log in")}</p>
-            <:subtitle>
-              <%= if @current_scope do %>
-                {gettext("Please sign in again to change your account settings.")}
-              <% else %>
-                {gettext("No account yet?")}
-                <.link navigate={~p"/users/register"} class="font-semibold hover:underline">
-                  {gettext("Create one")}
-                </.link>
-              <% end %>
-            </:subtitle>
-          </.header>
-        </div>
+      <Layouts.auth_card>
+        <:title>{gettext("Log in")}</:title>
+        <:subtitle>
+          <%= if @current_scope do %>
+            {gettext("Please sign in again to change your account settings.")}
+          <% else %>
+            {gettext("No account yet?")}
+            <.link navigate={~p"/users/register"} class="font-medium text-primary hover:underline">
+              {gettext("Create one")}
+            </.link>
+          <% end %>
+        </:subtitle>
 
-        <div :if={local_mail_adapter?()} class="alert alert-info">
-          <.icon name="hero-information-circle" class="size-6 shrink-0" />
-          <div>
-            <p>{gettext("You are running the local mail adapter.")}</p>
-            <p>
-              {gettext("Sent emails appear in")}
-              <.link href="/dev/mailbox" class="underline">{gettext("the mailbox")}</.link>.
-            </p>
-          </div>
-        </div>
+        <Layouts.notice :if={local_mail_adapter?()}>
+          <p>{gettext("You are running the local mail adapter.")}</p>
+          <p>
+            {gettext("Sent emails appear in")}
+            <.link href="/dev/mailbox" class="underline">{gettext("the mailbox")}</.link>.
+          </p>
+        </Layouts.notice>
 
         <.form
           :let={f}
@@ -58,12 +51,16 @@ defmodule SprintLensWeb.UserLive.Login do
             required
             phx-mounted={JS.focus()}
           />
-          <.button class="btn btn-primary w-full">
+          <.button variant="primary" class="w-full">
             {gettext("Email me a sign-in link")} <span aria-hidden="true">→</span>
           </.button>
         </.form>
 
-        <div class="divider">{gettext("or")}</div>
+        <div class="flex items-center gap-3 py-4 text-caption text-base-content/50">
+          <span class="h-px flex-1 bg-base-200" aria-hidden="true" />
+          {gettext("or")}
+          <span class="h-px flex-1 bg-base-200" aria-hidden="true" />
+        </div>
 
         <.form
           :let={f}
@@ -89,20 +86,23 @@ defmodule SprintLensWeb.UserLive.Login do
             autocomplete="current-password"
             spellcheck="false"
           />
-          <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
+          <.button variant="primary" class="w-full" name={@form[:remember_me].name} value="true">
             {gettext("Log in and stay logged in")} <span aria-hidden="true">→</span>
           </.button>
-          <.button class="btn btn-primary btn-soft w-full mt-2">
+          <.button class="w-full mt-2">
             {gettext("Log in only this time")}
           </.button>
         </.form>
 
-        <p class="text-center text-sm">
-          <.link navigate={~p"/users/reset-password"} class="font-semibold hover:underline">
+        <p class="pt-4 text-center text-label">
+          <.link
+            navigate={~p"/users/reset-password"}
+            class="font-medium text-primary hover:underline"
+          >
             {gettext("Forgot your password?")}
           </.link>
         </p>
-      </div>
+      </Layouts.auth_card>
     </Layouts.app>
     """
   end

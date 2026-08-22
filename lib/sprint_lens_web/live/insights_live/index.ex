@@ -32,9 +32,9 @@ defmodule SprintLensWeb.InsightsLive.Index do
         {gettext("Insights")}
         <:subtitle>{@team.name}</:subtitle>
         <:actions>
-          <.link navigate={~p"/teams/#{@team}"} class="btn btn-ghost btn-sm">
+          <.button navigate={~p"/teams/#{@team}"} variant="ghost" size="sm">
             {gettext("Back to team")}
-          </.link>
+          </.button>
         </:actions>
       </.header>
 

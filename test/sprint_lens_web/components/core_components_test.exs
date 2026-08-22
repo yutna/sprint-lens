@@ -115,10 +115,13 @@ defmodule SprintLensWeb.CoreComponentsTest do
     end
 
     @tag req: ["FR-914"]
-    test "a caller-supplied class replaces the defaults entirely" do
+    test "a caller-supplied class is added to the defaults, not swapped for them" do
       html = render_component(&button/1, %{class: "my-btn", inner_block: inner("Go")})
 
-      assert html =~ ~s(class="my-btn")
+      assert html =~ "my-btn"
+      # A caller asking for `w-full` wants a full-width button, not an
+      # unstyled one — and under the old contract two of them got exactly that.
+      assert html =~ "rounded-control"
     end
   end
 

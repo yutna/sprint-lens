@@ -124,15 +124,19 @@ defmodule SprintLensWeb.CoreComponents do
       <.button navigate={~p"/"}>Home</.button>
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
-  attr :class, :any
+
+  attr :class, :any,
+    default: nil,
+    doc: "added to the variant's classes rather than replacing them"
+
   attr :variant, :string, values: ~w(primary ghost danger)
+  attr :size, :string, values: ~w(sm), doc: "smaller, for a control inside a row of content"
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
     base =
-      "inline-flex items-center justify-center gap-2 rounded-control px-4 py-2.5 " <>
-        "text-label font-medium transition-[background-color,opacity] " <>
-        "duration-(--sl-duration-quick) cursor-pointer " <>
+      "inline-flex items-center justify-center gap-2 rounded-control font-medium " <>
+        "transition-[background-color,opacity] duration-(--sl-duration-quick) cursor-pointer " <>
         "disabled:pointer-events-none disabled:opacity-50"
 
     variants = %{
@@ -142,10 +146,17 @@ defmodule SprintLensWeb.CoreComponents do
       nil => "bg-base-200 text-base-content hover:bg-base-300"
     }
 
+    sizes = %{"sm" => "px-2.5 py-1.5 text-caption", nil => "px-4 py-2.5 text-label"}
+
+    # Added to, not replacing. A caller asking for `w-full` wants a full-width
+    # button, not an unstyled one — and two of them were getting exactly that.
     assigns =
-      assign_new(assigns, :class, fn ->
-        [base, Map.fetch!(variants, assigns[:variant])]
-      end)
+      assign(assigns, :class, [
+        base,
+        Map.fetch!(variants, assigns[:variant]),
+        Map.fetch!(sizes, assigns[:size]),
+        assigns[:class]
+      ])
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
       ~H"""

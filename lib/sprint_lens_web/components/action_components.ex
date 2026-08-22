@@ -54,7 +54,7 @@ defmodule SprintLensWeb.ActionComponents do
         {gettext("Linked to: %{topic}", topic: @topic.title)}
       </p>
 
-      <.button variant="primary" class="btn btn-primary btn-sm">{gettext("Add action")}</.button>
+      <.button variant="primary" size="sm">{gettext("Add action")}</.button>
     </.form>
     """
   end
@@ -183,7 +183,8 @@ defmodule SprintLensWeb.ActionComponents do
               id={"carry-over-#{action.id}"}
               phx-click="carry_over"
               phx-value-id={action.id}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Carry over")}
             </.button>

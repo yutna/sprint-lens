@@ -50,34 +50,38 @@ defmodule SprintLensWeb.SessionLive.Recap do
           <a
             href={~p"/sessions/#{@session}/export?format=markdown"}
             id="export-markdown"
-            class="btn btn-ghost btn-sm"
+            variant="ghost"
+            size="sm"
           >
             {gettext("Markdown")}
           </a>
           <a
             href={~p"/sessions/#{@session}/export?format=csv&of=cards"}
             id="export-csv-cards"
-            class="btn btn-ghost btn-sm"
+            variant="ghost"
+            size="sm"
           >
             {gettext("Cards CSV")}
           </a>
           <a
             href={~p"/sessions/#{@session}/export?format=csv&of=actions"}
             id="export-csv-actions"
-            class="btn btn-ghost btn-sm"
+            variant="ghost"
+            size="sm"
           >
             {gettext("Actions CSV")}
           </a>
           <a
             href={~p"/sessions/#{@session}/export?format=json"}
             id="export-json"
-            class="btn btn-ghost btn-sm"
+            variant="ghost"
+            size="sm"
           >
             {gettext("JSON")}
           </a>
-          <.link navigate={~p"/teams/#{@session.team_id}/sessions"} class="btn btn-ghost btn-sm">
+          <.button navigate={~p"/teams/#{@session.team_id}/sessions"} variant="ghost" size="sm">
             {gettext("Back to retrospectives")}
-          </.link>
+          </.button>
         </:actions>
       </.header>
 

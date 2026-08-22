@@ -112,10 +112,10 @@ defmodule SprintLensWeb.SessionLive.Show do
         </ol>
 
         <div :if={@is_facilitator and Session.state(@session) == :active} class="ml-auto flex gap-1">
-          <.button id="revert-phase" phx-click="revert_phase" class="btn btn-ghost btn-xs">
+          <.button id="revert-phase" phx-click="revert_phase" variant="ghost" size="sm">
             {gettext("Back")}
           </.button>
-          <.button id="advance-phase" phx-click="advance_phase" class="btn btn-ghost btn-xs">
+          <.button id="advance-phase" phx-click="advance_phase" variant="ghost" size="sm">
             {gettext("Next")}
           </.button>
         </div>
@@ -250,7 +250,8 @@ defmodule SprintLensWeb.SessionLive.Show do
                   id={"ungroup-#{group.id}"}
                   phx-click="delete_group"
                   phx-value-id={group.id}
-                  class="btn btn-ghost btn-xs"
+                  variant="ghost"
+                  size="sm"
                 >
                   {gettext("Ungroup")}
                 </.button>
@@ -290,14 +291,15 @@ defmodule SprintLensWeb.SessionLive.Show do
                 id={"timer-#{seconds}"}
                 phx-click="start_timer"
                 phx-value-seconds={seconds}
-                class="btn btn-ghost btn-xs"
+                variant="ghost"
+                size="sm"
               >
                 {label}
               </.button>
-              <.button id="pause-timer" phx-click="pause_timer" class="btn btn-ghost btn-xs">
+              <.button id="pause-timer" phx-click="pause_timer" variant="ghost" size="sm">
                 {gettext("Pause")}
               </.button>
-              <.button id="reset-timer" phx-click="reset_timer" class="btn btn-ghost btn-xs">
+              <.button id="reset-timer" phx-click="reset_timer" variant="ghost" size="sm">
                 {gettext("Reset")}
               </.button>
             </div>
@@ -324,7 +326,8 @@ defmodule SprintLensWeb.SessionLive.Show do
                   id={"hand-over-#{user_id}"}
                   phx-click="transfer_facilitator"
                   phx-value-user-id={user_id}
-                  class="btn btn-ghost btn-xs"
+                  variant="ghost"
+                  size="sm"
                 >
                   {gettext("Hand over")}
                 </.button>

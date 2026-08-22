@@ -24,18 +24,14 @@ defmodule SprintLensWeb.UserLive.Registration do
       theme={@theme}
       current_path={@current_path}
     >
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>
-            {gettext("Create your account")}
-            <:subtitle>
-              {gettext("Already have an account?")}
-              <.link navigate={~p"/users/log-in"} class="font-semibold hover:underline">
-                {gettext("Log in")}
-              </.link>
-            </:subtitle>
-          </.header>
-        </div>
+      <Layouts.auth_card>
+        <:title>{gettext("Create your account")}</:title>
+        <:subtitle>
+          {gettext("Already have an account?")}
+          <.link navigate={~p"/users/log-in"} class="font-medium text-primary hover:underline">
+            {gettext("Log in")}
+          </.link>
+        </:subtitle>
 
         <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
           <.input
@@ -55,11 +51,11 @@ defmodule SprintLensWeb.UserLive.Registration do
             required
           />
 
-          <.button phx-disable-with={gettext("Creating account...")} class="btn btn-primary w-full">
+          <.button phx-disable-with={gettext("Creating account...")} variant="primary" class="w-full">
             {gettext("Create an account")}
           </.button>
         </.form>
-      </div>
+      </Layouts.auth_card>
     </Layouts.app>
     """
   end

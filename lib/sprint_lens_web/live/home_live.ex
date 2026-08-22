@@ -30,9 +30,9 @@ defmodule SprintLensWeb.HomeLive do
         {gettext("Hello, %{name}", name: @current_scope.user.display_name)}
         <:subtitle>{gettext("Your teams and what is waiting for you.")}</:subtitle>
         <:actions>
-          <.link navigate={~p"/teams"} class="btn btn-primary btn-sm">
+          <.button navigate={~p"/teams"} variant="primary" size="sm">
             {gettext("All teams")}
-          </.link>
+          </.button>
         </:actions>
       </.header>
 
@@ -43,9 +43,9 @@ defmodule SprintLensWeb.HomeLive do
 
         <div :if={@teams == []} class="rounded-box border border-base-300 p-6 text-center">
           <p class="mb-3">{gettext("You are not in a team yet.")}</p>
-          <.link navigate={~p"/teams"} class="btn btn-primary btn-sm">
+          <.button navigate={~p"/teams"} variant="primary" size="sm">
             {gettext("Create your first team")}
-          </.link>
+          </.button>
         </div>
 
         <ul :if={@teams != []} id="home-teams" class="grid gap-3 sm:grid-cols-2">

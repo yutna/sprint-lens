@@ -53,7 +53,8 @@ defmodule SprintLensWeb.AIComponents do
           id={"#{@id}-request"}
           phx-click="request_suggestion"
           phx-value-type={@type}
-          class="btn btn-ghost btn-xs"
+          variant="ghost"
+          size="sm"
         >
           {gettext("Ask AI")}
         </.button>
@@ -68,7 +69,8 @@ defmodule SprintLensWeb.AIComponents do
           id={"#{@id}-retry"}
           phx-click="retry_suggestion"
           phx-value-id={@suggestion.id}
-          class="btn btn-ghost btn-xs"
+          variant="ghost"
+          size="sm"
         >
           {gettext("Try again")}
         </.button>
@@ -108,14 +110,10 @@ defmodule SprintLensWeb.AIComponents do
           >{@suggestion.output}</textarea>
 
           <div class="mt-1 flex flex-wrap gap-1">
-            <.button id={"#{@id}-save"} variant="primary" class="btn btn-primary btn-xs">
+            <.button id={"#{@id}-save"} variant="primary" size="sm">
               {gettext("Accept edited")}
             </.button>
-            <.button
-              id={"#{@id}-cancel"}
-              phx-click="cancel_edit_suggestion"
-              class="btn btn-ghost btn-xs"
-            >
+            <.button id={"#{@id}-cancel"} phx-click="cancel_edit_suggestion" variant="ghost" size="sm">
               {gettext("Cancel")}
             </.button>
           </div>
@@ -124,10 +122,10 @@ defmodule SprintLensWeb.AIComponents do
         <div :if={not @editing} class="flex flex-wrap gap-1">
           <.button
             id={"#{@id}-accept"}
-            variant="primary"
             phx-click="accept_suggestion"
             phx-value-id={@suggestion.id}
-            class="btn btn-primary btn-xs"
+            variant="primary"
+            size="sm"
           >
             {gettext("Accept")}
           </.button>
@@ -135,7 +133,8 @@ defmodule SprintLensWeb.AIComponents do
             id={"#{@id}-edit"}
             phx-click="edit_suggestion"
             phx-value-id={@suggestion.id}
-            class="btn btn-ghost btn-xs"
+            variant="ghost"
+            size="sm"
           >
             {gettext("Edit first")}
           </.button>
@@ -143,7 +142,8 @@ defmodule SprintLensWeb.AIComponents do
             id={"#{@id}-reject"}
             phx-click="reject_suggestion"
             phx-value-id={@suggestion.id}
-            class="btn btn-ghost btn-xs"
+            variant="ghost"
+            size="sm"
           >
             {gettext("Reject")}
           </.button>

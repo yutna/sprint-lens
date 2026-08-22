@@ -120,7 +120,7 @@ defmodule SprintLensWeb.BoardComponents do
           <span class="text-xs opacity-60" id={"card-counter-#{@column.id}"} aria-live="polite">
             0/{Card.max_text()}
           </span>
-          <.button id={"add-card-#{@column.id}"} variant="primary" class="btn btn-primary btn-xs">
+          <.button id={"add-card-#{@column.id}"} variant="primary" size="sm">
             {gettext("Add")}
           </.button>
         </div>
@@ -227,14 +227,10 @@ defmodule SprintLensWeb.BoardComponents do
       <input type="hidden" name="card[id]" value={@card.id} />
       <textarea name="card[text]" rows="2" maxlength={Card.max_text()} class="w-full textarea">{@card.text}</textarea>
       <div class="flex gap-1">
-        <.button id={"save-card-#{@card.id}"} variant="primary" class="btn btn-primary btn-xs">
+        <.button id={"save-card-#{@card.id}"} variant="primary" size="sm">
           {gettext("Save")}
         </.button>
-        <.button
-          id={"cancel-edit-#{@card.id}"}
-          phx-click="cancel_edit"
-          class="btn btn-ghost btn-xs"
-        >
+        <.button id={"cancel-edit-#{@card.id}"} phx-click="cancel_edit" variant="ghost" size="sm">
           {gettext("Cancel")}
         </.button>
       </div>
@@ -275,7 +271,8 @@ defmodule SprintLensWeb.BoardComponents do
           id={"edit-card-button-#{@card.id}"}
           phx-click="edit_card"
           phx-value-id={@card.id}
-          class="btn btn-ghost btn-xs"
+          variant="ghost"
+          size="sm"
         >
           {gettext("Edit")}
         </.button>
@@ -286,7 +283,8 @@ defmodule SprintLensWeb.BoardComponents do
           phx-click="delete_card"
           phx-value-id={@card.id}
           data-confirm={gettext("Delete this card?")}
-          class="btn btn-ghost btn-xs"
+          variant="ghost"
+          size="sm"
         >
           {gettext("Delete")}
         </.button>
@@ -303,7 +301,8 @@ defmodule SprintLensWeb.BoardComponents do
           phx-click="move_card"
           phx-value-id={@card.id}
           phx-value-column-id={target.id}
-          class="btn btn-ghost btn-xs"
+          variant="ghost"
+          size="sm"
         >
           {gettext("→ %{column}", column: target.name)}
         </.button>
@@ -350,9 +349,9 @@ defmodule SprintLensWeb.BoardComponents do
         <.button
           :if={@is_facilitator and not @summary.revealed}
           id="reveal-votes"
-          variant="primary"
           phx-click="reveal_votes"
-          class="btn btn-primary btn-xs"
+          variant="primary"
+          size="sm"
         >
           {gettext("Reveal totals")}
         </.button>
@@ -406,7 +405,8 @@ defmodule SprintLensWeb.BoardComponents do
               id={"vote-up-#{Topic.dom_id(topic)}"}
               phx-click="cast_vote"
               phx-value-topic={topic.key}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Vote")}
             </.button>
@@ -416,7 +416,8 @@ defmodule SprintLensWeb.BoardComponents do
               id={"vote-down-#{Topic.dom_id(topic)}"}
               phx-click="retract_vote"
               phx-value-topic={topic.key}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Take back")}
             </.button>
@@ -426,7 +427,8 @@ defmodule SprintLensWeb.BoardComponents do
               id={"focus-#{Topic.dom_id(topic)}"}
               phx-click="set_focus"
               phx-value-topic={topic.key}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Discuss this")}
             </.button>
@@ -435,7 +437,8 @@ defmodule SprintLensWeb.BoardComponents do
               :if={@is_facilitator and topic.focused?}
               id="clear-focus"
               phx-click="clear_focus"
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Stop discussing")}
             </.button>
@@ -445,7 +448,8 @@ defmodule SprintLensWeb.BoardComponents do
               id={"note-#{Topic.dom_id(topic)}"}
               phx-click="edit_note"
               phx-value-topic={topic.key}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {if topic.note, do: gettext("Edit note"), else: gettext("Add note")}
             </.button>
@@ -471,11 +475,11 @@ defmodule SprintLensWeb.BoardComponents do
               <.button
                 id={"save-note-#{Topic.dom_id(topic)}"}
                 variant="primary"
-                class="btn btn-primary btn-xs"
+                size="sm"
               >
                 {gettext("Save")}
               </.button>
-              <.button id="cancel-note" phx-click="cancel_note" class="btn btn-ghost btn-xs">
+              <.button id="cancel-note" phx-click="cancel_note" variant="ghost" size="sm">
                 {gettext("Cancel")}
               </.button>
             </div>

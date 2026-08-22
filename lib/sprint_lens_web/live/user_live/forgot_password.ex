@@ -25,15 +25,11 @@ defmodule SprintLensWeb.UserLive.ForgotPassword do
       theme={@theme}
       current_path={@current_path}
     >
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>
-            {gettext("Reset your password")}
-            <:subtitle>
-              {gettext("We will email you a link to sign in, so you can choose a new password.")}
-            </:subtitle>
-          </.header>
-        </div>
+      <Layouts.auth_card>
+        <:title>{gettext("Reset your password")}</:title>
+        <:subtitle>
+          {gettext("We will email you a link to sign in, so you can choose a new password.")}
+        </:subtitle>
 
         <.form for={@form} id="forgot_password_form" phx-submit="send">
           <.input
@@ -55,7 +51,7 @@ defmodule SprintLensWeb.UserLive.ForgotPassword do
             {gettext("Back to log in")}
           </.link>
         </p>
-      </div>
+      </Layouts.auth_card>
     </Layouts.app>
     """
   end

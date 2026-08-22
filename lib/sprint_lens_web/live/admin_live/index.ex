@@ -130,7 +130,8 @@ defmodule SprintLensWeb.AdminLive.Index do
               phx-click="deactivate"
               phx-value-id={user.id}
               data-confirm={gettext("Deactivate this person? They will be signed out.")}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Deactivate")}
             </.button>
@@ -140,7 +141,8 @@ defmodule SprintLensWeb.AdminLive.Index do
               id={"reactivate-#{user.id}"}
               phx-click="reactivate"
               phx-value-id={user.id}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Reactivate")}
             </.button>
@@ -151,7 +153,8 @@ defmodule SprintLensWeb.AdminLive.Index do
               phx-click="erase"
               phx-value-id={user.id}
               data-confirm={gettext("Erase this person's personal data? This cannot be undone.")}
-              class="btn btn-ghost btn-xs"
+              variant="ghost"
+              size="sm"
             >
               {gettext("Erase")}
             </.button>
@@ -214,7 +217,8 @@ defmodule SprintLensWeb.AdminLive.Index do
                 phx-click="purge_team"
                 phx-value-id={team.id}
                 data-confirm={gettext("Purge this team and everything in it? This cannot be undone.")}
-                class="btn btn-ghost btn-xs"
+                variant="ghost"
+                size="sm"
               >
                 {gettext("Purge team")}
               </.button>
@@ -235,7 +239,8 @@ defmodule SprintLensWeb.AdminLive.Index do
                   phx-click="purge_session"
                   phx-value-id={session.id}
                   data-confirm={gettext("Purge this retrospective? This cannot be undone.")}
-                  class="btn btn-ghost btn-xs"
+                  variant="ghost"
+                  size="sm"
                 >
                   {gettext("Purge")}
                 </.button>
