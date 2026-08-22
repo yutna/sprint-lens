@@ -40,6 +40,9 @@ npm-debug.log
 *.db-*
 
 
+# A throwaway screenshot helper used while working on the interface.
+/e2e/.shot.mjs
+
 # Playwright: browsers, node_modules, and run artefacts.
 /e2e/node_modules/
 /e2e/test-results/

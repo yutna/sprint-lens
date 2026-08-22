@@ -49,6 +49,35 @@ defmodule SprintLensWeb.StaticAssetsTest do
     end
   end
 
+  describe "the typefaces" do
+    # Vendored rather than fetched: `AGENTS.md` forbids the layouts
+    # referencing anything external, and a retrospective tool should not tell
+    # a third party who is reading it.
+    @tag req: ["FR-906"]
+    test "are served from this application, in both scripts", %{conn: conn} do
+      for path <- ~w(
+            /fonts/ibm-plex-sans-thai-400-thai.woff2
+            /fonts/ibm-plex-sans-thai-400-latin.woff2
+            /fonts/ibm-plex-sans-thai-600-thai.woff2
+            /fonts/mitr-500-thai.woff2
+            /fonts/mitr-500-latin.woff2
+          ) do
+        assert conn |> get(path) |> response(200) != "", "#{path} is not served"
+      end
+    end
+
+    # The Open Font License requires the licence to travel with the files.
+    @tag req: ["NFR-501"]
+    test "ship with the licence that permits shipping them" do
+      for licence <- ~w(OFL-IBMPlexSansThai.txt OFL-Mitr.txt) do
+        text = File.read!("priv/static/fonts/#{licence}")
+
+        assert text =~ "SIL Open Font License"
+        assert text =~ "Copyright"
+      end
+    end
+  end
+
   describe "the icons themselves" do
     @tag req: ["FR-911"]
     test "the favicon is the format its extension claims" do
