@@ -283,26 +283,6 @@ defmodule SprintLensWeb.SessionLive.Show do
     """
   end
 
-  # A lookup table of literal class names, and it has to stay one.
-  #
-  # This used to build the class by interpolating the column count into it,
-  # which Tailwind cannot see: it scans the source for class strings, and a
-  # name assembled at runtime never appears in one. Three of the four survived
-  # only because other files happened to use `sm:grid-cols-2`, `-3` and `-4`
-  # as literals — and
-  # `sm:grid-cols-1` was already missing from the stylesheet, which nobody
-  # noticed because one column falls back to one column anyway. Deleting an
-  # unrelated `sm:grid-cols-3` somewhere else would have silently collapsed
-  # every three-column board into a single stack.
-  #
-  # Capped at four: a six-column template wraps onto a second row rather than
-  # shrinking every column past the width of a card. There is no clause for
-  # one column because there cannot be one — `Template.column_bounds/0` starts
-  # at two and the fallback board has three.
-  defp column_grid(2), do: "sm:grid-cols-2"
-  defp column_grid(3), do: "sm:grid-cols-3"
-  defp column_grid(_four_or_more), do: "sm:grid-cols-4"
-
   # The board and the lobby are the two halves of this screen, and exactly one
   # of them renders — which is what lets both use `join-code`, `participant-*`
   # and `toggle-ready` for the same things rather than two sets of names.

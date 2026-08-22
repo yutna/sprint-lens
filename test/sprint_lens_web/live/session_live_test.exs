@@ -231,7 +231,7 @@ defmodule SprintLensWeb.SessionLiveTest do
     # a single stack with nothing failing anywhere.
     @tag req: ["FR-902"]
     test "and every one of those class names is written out, not assembled" do
-      source = File.read!("lib/sprint_lens_web/live/session_live/show.ex")
+      source = File.read!("lib/sprint_lens_web/components/board_components.ex")
 
       refute source =~ ~r/grid-cols-#\{/,
              "a grid class built by interpolation is a class Tailwind cannot see"

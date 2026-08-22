@@ -22,7 +22,7 @@ msgid "A required service is unavailable."
 msgstr ""
 
 #: lib/sprint_lens_web/api_error.ex:87
-#: lib/sprint_lens_web/live/session_live/recap.ex:333
+#: lib/sprint_lens_web/live/session_live/recap.ex:324
 #, elixir-autogen, elixir-format
 msgid "AI features are turned off."
 msgstr ""
@@ -74,7 +74,7 @@ msgstr ""
 msgid "Changing..."
 msgstr ""
 
-#: lib/sprint_lens_web/controllers/page_html/home.html.heex:12
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:14
 #, elixir-autogen, elixir-format
 msgid "Collect reflections, agree on actions, and see whether they get done — session after session."
 msgstr ""
@@ -100,7 +100,7 @@ msgstr ""
 msgid "Confirming..."
 msgstr ""
 
-#: lib/sprint_lens_web/controllers/page_html/home.html.heex:25
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:27
 #: lib/sprint_lens_web/live/user_live/registration.ex:55
 #, elixir-autogen, elixir-format
 msgid "Create an account"
@@ -204,7 +204,7 @@ msgid "Light theme"
 msgstr ""
 
 #: lib/sprint_lens_web/components/layouts.ex:173
-#: lib/sprint_lens_web/controllers/page_html/home.html.heex:28
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:30
 #: lib/sprint_lens_web/live/user_live/confirmation.ex:57
 #: lib/sprint_lens_web/live/user_live/login.ex:17
 #: lib/sprint_lens_web/live/user_live/registration.ex:32
@@ -289,7 +289,7 @@ msgstr ""
 
 #: lib/sprint_lens_web/components/layouts/root.html.heex:35
 #: lib/sprint_lens_web/components/layouts/root.html.heex:41
-#: lib/sprint_lens_web/controllers/page_html/home.html.heex:10
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:11
 #, elixir-autogen, elixir-format
 msgid "Retrospectives your team actually acts on"
 msgstr ""
@@ -388,8 +388,8 @@ msgstr ""
 #: lib/sprint_lens_web/live/search_live/index.ex:160
 #: lib/sprint_lens_web/live/session_live/index.ex:208
 #: lib/sprint_lens_web/live/session_live/index.ex:236
-#: lib/sprint_lens_web/live/session_live/recap.ex:245
-#: lib/sprint_lens_web/live/session_live/recap.ex:337
+#: lib/sprint_lens_web/live/session_live/recap.ex:236
+#: lib/sprint_lens_web/live/session_live/recap.ex:328
 #: lib/sprint_lens_web/live/session_live/show.ex:320
 #: lib/sprint_lens_web/live/session_live/show.ex:804
 #: lib/sprint_lens_web/live/team_live/show.ex:329
@@ -655,7 +655,7 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: lib/sprint_lens_web/controllers/page_html/home.html.heex:21
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:23
 #, elixir-autogen, elixir-format
 msgid "Go to your teams"
 msgstr ""
@@ -835,22 +835,22 @@ msgid "You have left the team."
 msgstr ""
 
 #: lib/sprint_lens_web/components/lobby_components.ex:55
-#: lib/sprint_lens_web/components/room_components.ex:204
+#: lib/sprint_lens_web/components/room_components.ex:211
 #, elixir-autogen, elixir-format
 msgid "%{ready} of %{total} ready"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:333
+#: lib/sprint_lens_web/components/room_components.ex:340
 #, elixir-autogen, elixir-format
 msgid "1 min"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:333
+#: lib/sprint_lens_web/components/room_components.ex:340
 #, elixir-autogen, elixir-format
 msgid "10 min"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:333
+#: lib/sprint_lens_web/components/room_components.ex:340
 #, elixir-autogen, elixir-format
 msgid "5 min"
 msgstr ""
@@ -885,7 +885,7 @@ msgstr ""
 msgid "Board"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:289
+#: lib/sprint_lens_web/components/room_components.ex:296
 #, elixir-autogen, elixir-format
 msgid "Brainstorm"
 msgstr ""
@@ -896,7 +896,7 @@ msgstr ""
 msgid "Cards hidden until revealed"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:288
+#: lib/sprint_lens_web/components/room_components.ex:295
 #, elixir-autogen, elixir-format
 msgid "Check-in"
 msgstr ""
@@ -911,7 +911,7 @@ msgstr ""
 msgid "Close this session? It becomes read-only."
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:37
+#: lib/sprint_lens_web/live/session_live/recap.ex:38
 #: lib/sprint_lens_web/live/session_live/show.ex:836
 #, elixir-autogen, elixir-format
 msgid "Closed"
@@ -927,25 +927,25 @@ msgstr ""
 msgid "Created %{at}"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:292
+#: lib/sprint_lens_web/components/room_components.ex:299
 #, elixir-autogen, elixir-format
 msgid "Discuss"
 msgstr ""
 
 #: lib/sprint_lens_web/components/lobby_components.ex:73
-#: lib/sprint_lens_web/components/room_components.ex:227
+#: lib/sprint_lens_web/components/room_components.ex:234
 #, elixir-autogen, elixir-format
 msgid "Facilitator"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:290
+#: lib/sprint_lens_web/components/room_components.ex:297
 #: lib/sprint_lens_web/live/session_live/show.ex:214
 #, elixir-autogen, elixir-format
 msgid "Group"
 msgstr ""
 
 #: lib/sprint_lens_web/components/lobby_components.ex:84
-#: lib/sprint_lens_web/components/room_components.ex:237
+#: lib/sprint_lens_web/components/room_components.ex:244
 #, elixir-autogen, elixir-format
 msgid "Hand over"
 msgstr ""
@@ -956,7 +956,7 @@ msgid "Hide cards until the facilitator reveals them"
 msgstr ""
 
 #: lib/sprint_lens_web/components/lobby_components.ex:161
-#: lib/sprint_lens_web/components/room_components.ex:250
+#: lib/sprint_lens_web/components/room_components.ex:257
 #, elixir-autogen, elixir-format
 msgid "I am ready"
 msgstr ""
@@ -995,7 +995,7 @@ msgid "No session with that code."
 msgstr ""
 
 #: lib/sprint_lens_web/components/lobby_components.ex:161
-#: lib/sprint_lens_web/components/room_components.ex:250
+#: lib/sprint_lens_web/components/room_components.ex:257
 #, elixir-autogen, elixir-format
 msgid "Not ready"
 msgstr ""
@@ -1005,7 +1005,7 @@ msgstr ""
 msgid "Not started"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:176
+#: lib/sprint_lens_web/components/room_components.ex:183
 #, elixir-autogen, elixir-format
 msgid "Pause"
 msgstr ""
@@ -1015,7 +1015,7 @@ msgstr ""
 msgid "Phase"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:179
+#: lib/sprint_lens_web/components/room_components.ex:186
 #, elixir-autogen, elixir-format
 msgid "Reset"
 msgstr ""
@@ -1062,6 +1062,7 @@ msgid "That action is not available right now."
 msgstr ""
 
 #: lib/sprint_lens_web/components/room_components.ex:157
+#: lib/sprint_lens_web/components/room_components.ex:165
 #, elixir-autogen, elixir-format
 msgid "Timer"
 msgstr ""
@@ -1072,7 +1073,7 @@ msgid "Title"
 msgstr ""
 
 #: lib/sprint_lens_web/components/board_components.ex:466
-#: lib/sprint_lens_web/components/room_components.ex:291
+#: lib/sprint_lens_web/components/room_components.ex:298
 #, elixir-autogen, elixir-format
 msgid "Vote"
 msgstr ""
@@ -1083,12 +1084,12 @@ msgid "Vote budget"
 msgstr ""
 
 #: lib/sprint_lens_web/components/lobby_components.ex:53
-#: lib/sprint_lens_web/components/room_components.ex:200
+#: lib/sprint_lens_web/components/room_components.ex:207
 #, elixir-autogen, elixir-format
 msgid "Who is here"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:293
+#: lib/sprint_lens_web/components/room_components.ex:300
 #, elixir-autogen, elixir-format
 msgid "Wrap-up"
 msgstr ""
@@ -1160,7 +1161,6 @@ msgid "No answers yet."
 msgstr ""
 
 #: lib/sprint_lens_web/components/board_components.ex:172
-#: lib/sprint_lens_web/live/session_live/recap.ex:174
 #, elixir-autogen, elixir-format
 msgid "Nothing here yet."
 msgstr ""
@@ -1217,7 +1217,7 @@ msgid "→ %{column}"
 msgstr ""
 
 #: lib/sprint_lens_web/components/board_components.ex:433
-#: lib/sprint_lens_web/live/session_live/recap.ex:194
+#: lib/sprint_lens_web/live/session_live/recap.ex:141
 #, elixir-autogen, elixir-format
 msgid "%{count} vote"
 msgid_plural "%{count} votes"
@@ -1265,7 +1265,6 @@ msgid "Take back"
 msgstr ""
 
 #: lib/sprint_lens_web/components/board_components.ex:546
-#: lib/sprint_lens_web/live/session_live/recap.ex:209
 #, elixir-autogen, elixir-format
 msgid "There is nothing on the board to discuss yet."
 msgstr ""
@@ -1404,7 +1403,7 @@ msgstr ""
 msgid "Nobody yet"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:223
+#: lib/sprint_lens_web/live/session_live/recap.ex:179
 #: lib/sprint_lens_web/live/session_live/show.ex:172
 #, elixir-autogen, elixir-format
 msgid "Nothing agreed yet."
@@ -1499,12 +1498,12 @@ msgstr ""
 msgid "Aggregates only — no card text and nobody's name."
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:83
+#: lib/sprint_lens_web/live/session_live/recap.ex:47
 #, elixir-autogen, elixir-format
 msgid "Back to retrospectives"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:103
+#: lib/sprint_lens_web/live/session_live/recap.ex:57
 #, elixir-autogen, elixir-format
 msgid "Cards"
 msgstr ""
@@ -1524,7 +1523,7 @@ msgstr ""
 msgid "Find a card, a note or an action"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:94
+#: lib/sprint_lens_web/live/session_live/recap.ex:52
 #, elixir-autogen, elixir-format
 msgid "How it went"
 msgstr ""
@@ -1538,7 +1537,7 @@ msgid "Insights"
 msgstr ""
 
 #: lib/sprint_lens_web/live/insights_live/index.ex:114
-#: lib/sprint_lens_web/live/session_live/recap.ex:107
+#: lib/sprint_lens_web/live/session_live/recap.ex:58
 #, elixir-autogen, elixir-format
 msgid "Mood"
 msgstr ""
@@ -1573,7 +1572,7 @@ msgstr ""
 msgid "Participation"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:111
+#: lib/sprint_lens_web/live/session_live/recap.ex:59
 #, elixir-autogen, elixir-format
 msgid "ROTI"
 msgstr ""
@@ -1597,12 +1596,12 @@ msgstr ""
 msgid "Team"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:149
+#: lib/sprint_lens_web/live/session_live/recap.ex:96
 #, elixir-autogen, elixir-format
 msgid "The board"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:99
+#: lib/sprint_lens_web/live/session_live/recap.ex:54
 #, elixir-autogen, elixir-format
 msgid "Took part"
 msgstr ""
@@ -1617,12 +1616,12 @@ msgstr ""
 msgid "What are you looking for?"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:182
+#: lib/sprint_lens_web/live/session_live/recap.ex:131
 #, elixir-autogen, elixir-format
 msgid "What the room discussed"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:215
+#: lib/sprint_lens_web/live/session_live/recap.ex:170
 #, elixir-autogen, elixir-format
 msgid "What the team agreed"
 msgstr ""
@@ -1632,22 +1631,22 @@ msgstr ""
 msgid "mood %{score}"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:72
+#: lib/sprint_lens_web/live/session_live/recap.ex:210
 #, elixir-autogen, elixir-format
 msgid "Actions CSV"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:64
+#: lib/sprint_lens_web/live/session_live/recap.ex:204
 #, elixir-autogen, elixir-format
 msgid "Cards CSV"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:80
+#: lib/sprint_lens_web/live/session_live/recap.ex:213
 #, elixir-autogen, elixir-format
 msgid "JSON"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:56
+#: lib/sprint_lens_web/live/session_live/recap.ex:198
 #, elixir-autogen, elixir-format
 msgid "Markdown"
 msgstr ""
@@ -1888,7 +1887,7 @@ msgstr ""
 msgid "system"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:142
+#: lib/sprint_lens_web/live/session_live/recap.ex:91
 #, elixir-autogen, elixir-format
 msgid "A draft for you to read. Nothing is attached until you accept it."
 msgstr ""
@@ -1933,12 +1932,12 @@ msgstr ""
 msgid "Rejected."
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:141
+#: lib/sprint_lens_web/live/session_live/recap.ex:90
 #, elixir-autogen, elixir-format
 msgid "Suggested summary"
 msgstr ""
 
-#: lib/sprint_lens_web/live/session_live/recap.ex:124
+#: lib/sprint_lens_web/live/session_live/recap.ex:68
 #, elixir-autogen, elixir-format
 msgid "Summary"
 msgstr ""
@@ -2226,6 +2225,7 @@ msgid "No retrospectives yet."
 msgstr ""
 
 #: lib/sprint_lens_web/live/action_live/index.ex:111
+#: lib/sprint_lens_web/live/session_live/recap.ex:125
 #, elixir-autogen, elixir-format
 msgid "Nothing here."
 msgstr ""
@@ -2345,7 +2345,7 @@ msgid "Read the code out, or send the link. People appear here as they arrive."
 msgstr ""
 
 #: lib/sprint_lens_web/components/lobby_components.ex:71
-#: lib/sprint_lens_web/components/room_components.ex:225
+#: lib/sprint_lens_web/components/room_components.ex:232
 #, elixir-autogen, elixir-format
 msgid "Ready"
 msgstr ""
@@ -2375,27 +2375,27 @@ msgstr ""
 msgid "The facilitator has the code on their screen."
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:298
+#: lib/sprint_lens_web/components/room_components.ex:305
 #, elixir-autogen, elixir-format
 msgid "Arrive, say how the sprint felt, and pick up what is still open from last time."
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:318
+#: lib/sprint_lens_web/components/room_components.ex:325
 #, elixir-autogen, elixir-format
 msgid "Check the actions have owners, and say whether this was time well spent."
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:306
+#: lib/sprint_lens_web/components/room_components.ex:313
 #, elixir-autogen, elixir-format
 msgid "Put the cards that are about the same thing together, and name the pile."
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:310
+#: lib/sprint_lens_web/components/room_components.ex:317
 #, elixir-autogen, elixir-format
 msgid "Spend your votes on what is worth the room's time."
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:314
+#: lib/sprint_lens_web/components/room_components.ex:321
 #, elixir-autogen, elixir-format
 msgid "Take the topics in turn, and write down anything the team agrees to do."
 msgstr ""
@@ -2405,7 +2405,37 @@ msgstr ""
 msgid "What the team will do"
 msgstr ""
 
-#: lib/sprint_lens_web/components/room_components.ex:302
+#: lib/sprint_lens_web/components/room_components.ex:309
 #, elixir-autogen, elixir-format
 msgid "Write down what you noticed. One thought per card, no discussion yet."
+msgstr ""
+
+#: lib/sprint_lens_web/live/session_live/recap.ex:181
+#, elixir-autogen, elixir-format
+msgid "Actions written during a retrospective appear here."
+msgstr ""
+
+#: lib/sprint_lens_web/controllers/page_html/home.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "An hour, in six steps"
+msgstr ""
+
+#: lib/sprint_lens_web/live/session_live/recap.ex:164
+#, elixir-autogen, elixir-format
+msgid "Nothing was brought up for discussion."
+msgstr ""
+
+#: lib/sprint_lens_web/live/session_live/recap.ex:193
+#, elixir-autogen, elixir-format
+msgid "Take it with you"
+msgstr ""
+
+#: lib/sprint_lens_web/live/session_live/recap.ex:194
+#, elixir-autogen, elixir-format
+msgid "The same recap, in a file."
+msgstr ""
+
+#: lib/sprint_lens_web/live/session_live/recap.ex:166
+#, elixir-autogen, elixir-format
+msgid "Topics come from the cards the room voted on."
 msgstr ""

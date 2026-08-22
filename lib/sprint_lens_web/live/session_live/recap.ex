@@ -14,6 +14,7 @@ defmodule SprintLensWeb.SessionLive.Recap do
   use SprintLensWeb, :live_view
 
   import SprintLensWeb.ActionComponents
+  import SprintLensWeb.BoardComponents, only: [column_grid: 1]
   import SprintLensWeb.AIComponents
 
   alias SprintLens.AI
@@ -34,101 +35,50 @@ defmodule SprintLensWeb.SessionLive.Recap do
       <.header>
         {@session.title}
         <:subtitle>
-          <span class="badge badge-ghost badge-sm">{gettext("Closed")}</span>
-          <span :if={@session.closed_at} id="recap-closed-at">
-            {SprintLensWeb.Locale.format_datetime(@session.closed_at)}
-          </span>
-          <span :if={@session.is_anonymous} class="badge badge-ghost badge-sm">
-            {gettext("Anonymous")}
+          <span class="flex flex-wrap items-center gap-2">
+            <.badge>{gettext("Closed")}</.badge>
+            <span :if={@session.closed_at} id="recap-closed-at">
+              {SprintLensWeb.Locale.format_datetime(@session.closed_at)}
+            </span>
+            <.badge :if={@session.is_anonymous}>{gettext("Anonymous")}</.badge>
           </span>
         </:subtitle>
         <:actions>
-          <%!--
-            Plain links rather than LiveView navigation: these are downloads,
-            and a socket cannot hand the browser a file (FR-701 to FR-703).
-          --%>
-          <a
-            href={~p"/sessions/#{@session}/export?format=markdown"}
-            id="export-markdown"
-            variant="ghost"
-            size="sm"
-          >
-            {gettext("Markdown")}
-          </a>
-          <a
-            href={~p"/sessions/#{@session}/export?format=csv&of=cards"}
-            id="export-csv-cards"
-            variant="ghost"
-            size="sm"
-          >
-            {gettext("Cards CSV")}
-          </a>
-          <a
-            href={~p"/sessions/#{@session}/export?format=csv&of=actions"}
-            id="export-csv-actions"
-            variant="ghost"
-            size="sm"
-          >
-            {gettext("Actions CSV")}
-          </a>
-          <a
-            href={~p"/sessions/#{@session}/export?format=json"}
-            id="export-json"
-            variant="ghost"
-            size="sm"
-          >
-            {gettext("JSON")}
-          </a>
           <.button navigate={~p"/teams/#{@session.team_id}/sessions"} variant="ghost" size="sm">
             {gettext("Back to retrospectives")}
           </.button>
         </:actions>
       </.header>
 
-      <section
-        id="recap-summary"
-        aria-labelledby="recap-summary-heading"
-        class="rounded-box border border-base-300 p-3"
-      >
-        <h2 id="recap-summary-heading" class="text-sm font-semibold uppercase opacity-70">
-          {gettext("How it went")}
-        </h2>
-
-        <dl class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <div>
-            <dt class="text-xs opacity-70">{gettext("Took part")}</dt>
-            <dd id="recap-participants" class="text-lg font-semibold">{@recap.participant_count}</dd>
-          </div>
-          <div>
-            <dt class="text-xs opacity-70">{gettext("Cards")}</dt>
-            <dd id="recap-card-count" class="text-lg font-semibold">{length(@recap.cards)}</dd>
-          </div>
-          <div>
-            <dt class="text-xs opacity-70">{gettext("Mood")}</dt>
-            <dd id="recap-mood" class="text-lg font-semibold">{score(@recap.mood)}</dd>
-          </div>
-          <div>
-            <dt class="text-xs opacity-70">{gettext("ROTI")}</dt>
-            <dd id="recap-roti" class="text-lg font-semibold">{score(@recap.roti)}</dd>
-          </div>
-        </dl>
-      </section>
+      <.panel id="recap-summary" title={gettext("How it went")}>
+        <.stats>
+          <.stat id="recap-participants" label={gettext("Took part")}>
+            {@recap.participant_count}
+          </.stat>
+          <.stat id="recap-card-count" label={gettext("Cards")}>{length(@recap.cards)}</.stat>
+          <.stat id="recap-mood" label={gettext("Mood")}>{score(@recap.mood)}</.stat>
+          <.stat id="recap-roti" label={gettext("ROTI")}>{score(@recap.roti)}</.stat>
+        </.stats>
+      </.panel>
 
       <%!--
         The accepted summary, if the facilitator kept one (AI-009). Shown
         before the board because it is what somebody opening a recap a month
         later actually wants.
       --%>
-      <section :if={@session.summary} aria-labelledby="recap-narrative-heading">
-        <h2 id="recap-narrative-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("Summary")}
-        </h2>
-
-        <pre
+      <.panel :if={@session.summary} id="recap-narrative" title={gettext("Summary")}>
+        <%!--
+          Not a `<pre>`. The line breaks matter, which is what
+          `whitespace-pre-wrap` is for, but a paragraph of prose set in a
+          monospace face reads as a log file rather than as writing.
+        --%>
+        <div
           id="recap-summary-text"
-          class="whitespace-pre-wrap break-words rounded-box border border-base-300 p-3 text-sm"
-        >{@session.summary}</pre>
-      </section>
+          class="rounded-panel border border-base-200 bg-base-100 p-4 break-words whitespace-pre-wrap"
+        >
+          {@session.summary}
+        </div>
+      </.panel>
 
       <%!--
         Absent, not disabled, when the team has not opted in or the switch is
@@ -144,85 +94,138 @@ defmodule SprintLensWeb.SessionLive.Recap do
         editing={@editing_suggestion}
       />
 
-      <section aria-labelledby="recap-board-heading">
-        <h2 id="recap-board-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("The board")}
-        </h2>
-
-        <div id="recap-board" class="grid gap-3 sm:grid-cols-2">
+      <.panel id="recap-board-panel" title={gettext("The board")}>
+        <div id="recap-board" class={["grid gap-3", column_grid(length(@recap.columns))]}>
           <section
             :for={column <- @recap.columns}
             id={"recap-column-#{column.id}"}
-            class="rounded-box border border-base-300 p-3"
+            class="space-y-3 rounded-panel border border-base-200 bg-base-100 p-4"
           >
             <h3 class="font-semibold">{TemplateText.column_name(column)}</h3>
 
-            <ul class="mt-2 space-y-1">
+            <ul class="space-y-2">
               <li
                 :for={card <- cards_in(@recap.cards, column)}
                 id={"recap-card-#{card.id}"}
-                class="rounded-box border border-base-200 p-2 text-sm"
+                class="rounded-card border border-base-200 p-3"
               >
-                <p class="whitespace-pre-wrap break-words">{card.text}</p>
-                <p :if={not @session.is_anonymous and card.author} class="text-xs opacity-60">
+                <p class="break-words whitespace-pre-wrap">{card.text}</p>
+                <p
+                  :if={not @session.is_anonymous and card.author}
+                  class="mt-1 text-caption text-base-content/60"
+                >
                   {card.author.display_name}
                 </p>
               </li>
             </ul>
 
-            <p :if={cards_in(@recap.cards, column) == []} class="mt-2 text-sm opacity-60">
-              {gettext("Nothing here yet.")}
+            <p
+              :if={cards_in(@recap.cards, column) == []}
+              class="text-label text-base-content/60"
+            >
+              {gettext("Nothing here.")}
             </p>
           </section>
         </div>
-      </section>
+      </.panel>
 
-      <section aria-labelledby="recap-topics-heading">
-        <h2 id="recap-topics-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("What the room discussed")}
-        </h2>
-
+      <.panel id="recap-discussion" title={gettext("What the room discussed")}>
         <ol id="recap-topics" class="space-y-2">
           <li
             :for={topic <- @recap.topics}
             id={"recap-topic-#{topic.kind}-#{topic.id}"}
-            class="rounded-box border border-base-200 p-2"
+            class="space-y-2 rounded-card border border-base-200 bg-base-100 p-3"
           >
             <div class="flex flex-wrap items-start gap-2">
-              <p class="grow break-words font-medium">{topic.title}</p>
-              <span class="badge badge-primary badge-sm">
+              <p class="grow font-medium break-words">{topic.title}</p>
+              <%!--
+                Quiet at zero. A pink pill announcing that nobody voted for
+                something is the loudest thing on a row about the thing the
+                room decided not to spend time on.
+              --%>
+              <span class={[
+                "shrink-0 rounded-control px-2 py-0.5 text-caption font-medium",
+                if((topic.votes || 0) > 0,
+                  do: "bg-primary text-primary-content",
+                  else: "border border-base-300 text-base-content/60"
+                )
+              ]}>
                 {ngettext("%{count} vote", "%{count} votes", topic.votes || 0,
                   count: topic.votes || 0
                 )}
               </span>
             </div>
 
-            <ul :if={topic.kind == :group} class="mt-1 space-y-1 pl-3">
-              <li :for={card <- topic.cards} class="text-sm opacity-70">{card.text}</li>
+            <ul :if={topic.kind == :group} class="space-y-1 pl-3">
+              <li :for={card <- topic.cards} class="text-label text-base-content/70">
+                {card.text}
+              </li>
             </ul>
 
-            <p :if={topic.note} class="mt-2 rounded-box bg-base-200 p-2 text-sm">{topic.note}</p>
+            <%!--
+              The note is what the room concluded, so it is set apart from the
+              topic it is about rather than run on from it.
+            --%>
+            <p :if={topic.note} class="rounded-card bg-base-200 p-3 text-label">{topic.note}</p>
           </li>
         </ol>
 
-        <p :if={@recap.topics == []} id="recap-topics-empty" class="text-sm opacity-60">
-          {gettext("There is nothing on the board to discuss yet.")}
-        </p>
-      </section>
+        <.empty_state
+          :if={@recap.topics == []}
+          id="recap-topics-empty"
+          title={gettext("Nothing was brought up for discussion.")}
+        >
+          {gettext("Topics come from the cards the room voted on.")}
+        </.empty_state>
+      </.panel>
 
-      <section aria-labelledby="recap-actions-heading">
-        <h2 id="recap-actions-heading" class="mb-2 text-sm font-semibold uppercase opacity-70">
-          {gettext("What the team agreed")}
-        </h2>
-
+      <.panel id="recap-agreed" title={gettext("What the team agreed")}>
         <ul :if={@recap.actions != []} id="recap-actions" class="space-y-2">
           <.action_row :for={action <- @recap.actions} action={action} now={@now} />
         </ul>
 
-        <p :if={@recap.actions == []} id="recap-actions-empty" class="text-sm opacity-60">
-          {gettext("Nothing agreed yet.")}
-        </p>
-      </section>
+        <.empty_state
+          :if={@recap.actions == []}
+          id="recap-actions-empty"
+          pose="done"
+          title={gettext("Nothing agreed yet.")}
+        >
+          {gettext("Actions written during a retrospective appear here.")}
+        </.empty_state>
+      </.panel>
+
+      <%!--
+        Plain links rather than LiveView navigation: these are downloads, and
+        a socket cannot hand the browser a file (FR-701 to FR-703). They were
+        four bare anchors carrying `variant` and `size` attributes that mean
+        nothing to an `<a>` — invalid markup and no styling, which is what
+        happens when a button's attributes are copied onto something that is
+        not one.
+      --%>
+      <.panel id="recap-export" title={gettext("Take it with you")}>
+        <:subtitle>{gettext("The same recap, in a file.")}</:subtitle>
+
+        <div class="flex flex-wrap gap-2">
+          <.button href={~p"/sessions/#{@session}/export?format=markdown"} id="export-markdown">
+            {gettext("Markdown")}
+          </.button>
+          <.button
+            href={~p"/sessions/#{@session}/export?format=csv&of=cards"}
+            id="export-csv-cards"
+          >
+            {gettext("Cards CSV")}
+          </.button>
+          <.button
+            href={~p"/sessions/#{@session}/export?format=csv&of=actions"}
+            id="export-csv-actions"
+          >
+            {gettext("Actions CSV")}
+          </.button>
+          <.button href={~p"/sessions/#{@session}/export?format=json"} id="export-json">
+            {gettext("JSON")}
+          </.button>
+        </div>
+      </.panel>
     </Layouts.app>
     """
   end

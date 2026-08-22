@@ -103,6 +103,28 @@ defmodule SprintLensWeb.InsightsLiveTest do
              )
     end
 
+    # They were four bare anchors carrying `variant` and `size` — attributes a
+    # button component understands and an `<a>` does not. Invalid markup, and
+    # four unstyled links where four buttons were meant.
+    @tag req: ["FR-701", "FR-702", "FR-703"]
+    test "the exports are real links, styled like the buttons they look like", ctx do
+      {:ok, lv, _html} = live(ctx.participant_conn, ~p"/sessions/#{ctx.session}/recap")
+
+      for {id, query} <- [
+            {"export-markdown", "format=markdown"},
+            {"export-csv-cards", "format=csv&amp;of=cards"},
+            {"export-csv-actions", "format=csv&amp;of=actions"},
+            {"export-json", "format=json"}
+          ] do
+        link = lv |> element("##{id}") |> render()
+
+        assert link =~ "<a"
+        assert link =~ query
+        refute link =~ "variant="
+        refute link =~ "size="
+      end
+    end
+
     @tag req: ["FR-602"]
     test "a session that is still running has no recap", ctx do
       running = active_session(ctx.team, ctx.facilitator)
