@@ -20,7 +20,7 @@ defmodule SprintLensWeb.UserLive.Login do
             {gettext("Please sign in again to change your account settings.")}
           <% else %>
             {gettext("No account yet?")}
-            <.link navigate={~p"/users/register"} class="font-medium text-primary hover:underline">
+            <.link navigate={~p"/users/register"} class="font-medium text-link hover:underline">
               {gettext("Create one")}
             </.link>
           <% end %>
@@ -97,7 +97,7 @@ defmodule SprintLensWeb.UserLive.Login do
         <p class="pt-4 text-center text-label">
           <.link
             navigate={~p"/users/reset-password"}
-            class="font-medium text-primary hover:underline"
+            class="font-medium text-link hover:underline"
           >
             {gettext("Forgot your password?")}
           </.link>

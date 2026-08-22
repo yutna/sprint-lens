@@ -80,7 +80,15 @@ defmodule SprintLensWeb.HomeLive do
                 </span>
               </span>
               <.badge tone="primary">{gettext("In progress")}</.badge>
-              <span aria-hidden="true" class="text-label font-medium text-primary">
+              <%!--
+                A pill rather than coloured text: the whole card is the link,
+                so this cannot be a nested button, and it is the loudest thing
+                on the page — it should look like the action it is.
+              --%>
+              <span
+                aria-hidden="true"
+                class="rounded-control bg-primary px-3 py-1.5 text-label font-medium text-primary-content"
+              >
                 {gettext("Join")} &rarr;
               </span>
             </.link>

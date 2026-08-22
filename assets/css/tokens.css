@@ -53,6 +53,21 @@
    * daisyUI (FR-914). */
   --sl-focus-width: 2px;
   --sl-focus-offset: 2px;
+
+  /* The colour text is allowed to be when it is a link.
+   *
+   * Not `--color-primary`. A fill colour and a text colour are different
+   * jobs: the fill has to carry `primary-content` on top of it at 4.5:1,
+   * which forces it dark, and dark-on-dark is exactly what fails when the
+   * same value is used as text on a surface. In the dark theme
+   * `text-primary` measured 2.60:1 against `base-100` — a third of the way
+   * to the requirement — in six places including the sign-in page.
+   *
+   * So there are two tokens. This one is only ever text, it is checked
+   * against all three surfaces in both themes by
+   * `test/sprint_lens_web/contrast_test.exs`, and it is the same hue, so
+   * nothing about the product's colour changes except that you can read it. */
+  --sl-color-link: oklch(48% 0.2 340);
 }
 
 /* Reduced motion, handled once here rather than at every animation.
@@ -73,6 +88,7 @@
 /* The dark theme lifts its shadows: a shadow the same colour as the surface
  * behind it is not a shadow. */
 [data-theme="dark"] {
+  --sl-color-link: oklch(76% 0.14 340);
   --sl-shadow-resting: 0 1px 2px oklch(0% 0 0 / 0.3), 0 1px 3px oklch(0% 0 0 / 0.28);
   --sl-shadow-lifted: 0 2px 4px oklch(0% 0 0 / 0.28), 0 6px 16px oklch(0% 0 0 / 0.4);
   --sl-shadow-over: 0 4px 8px oklch(0% 0 0 / 0.32), 0 16px 40px oklch(0% 0 0 / 0.55);
@@ -90,6 +106,8 @@
   --radius-card: var(--sl-radius-card);
   --radius-panel: var(--sl-radius-panel);
   --radius-room: var(--sl-radius-room);
+
+  --color-link: var(--sl-color-link);
 
   --shadow-resting: var(--sl-shadow-resting);
   --shadow-lifted: var(--sl-shadow-lifted);

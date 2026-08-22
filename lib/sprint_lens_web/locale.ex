@@ -107,11 +107,20 @@ defmodule SprintLensWeb.Locale do
   Times are stored in UTC and rendered in the viewer's zone (section 11), so
   the caller passes the zone it wants; the default keeps UTC rather than
   silently guessing.
+
+  A medium date and a short time: "22 ส.ค. 2026 08:27". A medium *time* also
+  carries the seconds, and every place this is called is a due date, a closed
+  date or a scheduled slot — none of which happen on a particular second, and
+  all of which were reading as `08:27:22`.
   """
   @spec format_datetime(DateTime.t(), keyword()) :: String.t()
   def format_datetime(%DateTime{} = datetime, opts \\ []) do
     {zone, opts} = Keyword.pop(opts, :time_zone, "Etc/UTC")
-    opts = Keyword.put_new(opts, :format, :medium)
+
+    opts =
+      opts
+      |> Keyword.put_new(:date_format, :medium)
+      |> Keyword.put_new(:time_format, :short)
 
     datetime
     |> DateTime.shift_zone!(zone)

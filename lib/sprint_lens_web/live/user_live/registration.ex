@@ -28,7 +28,7 @@ defmodule SprintLensWeb.UserLive.Registration do
         <:title>{gettext("Create your account")}</:title>
         <:subtitle>
           {gettext("Already have an account?")}
-          <.link navigate={~p"/users/log-in"} class="font-medium text-primary hover:underline">
+          <.link navigate={~p"/users/log-in"} class="font-medium text-link hover:underline">
             {gettext("Log in")}
           </.link>
         </:subtitle>

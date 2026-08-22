@@ -36,16 +36,16 @@ defmodule SprintLensWeb.InsightsLive.Index do
     >
       <.header>
         {gettext("Insights")}
-        <:subtitle>{@team.name}</:subtitle>
+        <:subtitle>{gettext("How this team's retrospectives are going, over time.")}</:subtitle>
       </.header>
 
-      <p
+      <.empty_state
         :if={@metrics.session_count == 0}
         id="insights-empty"
-        class="rounded-box border border-base-300 p-6 text-center"
+        title={gettext("Nothing to show yet.")}
       >
         {gettext("Numbers appear once the team has finished a retrospective.")}
-      </p>
+      </.empty_state>
 
       <div :if={@metrics.session_count > 0} class="space-y-6">
         <.trend
@@ -77,40 +77,22 @@ defmodule SprintLensWeb.InsightsLive.Index do
           unit="%"
         />
 
-        <section
-          id="action-health"
-          aria-labelledby="action-health-heading"
-          class="rounded-box border border-base-300 p-3"
-        >
-          <h2 id="action-health-heading" class="text-sm font-semibold uppercase opacity-70">
-            {gettext("Actions")}
-          </h2>
-
-          <dl class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div>
-              <dt class="text-xs opacity-70">{gettext("Completed")}</dt>
-              <dd id="insight-completion" class="text-lg font-semibold">
-                {gettext("%{rate}%", rate: @metrics.actions.completion_rate)}
-              </dd>
-            </div>
-            <div>
-              <dt class="text-xs opacity-70">{gettext("Still open")}</dt>
-              <dd id="insight-open" class="text-lg font-semibold">{@metrics.actions.open_count}</dd>
-            </div>
-            <div>
-              <dt class="text-xs opacity-70">{gettext("Average age")}</dt>
-              <dd id="insight-age" class="text-lg font-semibold">
-                {@metrics.actions.average_age_days}
-              </dd>
-            </div>
-            <div>
-              <dt class="text-xs opacity-70">{gettext("Overdue")}</dt>
-              <dd id="insight-overdue" class="text-lg font-semibold">
-                {@metrics.actions.overdue_count}
-              </dd>
-            </div>
-          </dl>
-        </section>
+        <.panel id="action-health" title={gettext("Actions")}>
+          <.stats>
+            <.stat id="insight-completion" label={gettext("Completed")}>
+              {gettext("%{rate}%", rate: @metrics.actions.completion_rate)}
+            </.stat>
+            <.stat id="insight-open" label={gettext("Still open")}>
+              {@metrics.actions.open_count}
+            </.stat>
+            <.stat id="insight-age" label={gettext("Average age")}>
+              {@metrics.actions.average_age_days}
+            </.stat>
+            <.stat id="insight-overdue" label={gettext("Overdue")}>
+              {@metrics.actions.overdue_count}
+            </.stat>
+          </.stats>
+        </.panel>
       </div>
 
       <%!--
@@ -118,43 +100,25 @@ defmodule SprintLensWeb.InsightsLive.Index do
         what. The Org Admin's own team appears here as a row of numbers like
         any other, not as a board they can open.
       --%>
-      <section
-        :if={@org}
-        id="org-insights"
-        aria-labelledby="org-insights-heading"
-        class="rounded-box border border-base-300 p-3"
-      >
-        <h2 id="org-insights-heading" class="text-sm font-semibold uppercase opacity-70">
-          {gettext("Across the organisation")}
-        </h2>
+      <.panel :if={@org} id="org-insights" title={gettext("Across the organisation")}>
+        <:subtitle>{gettext("Aggregates only — no card text and nobody's name.")}</:subtitle>
 
-        <p class="mt-1 text-sm opacity-70">
-          {gettext("Aggregates only — no card text and nobody's name.")}
-        </p>
-
-        <div class="mt-2 overflow-x-auto">
-          <table class="table table-sm">
-            <thead>
-              <tr>
-                <th>{gettext("Team")}</th>
-                <th>{gettext("Retrospectives")}</th>
-                <th>{gettext("Mood")}</th>
-                <th>{gettext("Completed")}</th>
-                <th>{gettext("Still open")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr :for={row <- @org.teams} id={"org-team-#{row.team_id}"}>
-                <td>{row.team_name}</td>
-                <td>{row.session_count}</td>
-                <td>{row.mood_average || "—"}</td>
-                <td>{gettext("%{rate}%", rate: row.action_completion_rate)}</td>
-                <td>{row.open_actions}</td>
-              </tr>
-            </tbody>
-          </table>
+        <%!--
+          The wrapper is what scrolls, not the page: five columns of numbers
+          do not fit across a phone and FR-905 is about the document.
+        --%>
+        <div class="overflow-x-auto rounded-panel border border-base-200 bg-base-100 px-4">
+          <.table id="org-teams" rows={@org.teams} row_id={&"org-team-#{&1.team_id}"}>
+            <:col :let={row} label={gettext("Team")}>{row.team_name}</:col>
+            <:col :let={row} label={gettext("Retrospectives")}>{row.session_count}</:col>
+            <:col :let={row} label={gettext("Mood")}>{row.mood_average || "—"}</:col>
+            <:col :let={row} label={gettext("Completed")}>
+              {gettext("%{rate}%", rate: row.action_completion_rate)}
+            </:col>
+            <:col :let={row} label={gettext("Still open")}>{row.open_actions}</:col>
+          </.table>
         </div>
-      </section>
+      </.panel>
     </Layouts.app>
     """
   end
@@ -170,30 +134,35 @@ defmodule SprintLensWeb.InsightsLive.Index do
 
   def trend(assigns) do
     ~H"""
-    <section
-      id={@id}
-      aria-labelledby={"#{@id}-heading"}
-      class="rounded-box border border-base-300 p-3"
-    >
-      <h2 id={"#{@id}-heading"} class="text-sm font-semibold uppercase opacity-70">{@title}</h2>
+    <.panel id={@id} title={@title}>
+      <%!--
+        Each bar sits in a track of the full height, so a low number reads as
+        low rather than as a missing bar, and the baseline is the same across
+        all four charts on the page.
 
-      <ol class="mt-2 flex items-end gap-1">
+        A fixed bar width rather than a share of the row: a team with one
+        finished retrospective was getting a single bar stretched across the
+        whole page, which reads as a rule under a heading rather than as a
+        measurement. Many of them scroll the strip instead of thinning it
+        past the point where the number above stops fitting.
+      --%>
+      <ol class="flex items-end gap-2 overflow-x-auto rounded-panel border border-base-200 bg-base-100 p-4">
         <li
           :for={point <- @points}
           id={"#{@id}-#{point.session_id}"}
-          class="flex min-w-0 flex-1 flex-col items-center gap-1"
+          class="flex w-14 shrink-0 flex-col items-center gap-1"
           title={point.title}
         >
-          <span class="text-xs">{label(point.value, @unit)}</span>
-          <div
-            class="w-full rounded-t bg-primary"
-            style={"height: #{height(point.value, @max)}px"}
-            aria-hidden="true"
-          >
-          </div>
+          <span class="text-caption tabular-nums">{label(point.value, @unit)}</span>
+          <span class="flex h-15 w-full items-end rounded-t-sm bg-base-200" aria-hidden="true">
+            <span
+              class="w-full rounded-t-sm bg-primary"
+              style={"height: #{height(point.value, @max)}px"}
+            ></span>
+          </span>
         </li>
       </ol>
-    </section>
+    </.panel>
     """
   end
 

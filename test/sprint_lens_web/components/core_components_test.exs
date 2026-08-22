@@ -368,6 +368,41 @@ defmodule SprintLensWeb.CoreComponentsTest do
     end
   end
 
+  describe "stat/1 and stats/1" do
+    # Written out by hand in two places before this, with the same four
+    # utilities both times. A number and its label are a pair, and a pair of
+    # that kind is a definition list.
+    @tag req: ["FR-918"]
+    test "pairs a number with the question it answers" do
+      html =
+        render_component(&stat/1, %{id: "stat-open", label: "Still open", inner_block: inner("4")})
+
+      assert html =~ "<dt"
+      assert html =~ ~s(<dd id="stat-open")
+      assert html =~ "Still open"
+      assert html =~ "4"
+    end
+
+    # Two screens show four numbers each and they are not the same four, so
+    # the id is the caller's to choose.
+    @tag req: ["FR-918"]
+    test "takes its id from the caller, since two screens count different things" do
+      html =
+        render_component(&stat/1, %{
+          id: "insight-overdue",
+          label: "Overdue",
+          inner_block: inner("0")
+        })
+
+      assert html =~ ~s(id="insight-overdue")
+    end
+
+    @tag req: ["FR-918"]
+    test "and a row of them is the list they belong to" do
+      assert render_component(&stats/1, %{inner_block: inner("x")}) =~ "<dl"
+    end
+  end
+
   describe "empty_state/1" do
     @tag req: ["FR-917"]
     test "says what would be here rather than leaving a gap" do

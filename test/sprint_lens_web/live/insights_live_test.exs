@@ -221,14 +221,19 @@ defmodule SprintLensWeb.InsightsLiveTest do
       assert has_element?(lv, "#archive-empty")
     end
 
+    # It leads to the recap because it is in the archive rather than in the
+    # list of open rooms: a finished retrospective is read, not joined. The
+    # two lists are disjoint, which is also what stops it appearing twice.
     @tag req: ["FR-602"]
-    test "a closed session in the list leads to its recap, not its board", ctx do
+    test "a closed session leads to its recap, not its board", ctx do
       %{session: closed} = played(ctx)
 
       {:ok, lv, _html} = live(ctx.conn, ~p"/teams/#{ctx.team}/sessions")
 
+      refute has_element?(lv, "#session-#{closed.id}")
+
       assert lv
-             |> element("#session-#{closed.id} a")
+             |> element("#archive-#{closed.id} a")
              |> render()
              |> String.contains?("/sessions/#{closed.id}/recap")
     end

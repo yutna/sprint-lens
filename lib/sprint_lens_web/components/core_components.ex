@@ -552,6 +552,43 @@ defmodule SprintLensWeb.CoreComponents do
   end
 
   @doc """
+  One number, with the question it answers.
+
+  Written out by hand in two places — the action list's summary and the
+  insights page's action health — with the same four utilities and the same
+  `dl`/`dt`/`dd` shape both times. A number needs its label to be readable as
+  a pair, and a pair is a definition list.
+
+  ## Examples
+
+      <.stat id="stat-open" label={gettext("Still open")}>{@stats.open_count}</.stat>
+  """
+  attr :id, :string, required: true
+  attr :label, :string, required: true
+  slot :inner_block, required: true
+
+  def stat(assigns) do
+    ~H"""
+    <div class="rounded-card border border-base-200 px-3 py-2.5">
+      <dt class="text-caption text-base-content/70">{@label}</dt>
+      <dd id={@id} class="text-heading font-semibold tabular-nums">{render_slot(@inner_block)}</dd>
+    </div>
+    """
+  end
+
+  @doc """
+  A row of numbers that answer the same kind of question.
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def stats(assigns) do
+    ~H"""
+    <dl class={["grid grid-cols-2 gap-2 sm:grid-cols-4", @class]}>{render_slot(@inner_block)}</dl>
+    """
+  end
+
+  @doc """
   What a region shows when there is nothing in it yet (FR-917).
 
   An empty region is the most common state a new team sees and the least

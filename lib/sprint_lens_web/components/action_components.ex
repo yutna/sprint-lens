@@ -82,8 +82,16 @@ defmodule SprintLensWeb.ActionComponents do
             {if @action.assignee, do: @action.assignee.display_name, else: gettext("Unassigned")}
           </span>
 
+          <%!--
+            A date, not a datetime. The field is filled by a `type="date"`
+            input, so whatever time of day is stored with it is an artefact of
+            how it got there — and "due 19 Aug 2026 08:27" invites someone to
+            believe the 08:27 means something.
+          --%>
           <span :if={@action.due_date} id={"action-due-#{@action.id}"}>
-            {gettext("due %{date}", date: SprintLensWeb.Locale.format_datetime(@action.due_date))}
+            {gettext("due %{date}",
+              date: SprintLensWeb.Locale.format_date(DateTime.to_date(@action.due_date))
+            )}
           </span>
 
           <%!--
